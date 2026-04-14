@@ -5,26 +5,9 @@ import { posts, postTags, tags } from "@/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
-import { extractImageUrls } from "@/lib/markdown";
+import { extractImageUrls, getOrphanedImages } from "@/lib/markdown";
 import { deleteImages } from "@/lib/minio";
 import { translateToEnglish, translateTitle } from "@/lib/translate";
-
-export function getOrphanedImages(
-  oldContent: string,
-  newContent: string,
-  oldThumbnail: string | null,
-  newThumbnail: string | null
-): string[] {
-  const oldUrls = new Set([
-    ...extractImageUrls(oldContent),
-    ...(oldThumbnail ? [oldThumbnail] : []),
-  ]);
-  const newUrls = new Set([
-    ...extractImageUrls(newContent),
-    ...(newThumbnail ? [newThumbnail] : []),
-  ]);
-  return [...oldUrls].filter((url) => !newUrls.has(url));
-}
 
 export async function getPosts(options?: {
   published?: boolean;

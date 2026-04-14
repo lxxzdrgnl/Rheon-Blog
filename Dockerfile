@@ -1,4 +1,5 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 FROM base AS dev
 WORKDIR /app
@@ -14,7 +15,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM base AS production
+FROM node:20-slim AS production
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/.next/standalone ./

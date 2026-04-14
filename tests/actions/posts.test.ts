@@ -1,10 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-
-vi.mock("@/db", () => ({ db: {} }));
-vi.mock("@/lib/minio", () => ({ deleteImages: vi.fn() }));
-vi.mock("@/lib/translate", () => ({ translateToEnglish: vi.fn(), translateTitle: vi.fn() }));
-
-import { getOrphanedImages } from "@/actions/posts";
+import { describe, it, expect } from "vitest";
+import { getOrphanedImages } from "@/lib/markdown";
 
 describe("getOrphanedImages", () => {
   it("should detect removed images", () => {
