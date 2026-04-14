@@ -2,12 +2,12 @@
 
 import { db } from "@/db";
 import { posts, postTags, tags } from "@/db/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { extractImageUrls, getOrphanedImages } from "@/lib/markdown";
 import { deleteImages } from "@/lib/minio";
-import { translateToEnglish, translateTitle } from "@/lib/translate";
+import { translateToEnglish, translateTitle, translatePartial } from "@/lib/translate";
 
 export async function getPosts(options?: {
   published?: boolean;
@@ -20,6 +20,10 @@ export async function getPosts(options?: {
   const conditions = [];
   if (options?.published !== undefined) {
     conditions.push(eq(posts.isPublished, options.published));
+    // 공개 글 조회 시 비공개 제외
+    if (options.published) {
+      conditions.push(eq(posts.isPrivate, false));
+    }
   }
   if (options?.categoryId) {
     conditions.push(eq(posts.categoryId, options.categoryId));
@@ -36,6 +40,23 @@ export async function getPosts(options?: {
   }
 
   return query.all();
+}
+
+export async function getPostStats() {
+  const result = db
+    .select({
+      total: sql<number>`COUNT(*)`,
+      published: sql<number>`SUM(CASE WHEN is_published = 1 AND is_private = 0 THEN 1 ELSE 0 END)`,
+      drafts: sql<number>`SUM(CASE WHEN is_published = 0 THEN 1 ELSE 0 END)`,
+      totalViews: sql<number>`COALESCE(SUM(view_count), 0)`,
+    })
+    .from(posts)
+    .get();
+  return {
+    published: result?.published ?? 0,
+    drafts: result?.drafts ?? 0,
+    totalViews: result?.totalViews ?? 0,
+  };
 }
 
 export async function getPostBySlug(slug: string) {
@@ -55,15 +76,44 @@ export async function getPostTags(postId: number) {
     .all();
 }
 
+export async function getAllPostTags(): Promise<Record<number, { name: string; nameEn: string }[]>> {
+  const all = db
+    .select({ postId: postTags.postId, name: tags.name, nameEn: tags.nameEn })
+    .from(postTags)
+    .innerJoin(tags, eq(postTags.tagId, tags.id))
+    .all();
+
+  const map: Record<number, { name: string; nameEn: string }[]> = {};
+  for (const row of all) {
+    if (!map[row.postId]) map[row.postId] = [];
+    map[row.postId].push({ name: row.name, nameEn: row.nameEn });
+  }
+  return map;
+}
+
 export async function savePost(formData: FormData) {
   const id = formData.get("id") ? Number(formData.get("id")) : null;
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
   const categoryId = Number(formData.get("categoryId"));
   const thumbnail = (formData.get("thumbnail") as string) || null;
-  const slug = (formData.get("slug") as string) || generateSlug(title);
+  let slug = (formData.get("slug") as string) || generateSlug(title);
   const tagIds = JSON.parse((formData.get("tagIds") as string) || "[]") as number[];
   const publish = formData.get("publish") === "true";
+  const isPrivate = formData.get("isPrivate") === "true";
+
+  // Ensure unique slug in a single query
+  const existingSlugs = db
+    .select({ slug: posts.slug, id: posts.id })
+    .from(posts)
+    .where(like(posts.slug, `${slug}%`))
+    .all();
+  const takenSlugs = new Set(existingSlugs.filter((e) => !(id && e.id === id)).map((e) => e.slug));
+  if (takenSlugs.has(slug)) {
+    let counter = 1;
+    while (takenSlugs.has(`${slug}-${counter}`)) counter++;
+    slug = `${slug}-${counter}`;
+  }
 
   let postId: number;
 
@@ -80,6 +130,8 @@ export async function savePost(formData: FormData) {
       .set({
         title, content, categoryId, thumbnail, slug,
         isPublished: publish ? true : undefined,
+        isPrivate: publish ? isPrivate : undefined,
+        publishedAt: publish && !existing?.publishedAt ? sql`datetime('now')` : undefined,
         updatedAt: sql`datetime('now')`,
       })
       .where(eq(posts.id, id))
@@ -88,20 +140,26 @@ export async function savePost(formData: FormData) {
   } else {
     const result = db
       .insert(posts)
-      .values({ title, content, categoryId, thumbnail, slug, isPublished: publish })
+      .values({
+        title, content, categoryId, thumbnail, slug,
+        isPublished: publish,
+        isPrivate: publish ? isPrivate : false,
+        publishedAt: publish ? sql`datetime('now')` : undefined,
+      })
       .returning()
       .get();
     postId = result.id;
   }
 
   db.delete(postTags).where(eq(postTags.postId, postId)).run();
-  for (const tagId of tagIds) {
-    db.insert(postTags).values({ postId, tagId }).run();
+  if (tagIds.length > 0) {
+    db.insert(postTags).values(tagIds.map((tagId) => ({ postId, tagId }))).run();
   }
 
-  if (publish) {
-    const titleEn = await translateTitle(title);
-    const contentEn = await translateToEnglish(content);
+  // 번역 데이터가 함께 전달된 경우 저장
+  const titleEn = formData.get("titleEn") as string | null;
+  const contentEn = formData.get("contentEn") as string | null;
+  if (titleEn && contentEn) {
     db.update(posts)
       .set({ titleEn, contentEn })
       .where(eq(posts.id, postId))
@@ -113,6 +171,29 @@ export async function savePost(formData: FormData) {
   revalidatePath("/my");
 
   return { postId, slug };
+}
+
+export async function translatePost(
+  fields: { title?: string; content?: string },
+): Promise<{ titleEn?: string; contentEn?: string }> {
+  const result: { titleEn?: string; contentEn?: string } = {};
+  const tasks: { key: keyof typeof result; promise: Promise<string> }[] = [];
+
+  if (fields.title) tasks.push({ key: "titleEn", promise: translateTitle(fields.title) });
+  if (fields.content?.trim()) tasks.push({ key: "contentEn", promise: translateToEnglish(fields.content) });
+
+  const results = await Promise.all(tasks.map((t) => t.promise));
+  tasks.forEach((t, i) => { result[t.key] = results[i]; });
+
+  return result;
+}
+
+export async function translateSelection(
+  koreanContent: string,
+  selectedKorean: string,
+  existingEnglish: string,
+): Promise<string> {
+  return translatePartial(koreanContent, selectedKorean, existingEnglish);
 }
 
 export async function updateTranslation(formData: FormData) {

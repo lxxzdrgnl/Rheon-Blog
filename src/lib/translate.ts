@@ -20,6 +20,33 @@ export async function translateToEnglish(text: string): Promise<string> {
   return response.choices[0].message.content || text;
 }
 
+export async function translatePartial(
+  koreanContent: string,
+  selectedKorean: string,
+  existingEnglish: string,
+): Promise<string> {
+  // 선택 부분 주변 한국어 문맥 추출 (짧게)
+  const idx = koreanContent.indexOf(selectedKorean);
+  const before = koreanContent.slice(Math.max(0, idx - 150), idx);
+  const after = koreanContent.slice(idx + selectedKorean.length, idx + selectedKorean.length + 150);
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content:
+          "Translate ONLY the Korean text between >>> and <<< to English. " +
+          "Surrounding text is context only. Preserve markdown. " +
+          "Return ONLY the translation, no markers, no explanation.",
+      },
+      { role: "user", content: `${before}>>>${selectedKorean}<<<${after}` },
+    ],
+  });
+
+  return (response.choices[0].message.content || selectedKorean).trim();
+}
+
 export async function translateTitle(title: string): Promise<string> {
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
