@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "categories": "Categories",
+    "tags": "Tags"
+  },
+  "hero": {
+    "allPosts": "All Posts",
+    "latestPosts": "Latest Posts"
+  },
+  "post": {
+    "viewCount": "Views",
+    "publishedAt": "Published",
+    "tableOfContents": "Table of Contents"
+  },
+  "comment": {
+    "title": "Comments",
+    "nickname": "Nickname",
+    "password": "Password",
+    "content": "Content",
+    "submit": "Submit",
+    "reply": "Reply",
+    "delete": "Delete",
+    "deleted": "This comment has been deleted.",
+    "confirmDelete": "Enter password"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "noResults": "No results found."
+  },
+  "common": {
+    "readMore": "Read more"
+  }
+}
