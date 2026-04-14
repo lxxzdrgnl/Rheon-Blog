@@ -20,6 +20,7 @@
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.9.0",
     "drizzle-orm": "^0.45.2",
+    "jose": "^6.2.2",
     "jsonwebtoken": "^9.0.3",
     "next": "16.2.3",
     "next-intl": "^4.9.1",
