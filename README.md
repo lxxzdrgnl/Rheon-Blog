@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personal Blog
+
+Next.js 기반 이중언어(한/영) 블로그 플랫폼. 포트폴리오 쇼케이스, 마크다운 에디터, AI 번역 기능 포함.
+
+## Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| Framework | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS, Pretendard + Newsreader |
+| Database | SQLite (better-sqlite3), Drizzle ORM |
+| Storage | MinIO (S3-compatible) |
+| Editor | CodeMirror 6, react-markdown |
+| Auth | JWT (access/refresh), bcryptjs |
+| AI | OpenAI GPT-4o-mini (번역) |
+
+## Features
+
+### Blog
+- 마크다운 에디터 (드래그 앤 드롭 이미지, 실시간 프리뷰)
+- 계층형 카테고리 & 태그
+- 게시 상태 관리 (공개/비공개/임시저장)
+- 조회수 추적, 댓글 (비밀번호 삭제)
+- 검색, 목차 자동 생성
+- shields.io 뱃지 인라인 렌더링
+
+### Portfolio
+- 프로젝트 카드 목록 & 상세 페이지
+- 링크 뱃지별 그룹화 (Repository, Demo/Live, 기타)
+- 기술 스택 표시, 관련 포스트 연결
+
+### i18n & Translation
+- 한국어/영어 이중언어 지원
+- AI 전체 번역 (제목 + 본문)
+- 드래그 선택 부분 번역 (문맥 기반)
+
+### Admin
+- JWT 인증 (`/my/login`)
+- 포스트/프로젝트 CRUD
+- 이미지 업로드 (MinIO)
+- Slug 자동 생성 (20자 제한, 편집 시 잠금)
+- 다크/라이트 테마
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- Docker & Docker Compose (MinIO용)
+
+### Development
 
 ```bash
+# 의존성 설치
+npm install
+
+# Docker로 MinIO + 앱 실행
+docker-compose up
+
+# 또는 로컬 개발
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Database
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run db:generate   # 마이그레이션 생성
+npm run db:push       # 마이그레이션 적용
+npm run db:seed       # 초기 데이터
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Environment Variables
 
-## Learn More
+`.env.example`을 참고하여 `.env.local` 생성:
 
-To learn more about Next.js, take a look at the following resources:
+```
+ADMIN_ID=admin
+ADMIN_PASSWORD=your-password
+JWT_SECRET=min-32-chars-random-string
+JWT_REFRESH_SECRET=min-32-chars-random-string
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+MINIO_ENDPOINT=minio
+MINIO_PUBLIC_ENDPOINT=localhost
+MINIO_PORT=9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=blog
+MINIO_USE_SSL=false
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+OPENAI_API_KEY=sk-xxx
+DATABASE_PATH=./data/blog.db
+```
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Docker 멀티스테이지 빌드:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Production
+docker-compose up --build
+```
+
+- App: `http://localhost:3000`
+- MinIO Console: `http://localhost:9001`
+
+## Project Structure
+
+```
+src/
+  actions/      # Server actions (posts, auth, categories, portfolios)
+  app/          # Next.js App Router pages
+    my/         # Admin pages (dashboard, editor, settings)
+    post/       # Post detail
+    posts/      # Post listing
+    projects/   # Portfolio pages
+  components/
+    admin/      # Editor, category select, tag input, etc.
+    blog/       # PostCard, PostGrid, MarkdownRenderer, etc.
+    layout/     # Header, Footer, MobileMenu
+    ui/         # Button, Card, SearchBar, ThemeToggle
+  db/           # Drizzle schema
+  i18n/         # Messages (ko/en), provider
+  lib/          # Auth, markdown, minio, translate, upload
+```
