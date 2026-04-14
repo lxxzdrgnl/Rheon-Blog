@@ -17,16 +17,18 @@ interface SlugInputProps {
   title: string;
   value: string;
   onChange: (slug: string) => void;
+  locked?: boolean;
 }
 
-export function SlugInput({ title, value, onChange }: SlugInputProps) {
-  const [manual, setManual] = useState(false);
+export function SlugInput({ title, value, onChange, locked }: SlugInputProps) {
+  const [manual, setManual] = useState(!!locked);
 
   useEffect(() => {
-    if (!manual && title) {
-      onChange(clientSlug(title));
+    if (!manual && !locked && title) {
+      const slug = clientSlug(title);
+      onChange(slug.slice(0, 20).replace(/-$/, ""));
     }
-  }, [title, manual, onChange]);
+  }, [title, manual, locked, onChange]);
 
   return (
     <div className="flex items-center gap-2">
