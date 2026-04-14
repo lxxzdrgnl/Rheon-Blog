@@ -9,6 +9,7 @@ interface Post {
   createdAt: string;
   categoryName: string;
   categoryNameEn: string;
+  tags?: { name: string; nameEn: string }[];
 }
 
 export function PostGrid({ posts }: { posts: Post[] }) {

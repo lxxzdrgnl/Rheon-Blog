@@ -8,9 +8,9 @@ export function LanguageToggle() {
   return (
     <button
       onClick={() => setLocale(locale === "ko" ? "en" : "ko")}
-      className="px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-bg-card transition-colors text-text-secondary"
+      className="px-2 py-1 rounded-md text-xs font-medium hover:bg-bg-elevated transition-colors text-text-tertiary hover:text-text-primary tracking-wide"
     >
-      {locale === "ko" ? "EN" : "한"}
+      {locale === "ko" ? "KR" : "EN"}
     </button>
   );
 }

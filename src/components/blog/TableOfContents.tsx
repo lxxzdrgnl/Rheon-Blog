@@ -35,7 +35,7 @@ export function TableOfContents() {
   if (headings.length === 0) return null;
 
   return (
-    <nav className="hidden xl:block sticky top-24 w-60 ml-8 shrink-0">
+    <nav className="hidden xl:block fixed top-24 w-52" style={{ left: "calc(50% + var(--max-width-prose)/2 + 2rem)" }}>
       <p className="text-sm font-bold mb-3">{t("post.tableOfContents")}</p>
       <ul className="space-y-1.5 text-sm">
         {headings.map((heading) => (
