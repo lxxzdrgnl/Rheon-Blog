@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1776132608820,
+      "tag": "0000_flippant_pepper_potts",
+      "breakpoints": true
+    }
+  ]
+}
