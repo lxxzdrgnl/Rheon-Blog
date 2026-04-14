@@ -1,0 +1,9 @@
+services:
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY:-my-blog}:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    env_file: .env.production
+    restart: unless-stopped
