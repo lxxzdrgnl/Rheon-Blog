@@ -1,0 +1,238 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&display=swap');
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-border: var(--border-color);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --max-width-content: 1100px;
+  --max-width-prose: 720px;
+
+  --spacing-page-x: 2rem;
+  --spacing-page-x-md: 4rem;
+
+  --font-family-sans: "Pretendard Variable", "Pretendard", "-apple-system",
+    "BlinkMacSystemFont", "system-ui", sans-serif;
+  --font-family-serif: "Newsreader", "Georgia", serif;
+
+  --font-size-xs: 0.825rem;
+  --font-size-sm: 0.9625rem;
+  --font-size-base: 1.1rem;
+  --font-size-lg: 1.2375rem;
+  --font-size-xl: 1.375rem;
+  --font-size-2xl: 1.65rem;
+  --font-size-3xl: 2.0625rem;
+  --font-size-4xl: 2.475rem;
+}
+
+:root {
+  --bg-primary: #fbfdfb;
+  --bg-card: #f4f7f5;
+  --bg-elevated: #edf1ef;
+  --text-primary: #1a1f1d;
+  --text-secondary: #6b7572;
+  --text-tertiary: #9ca8a4;
+  --border-color: #dbe3e0;
+  --accent: #2a9d6e;
+  --accent-soft: #ecfdf5;
+}
+
+.dark {
+  --bg-primary: #101414;
+  --bg-card: #181d1c;
+  --bg-elevated: #212625;
+  --text-primary: #e8eceb;
+  --text-secondary: #8f9694;
+  --text-tertiary: #4d5553;
+  --border-color: #2d3432;
+  --accent: #5eba97;
+  --accent-soft: #122420;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-feature-settings: "ss01", "ss02";
+}
+
+/* ─── Page container utility ─── */
+.page-container {
+  max-width: var(--max-width-content);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-page-x);
+  padding-right: var(--spacing-page-x);
+}
+@media (min-width: 768px) {
+  .page-container {
+    padding-left: var(--spacing-page-x-md);
+    padding-right: var(--spacing-page-x-md);
+  }
+}
+.page-editor {
+  max-width: calc(var(--max-width-prose) * 2 + 2rem);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-page-x);
+  padding-right: var(--spacing-page-x);
+}
+@media (min-width: 768px) {
+  .page-editor {
+    padding-left: var(--spacing-page-x-md);
+    padding-right: var(--spacing-page-x-md);
+  }
+}
+.page-wide {
+  padding-left: var(--spacing-page-x);
+  padding-right: var(--spacing-page-x);
+}
+@media (min-width: 768px) {
+  .page-wide {
+    padding-left: var(--spacing-page-x-md);
+    padding-right: var(--spacing-page-x-md);
+  }
+}
+
+::selection {
+  background-color: var(--accent);
+  color: #ffffff;
+}
+
+/* Scroll bar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+/* ─── Prose / Markdown ─── */
+.prose {
+  color: var(--text-primary);
+  line-height: 1.8;
+  font-size: 1.0625rem;
+}
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  color: var(--text-primary);
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.prose h1 { font-size: 2em; margin-top: 2em; margin-bottom: 0.75em; }
+.prose h2 { font-size: 1.5em; margin-top: 1.75em; margin-bottom: 0.5em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border-color); }
+.prose h3 { font-size: 1.25em; margin-top: 1.5em; margin-bottom: 0.4em; }
+.prose p, .prose li, .prose td, .prose th { color: var(--text-primary); }
+.prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: text-decoration-color 0.2s;
+}
+.prose a:hover { text-decoration-color: var(--accent); }
+.prose strong { color: var(--text-primary); font-weight: 600; }
+.prose blockquote {
+  color: var(--text-secondary);
+  border-left: 3px solid var(--accent);
+  padding-left: 1.25em;
+  font-style: normal;
+}
+.prose code {
+  color: var(--text-primary);
+  background-color: var(--bg-elevated);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+.prose pre {
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+.prose hr {
+  border-color: var(--border-color);
+  margin: 2.5em 0;
+}
+.prose img {
+  border-radius: 8px;
+  max-width: 100%;
+  height: auto;
+}
+.prose img.inline-block {
+  display: inline-block;
+  margin: 0;
+  border-radius: 4px;
+}
+.prose img[width] {
+  width: attr(width px);
+  max-width: 100%;
+}
+.prose table {
+  font-size: 0.9em;
+}
+.prose th {
+  font-weight: 600;
+  border-bottom: 2px solid var(--border-color);
+}
+.prose td {
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* ─── Transitions ─── */
+a, button {
+  transition: all 0.15s ease;
+}
+
+/* ─── Card hover lift ─── */
+.card-hover {
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px -8px rgba(0,0,0,0.1), 0 4px 8px -4px rgba(0,0,0,0.04);
+}
+.dark .card-hover:hover {
+  box-shadow: 0 12px 32px -8px rgba(0,0,0,0.6), 0 0 0 1px var(--border-color);
+}
+
+/* ─── Fade-in animation ─── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeInUp 0.5s ease forwards;
+}
+.animate-delay-1 { animation-delay: 0.1s; opacity: 0; }
+.animate-delay-2 { animation-delay: 0.2s; opacity: 0; }
+.animate-delay-3 { animation-delay: 0.3s; opacity: 0; }
