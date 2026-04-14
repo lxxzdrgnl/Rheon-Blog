@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getPostBySlug, getPostTags, incrementViewCount } from "@/actions/posts";
+import { getPostBySlug, getPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getSetting } from "@/actions/settings";
 import { PostDetailClient } from "./client";
@@ -21,9 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostPage({ params }: Props) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  if (!post || !post.isPublished) notFound();
-
-  await incrementViewCount(slug);
+  if (!post || !post.isPublished || post.isPrivate) notFound();
 
   const [postTags, categories, showViewCount] = await Promise.all([
     getPostTags(post.id),

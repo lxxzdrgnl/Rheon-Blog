@@ -21,7 +21,7 @@ export default async function CategoryPage({ params }: Props) {
   }));
 
   return (
-    <div className="max-w-content mx-auto px-6 py-10 space-y-8">
+    <div className="page-container py-10 space-y-8">
       <h1 className="text-2xl font-bold">{category.name}</h1>
       <FilterBar categories={allCategories} tags={allTags} />
       <PostGrid posts={postsWithCategory} />

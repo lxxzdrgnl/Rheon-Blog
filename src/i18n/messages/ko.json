@@ -1,6 +1,8 @@
 {
   "nav": {
     "home": "홈",
+    "posts": "포스트",
+    "projects": "프로젝트",
     "search": "검색",
     "categories": "카테고리",
     "tags": "태그"

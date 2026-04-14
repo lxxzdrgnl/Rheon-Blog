@@ -1,6 +1,7 @@
 "use client";
 
-import { useI18n } from "@/i18n/provider";
+import { useEffect } from "react";
+import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { CommentSection } from "@/components/blog/CommentSection";
@@ -19,38 +20,69 @@ interface PostDetailClientProps {
 
 export function PostDetailClient({ post, postTags, category, showViewCount }: PostDetailClientProps) {
   const { locale, t } = useI18n();
-  const title = locale === "en" && post.titleEn ? post.titleEn : post.title;
-  const content = locale === "en" && post.contentEn ? post.contentEn : post.content;
-  const catName = locale === "en" ? category?.nameEn : category?.name;
+  const localized = useLocalized();
+
+  useEffect(() => {
+    fetch(`/api/view/${post.slug}`, { method: "POST" }).catch(() => {});
+  }, [post.slug]);
+
+  const title = localized(post.title, post.titleEn);
+  const content = localized(post.content, post.contentEn);
+  const catName = category ? localized(category.name, category.nameEn) : null;
 
   return (
-    <div className="max-w-content mx-auto px-6 py-10">
-      <header className="max-w-prose mx-auto mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold leading-tight">{title}</h1>
-        <div className="flex items-center gap-3 mt-4 text-sm text-text-secondary">
-          {category && (
-            <Link href={`/category/${category.slug}`} className="px-3 py-1 bg-bg-card rounded-full hover:text-text-primary">{catName}</Link>
-          )}
-          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-          {showViewCount && <span>{t("post.viewCount")} {post.viewCount}</span>}
-        </div>
-        {postTags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {postTags.map((tag) => (
-              <span key={tag.id} className="text-xs text-accent">#{locale === "en" ? tag.nameEn : tag.name}</span>
-            ))}
+    <div className="page-container py-16 relative">
+      <div className="max-w-prose mx-auto">
+        {/* Header */}
+        <header className="mb-12 animate-fade-in">
+          <h1 className="text-2xl md:text-4xl font-bold leading-[1.15] tracking-tight">
+            {title}
+          </h1>
+          <div className="flex items-center gap-3 mt-6 text-sm text-text-secondary">
+            {category && (
+              <Link href={`/category/${category.slug}`} className="hover:text-text-primary transition-colors">
+                {catName}
+              </Link>
+            )}
+            {category && <span className="w-px h-3 bg-border" />}
+            <span>
+              {new Date(post.createdAt).toLocaleDateString("ko-KR", {
+                year: "numeric", month: "long", day: "numeric",
+              })}
+            </span>
+            {showViewCount && (
+              <>
+                <span className="w-px h-3 bg-border" />
+                <span>{t("post.viewCount")} {post.viewCount.toLocaleString()}</span>
+              </>
+            )}
           </div>
-        )}
-      </header>
-      <div className="flex justify-center">
-        <article className="max-w-prose w-full">
+          {postTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {postTags.map((tag) => (
+                <span key={tag.id} className="text-xs text-text-tertiary">
+                  #{localized(tag.name, tag.nameEn)}
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="mt-8 h-px bg-border" />
+        </header>
+
+        {/* Content */}
+        <article className="animate-fade-in animate-delay-1">
           <MarkdownRenderer content={content} />
         </article>
-        <TableOfContents />
+
+        {/* Comments */}
+        <div className="mt-20">
+          <div className="h-px bg-border mb-12" />
+          <CommentSection postId={post.id} slug={post.slug} />
+        </div>
       </div>
-      <div className="max-w-prose mx-auto mt-16">
-        <CommentSection postId={post.id} slug={post.slug} />
-      </div>
+
+      {/* TOC - absolute positioned to the right */}
+      <TableOfContents />
     </div>
   );
 }

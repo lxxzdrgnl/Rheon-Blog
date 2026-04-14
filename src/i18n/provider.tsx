@@ -51,3 +51,14 @@ export function useI18n() {
   if (!ctx) throw new Error("useI18n must be used within I18nProvider");
   return ctx;
 }
+
+/**
+ * 로케일에 따라 한국어/영어 값을 선택하는 헬퍼.
+ * 영어 값이 없으면 한국어로 폴백.
+ */
+export function useLocalized() {
+  const { locale } = useI18n();
+  return function localized<T>(ko: T, en: T | null | undefined): T {
+    return locale === "en" && en ? en : ko;
+  };
+}

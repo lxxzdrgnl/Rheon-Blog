@@ -1,6 +1,8 @@
 {
   "nav": {
     "home": "Home",
+    "posts": "Posts",
+    "projects": "Projects",
     "search": "Search",
     "categories": "Categories",
     "tags": "Tags"

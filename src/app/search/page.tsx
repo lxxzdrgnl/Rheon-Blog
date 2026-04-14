@@ -16,7 +16,7 @@ export default async function SearchPage({ searchParams }: Props) {
   });
 
   return (
-    <div className="max-w-content mx-auto px-6 py-10 space-y-8">
+    <div className="page-container py-10 space-y-8">
       <h1 className="text-2xl font-bold">검색</h1>
       <div className="max-w-md">
         <SearchBar />

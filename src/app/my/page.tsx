@@ -1,63 +1,110 @@
 import Link from "next/link";
-import { getPosts } from "@/actions/posts";
+import { getPosts, getPostStats } from "@/actions/posts";
+import { getPortfolios } from "@/actions/portfolios";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { PostTable } from "@/components/admin/PostTable";
 
 export default async function DashboardPage() {
-  const allPosts = await getPosts();
-  const published = allPosts.filter((p) => p.isPublished);
-  const drafts = allPosts.filter((p) => !p.isPublished);
-  const totalViews = allPosts.reduce((sum, p) => sum + p.viewCount, 0);
+  const [recentPosts, stats, allProjects] = await Promise.all([
+    getPosts({ limit: 5 }),
+    getPostStats(),
+    getPortfolios(),
+  ]);
 
   return (
-    <div className="max-w-content mx-auto px-6 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="flex gap-2">
-          <Link href="/my/settings">
-            <Button variant="outlined">설정</Button>
-          </Link>
-          <Link href="/my/write">
-            <Button>새 글 작성</Button>
+    <div className="space-y-10">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">대시보드</h1>
+          <p className="text-xs text-text-tertiary mt-1">블로그 현황을 한눈에 확인하세요</p>
+        </div>
+        <Link href="/my/write">
+          <Button>새 글 작성</Button>
+        </Link>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: "발행", value: stats.published, color: "text-emerald-600 dark:text-emerald-400" },
+          { label: "임시저장", value: stats.drafts, color: "text-amber-600 dark:text-amber-400" },
+          { label: "총 조회수", value: stats.totalViews.toLocaleString(), color: "text-text-primary" },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-xl bg-bg-card p-5 border border-border/30">
+            <p className="text-xs text-text-tertiary uppercase tracking-wider">{stat.label}</p>
+            <p className={`text-2xl font-bold mt-2 ${stat.color}`}>{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Projects */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold tracking-tight">프로젝트</h2>
+          <Link href="/my/projects" className="text-xs text-text-tertiary hover:text-text-primary transition-colors">
+            모두 보기 &rarr;
           </Link>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-        <Card variant="filled" className="p-6">
-          <p className="text-sm text-text-secondary">발행된 글</p>
-          <p className="text-3xl font-bold mt-1">{published.length}</p>
-        </Card>
-        <Card variant="filled" className="p-6">
-          <p className="text-sm text-text-secondary">임시저장</p>
-          <p className="text-3xl font-bold mt-1">{drafts.length}</p>
-        </Card>
-        <Card variant="filled" className="p-6">
-          <p className="text-sm text-text-secondary">총 조회수</p>
-          <p className="text-3xl font-bold mt-1">{totalViews.toLocaleString()}</p>
-        </Card>
-      </div>
-
-      <h2 className="text-lg font-bold mb-4">모든 글</h2>
-      <div className="space-y-3">
-        {allPosts.map((post) => (
-          <Card key={post.id} className="p-4 flex items-center justify-between">
-            <div>
-              <Link href={`/my/write?id=${post.id}`} className="font-medium hover:text-accent transition-colors">
-                {post.title}
-              </Link>
-              <div className="flex items-center gap-3 mt-1 text-xs text-text-secondary">
-                <span>{post.isPublished ? "발행됨" : "임시저장"}</span>
-                <span>조회수 {post.viewCount}</span>
-                <span>{post.createdAt}</span>
+        {allProjects.length > 0 ? (
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {allProjects.map((p) => {
+              const techs: string[] = JSON.parse(p.techStack || "[]");
+              return (
+                <Link key={p.id} href={`/projects/${p.slug}`} className="shrink-0 w-56 group">
+                  <div className="rounded-xl border border-border/50 overflow-hidden hover:border-border transition-colors h-full">
+                    {p.thumbnail ? (
+                      <div className="h-28 overflow-hidden">
+                        <img src={p.thumbnail} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      </div>
+                    ) : (
+                      <div className="h-28 bg-bg-elevated flex items-center justify-center">
+                        <span className="text-sm font-semibold text-text-tertiary">{p.title.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div className="p-3.5">
+                      <h3 className="text-sm font-semibold truncate">{p.title}</h3>
+                      {techs.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {techs.slice(0, 3).map((t) => (
+                            <span key={t} className="text-xs px-1.5 py-0.5 bg-bg-elevated rounded text-text-tertiary">{t}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+            <Link href="/my/projects" className="shrink-0 w-56">
+              <div className="rounded-xl border border-dashed border-border h-full min-h-[180px] flex items-center justify-center hover:border-text-tertiary transition-colors">
+                <div className="text-center text-text-tertiary">
+                  <span className="text-xl leading-none">+</span>
+                  <p className="text-xs mt-1">새 프로젝트</p>
+                </div>
               </div>
+            </Link>
+          </div>
+        ) : (
+          <Link href="/my/projects" className="block">
+            <div className="rounded-xl border border-dashed border-border p-8 text-center hover:border-text-tertiary transition-colors">
+              <span className="text-xl text-text-tertiary">+</span>
+              <p className="text-xs text-text-tertiary mt-1">첫 프로젝트를 추가하세요</p>
             </div>
-          </Card>
-        ))}
-        {allPosts.length === 0 && (
-          <p className="text-text-secondary text-sm">아직 작성된 글이 없습니다.</p>
+          </Link>
         )}
-      </div>
+      </section>
+
+      {/* Posts */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold tracking-tight">최근 글</h2>
+          <Link href="/my/posts" className="text-xs text-text-tertiary hover:text-text-primary transition-colors">
+            모두 보기 &rarr;
+          </Link>
+        </div>
+        <PostTable posts={recentPosts} />
+      </section>
     </div>
   );
 }
