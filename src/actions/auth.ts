@@ -3,7 +3,7 @@
 import { setAuthCookies, clearAuthCookies } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-export async function login(formData: FormData) {
+export async function login(prevState: unknown, formData: FormData) {
   const id = formData.get("id") as string;
   const password = formData.get("password") as string;
 

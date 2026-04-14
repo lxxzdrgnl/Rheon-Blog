@@ -1,37 +1,47 @@
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const ACCESS_EXPIRY = "15m";
-const REFRESH_EXPIRY = "7d";
+const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET!);
+const getRefreshSecret = () => new TextEncoder().encode(process.env.JWT_REFRESH_SECRET!);
 
 interface TokenPayload {
   userId: string;
 }
 
-export function createTokens(userId: string) {
-  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: ACCESS_EXPIRY });
-  const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET!, { expiresIn: REFRESH_EXPIRY });
+export async function createTokens(userId: string) {
+  const accessToken = await new SignJWT({ userId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("15m")
+    .sign(getSecret());
+
+  const refreshToken = await new SignJWT({ userId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("7d")
+    .sign(getRefreshSecret());
+
   return { accessToken, refreshToken };
 }
 
-export function verifyAccessToken(token: string): TokenPayload | null {
+export async function verifyAccessToken(token: string): Promise<TokenPayload | null> {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
+    const { payload } = await jwtVerify(token, getSecret());
+    return { userId: payload.userId as string };
   } catch {
     return null;
   }
 }
 
-export function verifyRefreshToken(token: string): TokenPayload | null {
+export async function verifyRefreshToken(token: string): Promise<TokenPayload | null> {
   try {
-    return jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as TokenPayload;
+    const { payload } = await jwtVerify(token, getRefreshSecret());
+    return { userId: payload.userId as string };
   } catch {
     return null;
   }
 }
 
 export async function setAuthCookies(userId: string) {
-  const { accessToken, refreshToken } = createTokens(userId);
+  const { accessToken, refreshToken } = await createTokens(userId);
   const cookieStore = await cookies();
 
   cookieStore.set("access_token", accessToken, {

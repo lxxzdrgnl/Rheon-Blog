@@ -6,40 +6,50 @@ import {
 import { randomUUID } from "crypto";
 import path from "path";
 
-const s3 = new S3Client({
-  endpoint: `http${process.env.MINIO_USE_SSL === "true" ? "s" : ""}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`,
-  region: "us-east-1",
-  credentials: {
-    accessKeyId: process.env.MINIO_ACCESS_KEY!,
-    secretAccessKey: process.env.MINIO_SECRET_KEY!,
-  },
-  forcePathStyle: true,
-});
+function getS3Client() {
+  return new S3Client({
+    endpoint: `http${process.env.MINIO_USE_SSL === "true" ? "s" : ""}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`,
+    region: "us-east-1",
+    credentials: {
+      accessKeyId: process.env.MINIO_ACCESS_KEY!,
+      secretAccessKey: process.env.MINIO_SECRET_KEY!,
+    },
+    forcePathStyle: true,
+  });
+}
 
-const BUCKET = process.env.MINIO_BUCKET!;
+function getBucket() {
+  return process.env.MINIO_BUCKET!;
+}
 
 export async function uploadImage(file: Buffer, originalName: string, contentType: string): Promise<string> {
   const ext = path.extname(originalName);
   const key = `images/${randomUUID()}${ext}`;
+  const bucket = getBucket();
 
-  await s3.send(new PutObjectCommand({
-    Bucket: BUCKET,
+  await getS3Client().send(new PutObjectCommand({
+    Bucket: bucket,
     Key: key,
     Body: file,
     ContentType: contentType,
   }));
 
   const protocol = process.env.MINIO_USE_SSL === "true" ? "https" : "http";
-  return `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${BUCKET}/${key}`;
+  const publicEndpoint = process.env.MINIO_PUBLIC_ENDPOINT || process.env.MINIO_ENDPOINT;
+  return `${protocol}://${publicEndpoint}:${process.env.MINIO_PORT}/${bucket}/${key}`;
 }
 
 export async function deleteImage(url: string): Promise<void> {
+  const bucket = getBucket();
   const urlObj = new URL(url);
-  const key = urlObj.pathname.replace(`/${BUCKET}/`, "");
+  // Handle both /bucket/key and /key formats
+  const pathname = urlObj.pathname.startsWith(`/${bucket}/`)
+    ? urlObj.pathname.replace(`/${bucket}/`, "")
+    : urlObj.pathname.slice(1);
 
-  await s3.send(new DeleteObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
+  await getS3Client().send(new DeleteObjectCommand({
+    Bucket: bucket,
+    Key: pathname,
   }));
 }
 
