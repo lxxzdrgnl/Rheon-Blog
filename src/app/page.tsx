@@ -1,21 +1,26 @@
-import { HeroSection } from "@/components/blog/HeroSection";
-import { PostGrid } from "@/components/blog/PostGrid";
-import { FilterBar } from "@/components/blog/FilterBar";
+import { ResumeHeroSection } from "@/components/blog/ResumeHeroSection";
+import { AboutSection } from "@/components/blog/AboutSection";
+import { ExperienceSection } from "@/components/blog/ExperienceSection";
+import { SkillsSection } from "@/components/blog/SkillsSection";
 import { PortfolioSection } from "@/components/blog/PortfolioSection";
+import { RecentPostsSection } from "@/components/blog/RecentPostsSection";
+import { ContactSection } from "@/components/blog/ContactSection";
 import { getPosts, getAllPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
-import { getTags } from "@/actions/tags";
 import { getSettings } from "@/actions/settings";
 import { getPortfolios } from "@/actions/portfolios";
+import { getExperiences, getSkills, getSocialLinks } from "@/actions/resume";
 
 export default async function Home() {
-  const [allPosts, allCategories, allTags, settings, allPortfolios, postTagsMap] = await Promise.all([
-    getPosts({ published: true }),
-    getCategories(),
-    getTags(),
+  const [settings, allPosts, allCategories, allPortfolios, postTagsMap, experiences, skillsList, socialLinks] = await Promise.all([
     getSettings(),
+    getPosts({ published: true, limit: 6 }),
+    getCategories(),
     getPortfolios(),
     getAllPostTags(),
+    getExperiences(),
+    getSkills(),
+    getSocialLinks(),
   ]);
 
   const postsWithCategory = allPosts.map((post) => {
@@ -30,24 +35,24 @@ export default async function Home() {
 
   return (
     <div>
-      <HeroSection
-        title={(settings.hero_title as string) || "Welcome"}
-        titleEn={(settings.hero_title_en as string) || "Welcome"}
-        subtitle={(settings.hero_subtitle as string) || ""}
-        subtitleEn={(settings.hero_subtitle_en as string) || ""}
-        image={(settings.hero_image as string) || null}
+      <ResumeHeroSection
+        name={(settings.resume_name as string) || ""}
+        nameEn={(settings.resume_name_en as string) || ""}
+        title={(settings.resume_title as string) || ""}
+        titleEn={(settings.resume_title_en as string) || ""}
+        tagline={(settings.resume_tagline as string) || ""}
+        taglineEn={(settings.resume_tagline_en as string) || ""}
+        profileImage={(settings.resume_profile_image as string) || null}
       />
-
+      <AboutSection
+        content={(settings.resume_about as string) || ""}
+        contentEn={(settings.resume_about_en as string) || ""}
+      />
+      <ExperienceSection experiences={experiences} />
+      <SkillsSection skills={skillsList} />
       <PortfolioSection portfolios={allPortfolios} />
-
-      <section className="page-container pb-24 space-y-8">
-        <div className="flex items-end justify-between">
-          <h2 className="text-xl font-bold tracking-tight"><span className="text-accent mr-1.5">/</span>Posts</h2>
-          <span className="text-sm text-text-tertiary">{postsWithCategory.length} articles</span>
-        </div>
-        <FilterBar categories={allCategories} tags={allTags} />
-        <PostGrid posts={postsWithCategory} />
-      </section>
+      <RecentPostsSection posts={postsWithCategory} />
+      <ContactSection links={socialLinks} />
     </div>
   );
 }
