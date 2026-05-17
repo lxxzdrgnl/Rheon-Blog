@@ -4,12 +4,13 @@ import { FilterBar } from "@/components/blog/FilterBar";
 import { getPosts } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getTags } from "@/actions/tags";
+import { getSetting } from "@/actions/settings";
 
 interface Props { params: Promise<{ slug: string }>; }
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
-  const [allCategories, allTags] = await Promise.all([getCategories(), getTags()]);
+  const [allCategories, allTags, thumbLen] = await Promise.all([getCategories(), getTags(), getSetting("thumbnail_text_length")]);
   const category = allCategories.find((c) => c.slug === slug);
   if (!category) notFound();
 
@@ -24,7 +25,7 @@ export default async function CategoryPage({ params }: Props) {
     <div className="page-container py-10 space-y-8">
       <h1 className="text-2xl font-bold">{category.name}</h1>
       <FilterBar categories={allCategories} tags={allTags} />
-      <PostGrid posts={postsWithCategory} />
+      <PostGrid posts={postsWithCategory} thumbnailTextLength={Number(thumbLen) || 8} />
     </div>
   );
 }

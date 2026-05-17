@@ -188,6 +188,20 @@ export default function SettingsPage() {
               )}
             </div>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+            <div className="space-y-1.5">
+              <label className="text-xs text-text-tertiary uppercase tracking-wider">썸네일 글자 수</label>
+              <Input
+                type="number"
+                min={1}
+                max={20}
+                value={(settings.thumbnail_text_length as number) || 8}
+                onChange={(e) => updateField("thumbnail_text_length", Number(e.target.value))}
+                placeholder="8"
+              />
+              <p className="text-[10px] text-text-tertiary">썸네일 이미지가 없을 때 제목에서 표시할 글자 수</p>
+            </div>
+          </div>
           <div className="p-5">
             <label className="flex items-center gap-3 cursor-pointer">
               <div className={`w-9 h-5 rounded-full transition-colors relative ${settings.show_view_count ? "bg-accent" : "bg-bg-elevated"}`}

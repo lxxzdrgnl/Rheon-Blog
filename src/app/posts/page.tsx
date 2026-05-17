@@ -3,13 +3,15 @@ import { FilterBar } from "@/components/blog/FilterBar";
 import { getPosts, getAllPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getTags } from "@/actions/tags";
+import { getSetting } from "@/actions/settings";
 
 export default async function PostsPage() {
-  const [allPosts, allCategories, allTags, postTagsMap] = await Promise.all([
+  const [allPosts, allCategories, allTags, postTagsMap, thumbLen] = await Promise.all([
     getPosts({ published: true }),
     getCategories(),
     getTags(),
     getAllPostTags(),
+    getSetting("thumbnail_text_length"),
   ]);
 
   const postsWithCategory = allPosts.map((post) => {
@@ -26,7 +28,7 @@ export default async function PostsPage() {
     <div className="page-container py-16 space-y-8">
       <h1 className="text-2xl font-bold tracking-tight">Posts</h1>
       <FilterBar categories={allCategories} tags={allTags} />
-      <PostGrid posts={postsWithCategory} />
+      <PostGrid posts={postsWithCategory} thumbnailTextLength={Number(thumbLen) || 8} />
     </div>
   );
 }

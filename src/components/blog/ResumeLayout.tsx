@@ -354,7 +354,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, education, sk
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {posts.slice(0, 6).map((post) => (
-              <PostCard key={post.id} {...post} />
+              <PostCard key={post.id} {...post} thumbnailTextLength={Number(settings.thumbnail_text_length) || 8} />
             ))}
           </div>
         </section>

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PostGrid } from "@/components/blog/PostGrid";
 import { getTags } from "@/actions/tags";
 import { getCategories } from "@/actions/categories";
+import { getSetting } from "@/actions/settings";
 import { db } from "@/db";
 import { posts, postTags, tags } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -25,7 +26,7 @@ export default async function TagPage({ params }: Props) {
     .where(and(eq(postTags.tagId, tag.id), eq(posts.isPublished, true)))
     .all();
 
-  const allCategories = await getCategories();
+  const [allCategories, thumbLen] = await Promise.all([getCategories(), getSetting("thumbnail_text_length")]);
   const postsWithCategory = taggedPosts.map((post) => {
     const cat = allCategories.find((c) => c.id === post.categoryId);
     return { ...post, categoryName: cat?.name || "", categoryNameEn: cat?.nameEn || "" };
@@ -34,7 +35,7 @@ export default async function TagPage({ params }: Props) {
   return (
     <div className="page-container py-10 space-y-8">
       <h1 className="text-2xl font-bold">#{tag.name}</h1>
-      <PostGrid posts={postsWithCategory} />
+      <PostGrid posts={postsWithCategory} thumbnailTextLength={Number(thumbLen) || 8} />
     </div>
   );
 }
