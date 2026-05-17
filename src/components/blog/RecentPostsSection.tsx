@@ -22,9 +22,9 @@ export function RecentPostsSection({ posts }: { posts: Post[] }) {
   if (posts.length === 0) return null;
 
   return (
-    <section className="page-container pb-20">
-      <div className="flex items-end justify-between mb-8">
-        <h2 className="text-xl font-bold tracking-tight">
+    <section className="page-container pb-12">
+      <div className="flex items-end justify-between mb-5">
+        <h2 className="text-lg font-bold tracking-tight">
           <span className="text-accent mr-1.5">/</span>{t("resume.recentPosts")}
         </h2>
         <Link href="/posts" className="text-sm text-text-tertiary hover:text-accent transition-colors">

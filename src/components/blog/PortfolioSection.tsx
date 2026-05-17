@@ -21,8 +21,8 @@ export function PortfolioSection({ portfolios }: { portfolios: Portfolio[] }) {
   if (portfolios.length === 0) return null;
 
   return (
-    <section className="page-container pb-24">
-      <h2 className="text-xl font-bold tracking-tight mb-8"><span className="text-accent mr-1.5">/</span>Projects</h2>
+    <section className="page-container pb-12">
+      <h2 className="text-lg font-bold tracking-tight mb-5"><span className="text-accent mr-1.5">/</span>Projects</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {portfolios.map((item) => {
           const displayTitle = localized(item.title, item.titleEn);

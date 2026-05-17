@@ -16,8 +16,8 @@ export function AboutSection({ content, contentEn }: AboutSectionProps) {
   if (!displayContent) return null;
 
   return (
-    <section className="page-container pb-20">
-      <h2 className="text-xl font-bold tracking-tight mb-8">
+    <section className="page-container pb-12">
+      <h2 className="text-lg font-bold tracking-tight mb-5">
         <span className="text-accent mr-1.5">/</span>{t("resume.about")}
       </h2>
       <div className="max-w-prose text-text-secondary leading-relaxed">

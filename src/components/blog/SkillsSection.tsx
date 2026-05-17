@@ -23,8 +23,8 @@ export function SkillsSection({ skills }: { skills: Skill[] }) {
   }
 
   return (
-    <section className="page-container pb-20">
-      <h2 className="text-xl font-bold tracking-tight mb-8">
+    <section className="page-container pb-12">
+      <h2 className="text-lg font-bold tracking-tight mb-5">
         <span className="text-accent mr-1.5">/</span>{t("resume.skills")}
       </h2>
       <div className="space-y-6">

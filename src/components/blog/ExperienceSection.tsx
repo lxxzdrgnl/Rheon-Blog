@@ -21,8 +21,8 @@ export function ExperienceSection({ experiences }: { experiences: Experience[] }
   if (experiences.length === 0) return null;
 
   return (
-    <section className="page-container pb-20">
-      <h2 className="text-xl font-bold tracking-tight mb-8">
+    <section className="page-container pb-12">
+      <h2 className="text-lg font-bold tracking-tight mb-5">
         <span className="text-accent mr-1.5">/</span>{t("resume.experience")}
       </h2>
       <div className="space-y-8">

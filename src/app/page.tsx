@@ -45,6 +45,7 @@ export default async function Home() {
         tagline={(settings.resume_tagline as string) || ""}
         taglineEn={(settings.resume_tagline_en as string) || ""}
         profileImage={(settings.resume_profile_image as string) || null}
+        links={socialLinks}
       />
       <AboutSection
         content={(settings.resume_about as string) || ""}
@@ -55,7 +56,6 @@ export default async function Home() {
       <SkillsSection skills={skillsList} />
       <PortfolioSection portfolios={allPortfolios} />
       <RecentPostsSection posts={postsWithCategory} />
-      <ContactSection links={socialLinks} />
     </div>
   );
 }
