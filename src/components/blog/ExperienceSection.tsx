@@ -50,7 +50,7 @@ function LinkPreviewCard({ link }: { link: ExperienceLink }) {
     >
       <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-bg-elevated border border-border/50 group-hover:border-accent/40 transition-colors">
         {ogImage ? (
-          <img src={ogImage} alt={link.label} className="w-full h-full object-cover" />
+          <img src={ogImage} alt="" className="w-full h-full object-cover" onError={() => setOgImage(null)} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-text-tertiary">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
