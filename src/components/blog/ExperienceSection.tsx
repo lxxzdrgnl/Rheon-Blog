@@ -1,11 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 
 interface ExperienceLink {
   label: string;
   url: string;
-  image?: string | null;
 }
 
 interface Experience {
@@ -32,10 +32,14 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 export { SectionHeading };
 
 function LinkPreviewCard({ link }: { link: ExperienceLink }) {
-  const domain = (() => {
-    try { return new URL(link.url).hostname.replace("www.", ""); }
-    catch { return ""; }
-  })();
+  const [ogImage, setOgImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/og?url=${encodeURIComponent(link.url)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.image) setOgImage(d.image); })
+      .catch(() => {});
+  }, [link.url]);
 
   return (
     <a
@@ -45,8 +49,8 @@ function LinkPreviewCard({ link }: { link: ExperienceLink }) {
       className="group relative block w-28 shrink-0"
     >
       <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-bg-elevated border border-border/50 group-hover:border-accent/40 transition-colors">
-        {link.image ? (
-          <img src={link.image} alt={link.label} className="w-full h-full object-cover" />
+        {ogImage ? (
+          <img src={ogImage} alt={link.label} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-text-tertiary">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -54,7 +58,6 @@ function LinkPreviewCard({ link }: { link: ExperienceLink }) {
             </svg>
           </div>
         )}
-        {/* External link badge */}
         <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
           <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
