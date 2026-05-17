@@ -65,6 +65,8 @@ export async function deleteImages(urls: string[]): Promise<void> {
  * Rewrites stored Minio URLs to use the current public endpoint.
  * Handles localhost:9000 → storage.rheon.kr or vice versa based on env.
  */
+export function rewriteImageUrl(url: string): string;
+export function rewriteImageUrl(url: string | null): string | null;
 export function rewriteImageUrl(url: string | null): string | null {
   if (!url) return null;
   const bucket = process.env.MINIO_BUCKET || "blog";
@@ -82,6 +84,8 @@ export function rewriteImageUrl(url: string | null): string | null {
 /**
  * Rewrites all Minio URLs found in a text content (e.g., markdown).
  */
+export function rewriteContentUrls(content: string): string;
+export function rewriteContentUrls(content: string | null): string | null;
 export function rewriteContentUrls(content: string | null): string | null {
   if (!content) return null;
   const bucket = process.env.MINIO_BUCKET || "blog";
