@@ -23,27 +23,35 @@ export function EducationSection({ education }: { education: Education[] }) {
   if (education.length === 0) return null;
 
   return (
-    <section className="page-container pb-12">
-      <h2 className="text-lg font-bold tracking-tight mb-5">
-        <span className="text-accent mr-1.5">/</span>{t("resume.education")}
+    <section className="page-container pb-10">
+      <h2 className="flex items-center gap-3 text-xs font-semibold tracking-[0.2em] uppercase text-text-tertiary mb-6">
+        <div className="h-px flex-1 max-w-8 bg-border" />
+        {t("resume.education")}
+        <div className="h-px flex-1 bg-border" />
       </h2>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {education.map((edu) => (
-          <div key={edu.id} className="relative pl-6 border-l-2 border-border hover:border-accent transition-colors">
-            <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-accent" />
-            <h3 className="font-semibold text-text-primary">
-              {localized(edu.school, edu.schoolEn)}
-            </h3>
-            {(edu.degree || edu.field) && (
-              <p className="text-sm text-text-secondary mt-0.5">
-                {[localized(edu.degree, edu.degreeEn), localized(edu.field, edu.fieldEn)].filter(Boolean).join(" · ")}
-              </p>
-            )}
-            <p className="text-xs text-text-tertiary mt-1">
-              {edu.startDate} — {edu.endDate || t("resume.present")}
-            </p>
+          <div
+            key={edu.id}
+            className="group relative p-5 rounded-xl border border-border/40 hover:border-accent/30 bg-bg-card/30 hover:bg-bg-card/60 transition-all duration-300"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
+              <div>
+                <h3 className="font-semibold text-text-primary group-hover:text-accent transition-colors">
+                  {localized(edu.school, edu.schoolEn)}
+                </h3>
+                {(edu.degree || edu.field) && (
+                  <p className="text-sm text-text-secondary mt-0.5">
+                    {[localized(edu.degree, edu.degreeEn), localized(edu.field, edu.fieldEn)].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+              </div>
+              <span className="text-xs text-text-tertiary font-mono whitespace-nowrap mt-1 sm:mt-0.5">
+                {edu.startDate} — {edu.endDate || t("resume.present")}
+              </span>
+            </div>
             {edu.description && (
-              <p className="text-sm text-text-secondary mt-2 leading-relaxed">
+              <p className="text-sm text-text-secondary mt-3 leading-relaxed">
                 {localized(edu.description, edu.descriptionEn)}
               </p>
             )}

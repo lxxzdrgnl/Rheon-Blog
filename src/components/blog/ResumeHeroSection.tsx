@@ -23,21 +23,24 @@ export function ResumeHeroSection({ name, nameEn, title, titleEn, tagline, tagli
   const localized = useLocalized();
 
   return (
-    <section className="pt-16 pb-10 md:pt-24 md:pb-14">
+    <section className="pt-16 pb-6 md:pt-24 md:pb-10">
       <div className="page-container">
-        <div className="flex flex-col md:flex-row md:items-center md:gap-16">
-          <div className="md:flex-1">
-            <p className="text-sm text-accent font-medium tracking-wide uppercase mb-2">
-              {localized(title, titleEn)}
-            </p>
-            <h1 className="text-3xl md:text-5xl font-bold leading-[1.1] tracking-tight">
+        <div className="flex flex-col-reverse md:flex-row md:items-start md:gap-12">
+          <div className="md:flex-1 mt-6 md:mt-0">
+            <div className="flex items-center gap-3 mb-4 animate-fade-in">
+              <div className="h-px flex-1 max-w-12 bg-accent/60" />
+              <span className="text-xs text-accent font-semibold tracking-[0.2em] uppercase">
+                {localized(title, titleEn)}
+              </span>
+            </div>
+            <h1 className="font-serif text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight animate-fade-in animate-delay-1">
               {localized(name, nameEn)}
             </h1>
-            <p className="mt-4 text-lg md:text-xl text-text-secondary max-w-lg leading-relaxed">
+            <p className="mt-4 text-base md:text-lg text-text-secondary max-w-md leading-relaxed animate-fade-in animate-delay-2">
               {localized(tagline, taglineEn)}
             </p>
             {links.length > 0 && (
-              <div className="flex flex-wrap gap-3 mt-5">
+              <div className="flex items-center gap-4 mt-6 animate-fade-in animate-delay-3">
                 {links.map((link) => {
                   const iconPath = PLATFORM_ICONS[link.platform.toLowerCase()];
                   const href = link.platform.toLowerCase() === "email" ? `mailto:${link.url}` : link.url;
@@ -47,14 +50,15 @@ export function ResumeHeroSection({ name, nameEn, title, titleEn, tagline, tagli
                       href={href}
                       target={link.platform.toLowerCase() === "email" ? undefined : "_blank"}
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/60 hover:border-accent/30 hover:bg-bg-elevated transition-all text-sm text-text-secondary hover:text-text-primary"
+                      className="group flex items-center gap-2 text-text-tertiary hover:text-accent transition-colors duration-300"
+                      title={link.platform}
                     >
                       {iconPath && (
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                           <path d={iconPath} />
                         </svg>
                       )}
-                      {link.platform}
+                      <span className="text-sm hidden sm:inline group-hover:underline underline-offset-4">{link.platform}</span>
                     </a>
                   );
                 })}
@@ -62,16 +66,18 @@ export function ResumeHeroSection({ name, nameEn, title, titleEn, tagline, tagli
             )}
           </div>
           {profileImage && (
-            <div className="mt-8 md:mt-0 shrink-0">
-              <img
-                src={profileImage}
-                alt={localized(name, nameEn)}
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover ring-2 ring-border"
-              />
+            <div className="shrink-0 animate-fade-in">
+              <div className="relative">
+                <img
+                  src={profileImage}
+                  alt={localized(name, nameEn)}
+                  className="w-28 h-28 md:w-36 md:h-36 rounded-2xl object-cover shadow-lg"
+                />
+                <div className="absolute -inset-1 rounded-2xl border border-accent/20 -z-10" />
+              </div>
             </div>
           )}
         </div>
-        <div className="mt-8 h-px bg-gradient-to-r from-accent/40 via-border to-transparent" />
       </div>
     </section>
   );

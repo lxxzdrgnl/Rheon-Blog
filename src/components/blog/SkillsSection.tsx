@@ -23,19 +23,21 @@ export function SkillsSection({ skills }: { skills: Skill[] }) {
   }
 
   return (
-    <section className="page-container pb-12">
-      <h2 className="text-lg font-bold tracking-tight mb-5">
-        <span className="text-accent mr-1.5">/</span>{t("resume.skills")}
+    <section className="page-container pb-10">
+      <h2 className="flex items-center gap-3 text-xs font-semibold tracking-[0.2em] uppercase text-text-tertiary mb-6">
+        <div className="h-px flex-1 max-w-8 bg-border" />
+        {t("resume.skills")}
+        <div className="h-px flex-1 bg-border" />
       </h2>
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {Object.entries(grouped).map(([category, items]) => (
-          <div key={category}>
-            <h3 className="text-sm font-medium text-text-secondary mb-3">{category}</h3>
-            <div className="flex flex-wrap gap-2">
+          <div key={category} className="space-y-2.5">
+            <h3 className="text-xs font-semibold text-text-tertiary tracking-wide uppercase">{category}</h3>
+            <div className="flex flex-wrap gap-1.5">
               {items.map((skill) => (
                 <span
                   key={skill.id}
-                  className="px-3 py-1.5 text-sm bg-bg-elevated rounded-lg text-text-primary border border-border/60"
+                  className="px-2.5 py-1 text-xs font-medium bg-bg-elevated rounded-md text-text-primary border border-border/50 hover:border-accent/40 hover:text-accent transition-colors cursor-default"
                 >
                   {skill.name}
                 </span>
