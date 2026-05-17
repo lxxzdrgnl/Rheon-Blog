@@ -4,17 +4,23 @@ import { db } from "@/db";
 import { settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { rewriteImageUrl } from "@/lib/minio";
+
+const IMAGE_SETTINGS = ["profile_image", "og_image"];
 
 export async function getSetting(key: string): Promise<string | null> {
   const row = db.select().from(settings).where(eq(settings.key, key)).get();
-  return row ? JSON.parse(row.value) : null;
+  if (!row) return null;
+  const val = JSON.parse(row.value);
+  return IMAGE_SETTINGS.includes(key) && typeof val === "string" ? rewriteImageUrl(val) : val;
 }
 
 export async function getSettings(): Promise<Record<string, unknown>> {
   const rows = db.select().from(settings).all();
   const result: Record<string, unknown> = {};
   for (const row of rows) {
-    result[row.key] = JSON.parse(row.value);
+    const val = JSON.parse(row.value);
+    result[row.key] = IMAGE_SETTINGS.includes(row.key) && typeof val === "string" ? rewriteImageUrl(val) : val;
   }
   return result;
 }

@@ -6,7 +6,7 @@ import { eq, desc, and, sql, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { extractImageUrls, getOrphanedImages } from "@/lib/markdown";
-import { deleteImages } from "@/lib/minio";
+import { deleteImages, rewriteImageUrl, rewriteContentUrls } from "@/lib/minio";
 import { translateToEnglish, translateTitle, translatePartial } from "@/lib/translate";
 
 export async function getPosts(options?: {
@@ -39,7 +39,12 @@ export async function getPosts(options?: {
     query = query.offset(options.offset) as typeof query;
   }
 
-  return query.all();
+  return query.all().map((p) => ({
+    ...p,
+    thumbnail: rewriteImageUrl(p.thumbnail),
+    content: rewriteContentUrls(p.content),
+    contentEn: rewriteContentUrls(p.contentEn),
+  }));
 }
 
 export async function getPostStats() {
@@ -60,11 +65,15 @@ export async function getPostStats() {
 }
 
 export async function getPostBySlug(slug: string) {
-  return db.select().from(posts).where(eq(posts.slug, slug)).get();
+  const p = db.select().from(posts).where(eq(posts.slug, slug)).get();
+  if (!p) return p;
+  return { ...p, thumbnail: rewriteImageUrl(p.thumbnail), content: rewriteContentUrls(p.content), contentEn: rewriteContentUrls(p.contentEn) };
 }
 
 export async function getPostById(id: number) {
-  return db.select().from(posts).where(eq(posts.id, id)).get();
+  const p = db.select().from(posts).where(eq(posts.id, id)).get();
+  if (!p) return p;
+  return { ...p, thumbnail: rewriteImageUrl(p.thumbnail), content: rewriteContentUrls(p.content), contentEn: rewriteContentUrls(p.contentEn) };
 }
 
 export async function getPostTags(postId: number) {

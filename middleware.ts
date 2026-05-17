@@ -8,7 +8,7 @@ const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET!);
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/my/login" || pathname.startsWith("/api/view")) {
+  if (pathname === "/my/login" || pathname.startsWith("/api/view") || pathname.startsWith("/api/favicon") || pathname.startsWith("/api/og")) {
     return NextResponse.next();
   }
 

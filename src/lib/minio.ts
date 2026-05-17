@@ -60,3 +60,37 @@ export async function deleteImage(url: string): Promise<void> {
 export async function deleteImages(urls: string[]): Promise<void> {
   await Promise.all(urls.map(deleteImage));
 }
+
+/**
+ * Rewrites stored Minio URLs to use the current public endpoint.
+ * Handles localhost:9000 → storage.rheon.kr or vice versa based on env.
+ */
+export function rewriteImageUrl(url: string | null): string | null {
+  if (!url) return null;
+  const bucket = process.env.MINIO_BUCKET || "blog";
+  const pattern = new RegExp(`https?://[^/]+/${bucket}/`);
+  if (!pattern.test(url)) return url;
+
+  if (process.env.MINIO_PUBLIC_URL) {
+    return url.replace(pattern, `${process.env.MINIO_PUBLIC_URL}/${bucket}/`);
+  }
+  const protocol = process.env.MINIO_USE_SSL === "true" ? "https" : "http";
+  const publicEndpoint = process.env.MINIO_PUBLIC_ENDPOINT || process.env.MINIO_ENDPOINT;
+  return url.replace(pattern, `${protocol}://${publicEndpoint}:${process.env.MINIO_PORT}/${bucket}/`);
+}
+
+/**
+ * Rewrites all Minio URLs found in a text content (e.g., markdown).
+ */
+export function rewriteContentUrls(content: string | null): string | null {
+  if (!content) return null;
+  const bucket = process.env.MINIO_BUCKET || "blog";
+  const pattern = new RegExp(`https?://[^/]+/${bucket}/`, "g");
+
+  if (process.env.MINIO_PUBLIC_URL) {
+    return content.replace(pattern, `${process.env.MINIO_PUBLIC_URL}/${bucket}/`);
+  }
+  const protocol = process.env.MINIO_USE_SSL === "true" ? "https" : "http";
+  const publicEndpoint = process.env.MINIO_PUBLIC_ENDPOINT || process.env.MINIO_ENDPOINT;
+  return content.replace(pattern, `${protocol}://${publicEndpoint}:${process.env.MINIO_PORT}/${bucket}/`);
+}

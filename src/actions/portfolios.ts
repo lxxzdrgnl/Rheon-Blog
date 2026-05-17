@@ -6,17 +6,24 @@ import { eq, asc, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { translateToEnglish, translateTitle } from "@/lib/translate";
+import { rewriteImageUrl, rewriteContentUrls } from "@/lib/minio";
+
+function rewritePortfolio<T extends { thumbnail: string | null; content: string | null; contentEn: string | null }>(p: T): T {
+  return { ...p, thumbnail: rewriteImageUrl(p.thumbnail), content: rewriteContentUrls(p.content), contentEn: rewriteContentUrls(p.contentEn) };
+}
 
 export async function getPortfolios() {
-  return db.select().from(portfolios).orderBy(asc(portfolios.sortOrder)).all();
+  return db.select().from(portfolios).orderBy(asc(portfolios.sortOrder)).all().map(rewritePortfolio);
 }
 
 export async function getPortfolioBySlug(slug: string) {
-  return db.select().from(portfolios).where(eq(portfolios.slug, slug)).get();
+  const p = db.select().from(portfolios).where(eq(portfolios.slug, slug)).get();
+  return p ? rewritePortfolio(p) : p;
 }
 
 export async function getPortfolioById(id: number) {
-  return db.select().from(portfolios).where(eq(portfolios.id, id)).get();
+  const p = db.select().from(portfolios).where(eq(portfolios.id, id)).get();
+  return p ? rewritePortfolio(p) : p;
 }
 
 // 포스트가 속한 프로젝트 목록
