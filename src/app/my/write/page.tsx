@@ -69,7 +69,7 @@ function WritePageContent() {
           setContentEn(post.contentEn || "");
           setSlug(post.slug);
           setCategoryId(post.categoryId);
-          setThumbnail(post.thumbnail);
+          setThumbnail(post.thumbnail || "");
           originalRef.current = { title: post.title, content: post.content };
           if (post.seriesId) setSeriesId(post.seriesId);
           if (post.seriesOrder != null) setSeriesOrder(String(post.seriesOrder));
