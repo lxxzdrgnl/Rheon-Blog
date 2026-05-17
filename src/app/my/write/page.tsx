@@ -40,6 +40,7 @@ function WritePageContent() {
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [categories, setCategories] = useState<{ id: number; parentId?: number | null; name: string; nameEn: string; slug: string }[]>([]);
   const [saving, setSaving] = useState(false);
+  const [thumbUploading, setThumbUploading] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [allProjects, setAllProjects] = useState<{ id: number; title: string; slug: string }[]>([]);
   const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);
@@ -296,17 +297,34 @@ function WritePageContent() {
             </div>
           )}
           <label className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-border rounded-lg cursor-pointer hover:bg-bg-elevated transition-colors text-text-secondary">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-            </svg>
-            이미지 업로드
-            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+            {thumbUploading ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                업로드 중...
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                이미지 업로드
+              </>
+            )}
+            <input type="file" accept="image/*" className="hidden" disabled={thumbUploading} onChange={async (e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              const url = await handleImageUpload(file);
-              if (url) {
-                setUploadedThumbnails((prev) => [...prev, url]);
-                setThumbnail(url);
+              setThumbUploading(true);
+              try {
+                const url = await handleImageUpload(file);
+                if (url) {
+                  setUploadedThumbnails((prev) => [...prev, url]);
+                  setThumbnail(url);
+                }
+              } finally {
+                setThumbUploading(false);
               }
               e.target.value = "";
             }} />

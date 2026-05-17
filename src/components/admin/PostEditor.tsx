@@ -88,10 +88,28 @@ export const PostEditor = forwardRef<PostEditorHandle, PostEditorProps>(function
   const onImageUploadRef = useRef(onImageUpload);
   const onChangeRef = useRef(onChange);
   const [showPreview, setShowPreview] = useState(false);
+  const [uploading, setUploading] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadIdRef = useRef(0);
 
   onImageUploadRef.current = onImageUpload;
   onChangeRef.current = onChange;
+
+  const uploadWithPlaceholder = useCallback((file: File, view: EditorView, pos?: number) => {
+    const id = ++uploadIdRef.current;
+    const placeholder = `![uploading-${id}...](uploading)`;
+    const insertPos = pos ?? view.state.selection.main.head;
+    view.dispatch({ changes: { from: insertPos, insert: `\n${placeholder}\n` } });
+    setUploading((n) => n + 1);
+    onImageUploadRef.current(file).then((url) => {
+      const doc = view.state.doc.toString();
+      const idx = doc.indexOf(placeholder);
+      if (idx !== -1) {
+        const replacement = url ? `![${file.name}](${url})` : "";
+        view.dispatch({ changes: { from: idx, to: idx + placeholder.length, insert: replacement } });
+      }
+    }).finally(() => setUploading((n) => n - 1));
+  }, []);
 
   useImperativeHandle(ref, () => ({
     getSelection() {
@@ -121,13 +139,7 @@ export const PostEditor = forwardRef<PostEditorHandle, PostEditorProps>(function
         for (const file of Array.from(files)) {
           if (file.type.startsWith("image/")) {
             event.preventDefault();
-            onImageUploadRef.current(file).then((url) => {
-              if (url) {
-                const insert = `\n![${file.name}](${url})\n`;
-                const pos = view.state.selection.main.head;
-                view.dispatch({ changes: { from: pos, insert } });
-              }
-            });
+            uploadWithPlaceholder(file, view);
             return true;
           }
         }
@@ -140,15 +152,7 @@ export const PostEditor = forwardRef<PostEditorHandle, PostEditorProps>(function
           if (item.type.startsWith("image/")) {
             event.preventDefault();
             const file = item.getAsFile();
-            if (file) {
-              onImageUploadRef.current(file).then((url) => {
-                if (url) {
-                  const insert = `\n![image](${url})\n`;
-                  const pos = view.state.selection.main.head;
-                  view.dispatch({ changes: { from: pos, insert } });
-                }
-              });
-            }
+            if (file) uploadWithPlaceholder(file, view);
             return true;
           }
         }
@@ -207,11 +211,11 @@ export const PostEditor = forwardRef<PostEditorHandle, PostEditorProps>(function
     }
   };
 
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      const url = await onImageUpload(file);
-      if (url) insertAtCursor(`![${file.name}](${url})`, "");
+    const view = viewRef.current;
+    if (file && file.type.startsWith("image/") && view) {
+      uploadWithPlaceholder(file, view);
     }
     e.target.value = "";
   };
@@ -241,6 +245,15 @@ export const PostEditor = forwardRef<PostEditorHandle, PostEditorProps>(function
             );
           })}
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileInput} />
+          {uploading > 0 && (
+            <div className="flex items-center gap-1.5 ml-auto text-xs text-accent">
+              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              이미지 업로드 중{uploading > 1 ? ` (${uploading})` : ""}...
+            </div>
+          )}
         </div>
 
         {/* Editor + Preview */}
