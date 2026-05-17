@@ -99,6 +99,8 @@ export async function savePost(formData: FormData) {
   const thumbnail = (formData.get("thumbnail") as string) || null;
   let slug = (formData.get("slug") as string) || generateSlug(title);
   const tagIds = JSON.parse((formData.get("tagIds") as string) || "[]") as number[];
+  const seriesId = formData.get("seriesId") ? Number(formData.get("seriesId")) : null;
+  const seriesOrder = formData.get("seriesOrder") ? Number(formData.get("seriesOrder")) : null;
   const publish = formData.get("publish") === "true";
   const isPrivate = formData.get("isPrivate") === "true";
 
@@ -129,6 +131,7 @@ export async function savePost(formData: FormData) {
     db.update(posts)
       .set({
         title, content, categoryId, thumbnail, slug,
+        seriesId, seriesOrder,
         isPublished: publish ? true : undefined,
         isPrivate: publish ? isPrivate : undefined,
         publishedAt: publish && !existing?.publishedAt ? sql`datetime('now')` : undefined,
@@ -142,6 +145,7 @@ export async function savePost(formData: FormData) {
       .insert(posts)
       .values({
         title, content, categoryId, thumbnail, slug,
+        seriesId, seriesOrder,
         isPublished: publish,
         isPrivate: publish ? isPrivate : false,
         publishedAt: publish ? sql`datetime('now')` : undefined,
