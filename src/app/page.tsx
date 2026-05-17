@@ -51,10 +51,10 @@ export default async function Home() {
         content={(settings.resume_about as string) || ""}
         contentEn={(settings.resume_about_en as string) || ""}
       />
+      <PortfolioSection portfolios={allPortfolios} />
       <ExperienceSection experiences={experiences} />
       <EducationSection education={educationList} />
       <SkillsSection skills={skillsList} />
-      <PortfolioSection portfolios={allPortfolios} />
       <RecentPostsSection posts={postsWithCategory} />
     </div>
   );
