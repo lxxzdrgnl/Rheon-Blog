@@ -33,5 +33,21 @@
   },
   "common": {
     "readMore": "더 보기"
+  },
+  "resume": {
+    "about": "소개",
+    "experience": "경력",
+    "skills": "기술 스택",
+    "projects": "프로젝트",
+    "recentPosts": "최근 포스트",
+    "contact": "연락처",
+    "present": "현재"
+  },
+  "series": {
+    "title": "시리즈",
+    "tableOfContents": "목차",
+    "prev": "이전 글",
+    "next": "다음 글",
+    "postsCount": "개의 포스트"
   }
 }

@@ -33,5 +33,21 @@
   },
   "common": {
     "readMore": "Read more"
+  },
+  "resume": {
+    "about": "About",
+    "experience": "Experience",
+    "skills": "Skills",
+    "projects": "Projects",
+    "recentPosts": "Recent Posts",
+    "contact": "Contact",
+    "present": "Present"
+  },
+  "series": {
+    "title": "Series",
+    "tableOfContents": "Table of Contents",
+    "prev": "Previous",
+    "next": "Next",
+    "postsCount": "posts"
   }
 }
