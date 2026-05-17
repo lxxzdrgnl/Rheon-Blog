@@ -13,6 +13,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+ENV OPENAI_API_KEY=sk-build-placeholder
 RUN mkdir -p data && npx drizzle-kit push && npm run build
 
 FROM node:20-slim AS production
