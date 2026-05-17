@@ -11,6 +11,7 @@ import { LanguageEditorBar } from "@/components/admin/LanguageEditorBar";
 import { getCategories } from "@/actions/categories";
 import { getPostById, getPostTags, savePost, translatePost, translateSelection } from "@/actions/posts";
 import { getPortfolios, getProjectsForPost, updatePostProjects } from "@/actions/portfolios";
+import { getAllSeries } from "@/actions/series";
 import { extractImageUrls } from "@/lib/markdown";
 import { uploadImage } from "@/lib/upload";
 
@@ -38,12 +39,16 @@ export default function WritePage() {
   const [lang, setLang] = useState<"ko" | "en">("ko");
   const [publishIsPrivate, setPublishIsPrivate] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [allSeries, setAllSeries] = useState<{ id: number; title: string }[]>([]);
+  const [seriesId, setSeriesId] = useState<number | null>(null);
+  const [seriesOrder, setSeriesOrder] = useState<string>("");
   const editorRef = useRef<PostEditorHandle>(null);
   const originalRef = useRef({ title: "", content: "" });
 
   useEffect(() => {
     getCategories().then(setCategories);
     getPortfolios().then((p) => setAllProjects(p.map((x) => ({ id: x.id, title: x.title, slug: x.slug }))));
+    getAllSeries().then((s) => setAllSeries(s.map((x) => ({ id: x.id, title: x.title }))));
   }, []);
 
   useEffect(() => {
@@ -58,6 +63,8 @@ export default function WritePage() {
           setCategoryId(post.categoryId);
           setThumbnail(post.thumbnail);
           originalRef.current = { title: post.title, content: post.content };
+          if (post.seriesId) setSeriesId(post.seriesId);
+          if (post.seriesOrder != null) setSeriesOrder(String(post.seriesOrder));
         }
       });
       getPostTags(editId).then(setSelectedTags);
@@ -125,6 +132,8 @@ export default function WritePage() {
     fd.set("publish", "false"); fd.set("isPrivate", "false");
     if (titleEn) fd.set("titleEn", titleEn);
     if (contentEn) fd.set("contentEn", contentEn);
+    if (seriesId) fd.set("seriesId", String(seriesId));
+    if (seriesOrder) fd.set("seriesOrder", seriesOrder);
     try {
       const result = await savePost(fd);
       if (selectedProjectIds.length > 0 || editId) await updatePostProjects(result.postId, selectedProjectIds);
@@ -152,6 +161,8 @@ export default function WritePage() {
     fd.set("publish", "true"); fd.set("isPrivate", String(publishIsPrivate));
     if (titleEn) fd.set("titleEn", titleEn);
     if (contentEn) fd.set("contentEn", contentEn);
+    if (seriesId) fd.set("seriesId", String(seriesId));
+    if (seriesOrder) fd.set("seriesOrder", seriesOrder);
     try {
       const result = await savePost(fd);
       if (selectedProjectIds.length > 0 || editId) await updatePostProjects(result.postId, selectedProjectIds);
@@ -195,6 +206,28 @@ export default function WritePage() {
           <SlugInput title={title} value={slug} onChange={setSlug} locked={!!editId} />
         </div>
         <TagInput selectedTags={selectedTags} onChange={setSelectedTags} />
+        {/* Series */}
+        <div className="flex items-center gap-3">
+          <select
+            value={seriesId || ""}
+            onChange={(e) => setSeriesId(e.target.value ? Number(e.target.value) : null)}
+            className="px-3 py-1.5 text-sm bg-bg-primary border border-border rounded-lg focus:outline-none focus:border-accent text-text-primary"
+          >
+            <option value="">시리즈 없음</option>
+            {allSeries.map((s) => (
+              <option key={s.id} value={s.id}>{s.title}</option>
+            ))}
+          </select>
+          {seriesId && (
+            <input
+              type="number"
+              value={seriesOrder}
+              onChange={(e) => setSeriesOrder(e.target.value)}
+              placeholder="순서 (비우면 자동)"
+              className="w-40 px-3 py-1.5 text-sm bg-bg-primary border border-border rounded-lg focus:outline-none focus:border-accent text-text-primary"
+            />
+          )}
+        </div>
       </div>
 
       {/* Editor */}
