@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { I18nProvider } from "@/i18n/provider";
