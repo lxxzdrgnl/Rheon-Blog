@@ -24,6 +24,8 @@ export const posts = sqliteTable("posts", {
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
   publishedAt: text("published_at"),
+  seriesId: integer("series_id").references(() => series.id),
+  seriesOrder: integer("series_order"),
 });
 
 export const tags = sqliteTable("tags", {
@@ -72,4 +74,42 @@ export const portfolioPosts = sqliteTable("portfolio_posts", {
 export const settings = sqliteTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
+});
+
+export const experiences = sqliteTable("experiences", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  company: text("company").notNull(),
+  companyEn: text("company_en"),
+  role: text("role").notNull(),
+  roleEn: text("role_en"),
+  description: text("description"),
+  descriptionEn: text("description_en"),
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const skills = sqliteTable("skills", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  categoryEn: text("category_en"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const socialLinks = sqliteTable("social_links", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  platform: text("platform").notNull(),
+  url: text("url").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const series = sqliteTable("series", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  titleEn: text("title_en"),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  descriptionEn: text("description_en"),
+  createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
