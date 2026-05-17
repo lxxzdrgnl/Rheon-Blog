@@ -64,6 +64,7 @@ export async function createPortfolio(formData: FormData) {
   const contentEn = (formData.get("contentEn") as string) || null;
   const techStack = formData.get("techStack") as string;
   const link = (formData.get("link") as string) || null;
+  const icon = (formData.get("icon") as string) || null;
   const thumbnail = (formData.get("thumbnail") as string) || null;
   const postIds = JSON.parse((formData.get("postIds") as string) || "[]") as number[];
 
@@ -75,7 +76,7 @@ export async function createPortfolio(formData: FormData) {
       title, titleEn, slug, description, descriptionEn,
       content, contentEn,
       techStack: JSON.stringify(techStack.split(",").map((s) => s.trim()).filter(Boolean)),
-      link, thumbnail, sortOrder: all.length,
+      link, icon, thumbnail, sortOrder: all.length,
     })
     .returning()
     .get();
@@ -98,6 +99,7 @@ export async function updatePortfolio(formData: FormData) {
   const contentEn = (formData.get("contentEn") as string) || null;
   const techStack = formData.get("techStack") as string;
   const link = (formData.get("link") as string) || null;
+  const icon = (formData.get("icon") as string) || null;
   const thumbnail = (formData.get("thumbnail") as string) || null;
   const postIds = JSON.parse((formData.get("postIds") as string) || "[]") as number[];
 
@@ -106,7 +108,7 @@ export async function updatePortfolio(formData: FormData) {
       title, titleEn, description, descriptionEn,
       content, contentEn,
       techStack: JSON.stringify(techStack.split(",").map((s) => s.trim()).filter(Boolean)),
-      link, thumbnail,
+      link, icon, thumbnail,
     })
     .where(eq(portfolios.id, id))
     .run();

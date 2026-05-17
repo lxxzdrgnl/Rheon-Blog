@@ -34,6 +34,10 @@ export async function uploadImage(file: Buffer, originalName: string, contentTyp
     ContentType: contentType,
   }));
 
+  // MINIO_PUBLIC_URL takes precedence for generating public image URLs
+  if (process.env.MINIO_PUBLIC_URL) {
+    return `${process.env.MINIO_PUBLIC_URL}/${bucket}/${key}`;
+  }
   const protocol = process.env.MINIO_USE_SSL === "true" ? "https" : "http";
   const publicEndpoint = process.env.MINIO_PUBLIC_ENDPOINT || process.env.MINIO_ENDPOINT;
   return `${protocol}://${publicEndpoint}:${process.env.MINIO_PORT}/${bucket}/${key}`;

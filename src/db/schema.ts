@@ -61,6 +61,7 @@ export const portfolios = sqliteTable("portfolios", {
   contentEn: text("content_en"),
   techStack: text("tech_stack").notNull(), // JSON array
   link: text("link"),
+  icon: text("icon"), // favicon / site icon URL
   thumbnail: text("thumbnail"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),

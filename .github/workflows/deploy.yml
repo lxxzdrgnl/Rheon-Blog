@@ -29,13 +29,49 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}:latest
 
-      - name: Deploy to mini PC
+      - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd ~/blog
+            set -e
+            mkdir -p ~/blog/data
+
+            cat > ~/blog/.env.production << 'ENVEOF'
+            ADMIN_ID=${{ secrets.ADMIN_ID }}
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+            MINIO_ENDPOINT=host.docker.internal
+            MINIO_PORT=9000
+            MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+            MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+            MINIO_BUCKET=blog
+            MINIO_USE_SSL=false
+            MINIO_PUBLIC_URL=https://storage.rheon.kr
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            DATABASE_PATH=./data/blog.db
+            ENVEOF
+
+            cat > ~/blog/docker-compose.prod.yml << 'COMPEOF'
+            services:
+              app:
+                image: ghcr.io/${{ github.repository }}:latest
+                ports:
+                  - "3200:3000"
+                volumes:
+                  - ./data:/app/data
+                env_file: .env.production
+                extra_hosts:
+                  - "host.docker.internal:host-gateway"
+                restart: unless-stopped
+            COMPEOF
+
             docker pull ghcr.io/${{ github.repository }}:latest
-            docker compose -f docker-compose.prod.yml up -d
+            cd ~/blog
+            docker compose -f docker-compose.prod.yml up -d --force-recreate
+
+            sleep 10
+            curl -sf http://localhost:3200 > /dev/null && echo "Health check passed" || echo "Health check failed (app may still be starting)"

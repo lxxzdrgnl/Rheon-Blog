@@ -12,7 +12,7 @@ interface SocialLink { id: number; platform: string; url: string }
 interface Experience { id: number; company: string; companyEn: string | null; role: string; roleEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null; links: string | null }
 interface Education { id: number; school: string; schoolEn: string | null; degree: string | null; degreeEn: string | null; field: string | null; fieldEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null }
 interface Skill { id: number; name: string; category: string; categoryEn: string | null }
-interface Portfolio { id: number; title: string; titleEn: string | null; slug: string; description: string; descriptionEn: string | null; techStack: string; link: string | null; thumbnail: string | null }
+interface Portfolio { id: number; title: string; titleEn: string | null; slug: string; description: string; descriptionEn: string | null; techStack: string; link: string | null; icon: string | null; thumbnail: string | null }
 interface Post { id: number; title: string; titleEn: string | null; slug: string; thumbnail: string | null; createdAt: string; categoryName: string; categoryNameEn: string; tags?: { name: string; nameEn: string }[] }
 interface ExperienceLink { label: string; url: string }
 
@@ -24,7 +24,44 @@ const ICONS: Record<string, string> = {
   email: "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z",
 };
 
+// ── Helpers ──
+
+interface PortfolioLink { badge?: string; label: string; url: string }
+
+function parsePortfolioLinks(link: string | null): PortfolioLink[] {
+  if (!link) return [];
+  try {
+    const parsed = JSON.parse(link);
+    if (Array.isArray(parsed)) return parsed.filter((l: PortfolioLink) => l.url?.trim());
+    return [];
+  } catch {
+    return link.trim() ? [{ label: "Link", url: link }] : [];
+  }
+}
+
 // ── Sub-components ──
+
+function ProjectIcon({ dbIcon, demoUrl, fallbackChar }: { dbIcon: string | null; demoUrl: string | null; fallbackChar: string }) {
+  const [icon, setIcon] = useState<string | null>(dbIcon || null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (dbIcon || !demoUrl) return;
+    fetch(`/api/favicon?url=${encodeURIComponent(demoUrl)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.icon) setIcon(d.icon); })
+      .catch(() => {});
+  }, [dbIcon, demoUrl]);
+
+  if (icon && !failed) {
+    return <img src={icon} alt="" className="w-5 h-5 rounded shrink-0 object-contain" onError={() => setFailed(true)} />;
+  }
+  return (
+    <span className="w-5 h-5 rounded shrink-0 flex items-center justify-center text-[10px] font-bold bg-accent/10 dark:bg-accent/15 text-accent">
+      {fallbackChar}
+    </span>
+  );
+}
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -236,31 +273,69 @@ export function ResumeLayout({ settings, socialLinks, experiences, education, sk
         {portfolios.length > 0 && (
           <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
             <SectionLabel>{t("resume.projects")}</SectionLabel>
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               {portfolios.map((item) => {
                 const techs: string[] = JSON.parse(item.techStack || "[]");
+                const links = parsePortfolioLinks(item.link);
+                const githubLink = links.find((l) => {
+                  const b = (l.badge || l.label || "").toLowerCase();
+                  return b === "github" || b.includes("github");
+                });
+                const demoLink = links.find((l) => {
+                  const b = (l.badge || l.label || "").toLowerCase();
+                  return b === "demo" || b.includes("demo") || b.includes("live") || b.includes("배포");
+                });
+                const title = localized(item.title, item.titleEn);
                 return (
-                  <Link key={item.id} href={`/projects/${item.slug}`} className="group flex items-center gap-4 p-3 -mx-3 rounded-lg hover:bg-bg-card/60 transition-colors">
-                    {item.thumbnail && (
-                      <img src={item.thumbnail} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0 ring-1 ring-border/40" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm text-text-primary group-hover:text-accent transition-colors leading-snug">
-                        {localized(item.title, item.titleEn)}
-                      </h3>
-                      <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">{localized(item.description, item.descriptionEn)}</p>
-                    </div>
-                    {techs.length > 0 && (
-                      <div className="hidden sm:flex flex-wrap gap-1 shrink-0 max-w-[200px] justify-end">
-                        {techs.slice(0, 3).map((tech) => (
-                          <span key={tech} className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-accent/8 dark:bg-accent/15 text-accent">
-                            {tech}
-                          </span>
-                        ))}
-                        {techs.length > 3 && <span className="text-[10px] text-text-tertiary">+{techs.length - 3}</span>}
+                  <div key={item.id} className="group flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-bg-card/60 transition-colors">
+                    <Link href={`/projects/${item.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
+                      <ProjectIcon dbIcon={item.icon} demoUrl={demoLink?.url ?? null} fallbackChar={title.charAt(0).toUpperCase()} />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm text-text-primary group-hover:text-accent transition-colors leading-snug truncate">
+                          {title}
+                        </h3>
+                        <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">{localized(item.description, item.descriptionEn)}</p>
                       </div>
-                    )}
-                  </Link>
+                    </Link>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {githubLink && (
+                        <a
+                          href={githubLink.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-primary hover:bg-bg-card transition-colors"
+                          title="GitHub"
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d={ICONS.github} />
+                          </svg>
+                        </a>
+                      )}
+                      {demoLink && (
+                        <a
+                          href={demoLink.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-accent hover:bg-accent/8 transition-colors"
+                          title="Live Demo"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                          </svg>
+                        </a>
+                      )}
+                      {techs.length > 0 && (
+                        <div className="hidden sm:flex flex-wrap gap-1 shrink-0 max-w-[200px] justify-end ml-1">
+                          {techs.slice(0, 3).map((tech) => (
+                            <span key={tech} className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-accent/8 dark:bg-accent/15 text-accent">
+                              {tech}
+                            </span>
+                          ))}
+                          {techs.length > 3 && <span className="text-[10px] text-text-tertiary">+{techs.length - 3}</span>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
             </div>

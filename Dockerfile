@@ -21,5 +21,9 @@ ENV NODE_ENV=production
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/drizzle.config.ts ./
+COPY --from=builder /app/node_modules/drizzle-kit ./node_modules/drizzle-kit
+COPY --from=builder /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
 EXPOSE 3000
 CMD ["node", "server.js"]

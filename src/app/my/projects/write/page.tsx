@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { getPosts } from "@/actions/posts";
 import { getPortfolioById, createPortfolio, updatePortfolio, getPortfolioPosts, translatePortfolio } from "@/actions/portfolios";
+import { importFromGitHub } from "@/actions/github-import";
 import { uploadImage } from "@/lib/upload";
 
 const BADGE_OPTIONS = [
@@ -53,12 +54,16 @@ function ProjectWritePageContent() {
   const [contentEn, setContentEn] = useState("");
   const [tech, setTech] = useState("");
   const [links, setLinks] = useState<ProjectLink[]>([]);
+  const [icon, setIcon] = useState("");
   const [thumb, setThumb] = useState("");
   const [selectedPostIds, setSelectedPostIds] = useState<number[]>([]);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [postSearch, setPostSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [showGithubImport, setShowGithubImport] = useState(false);
+  const [githubUrl, setGithubUrl] = useState("");
   const [lang, setLang] = useState<"ko" | "en">("ko");
   const originalRef = useRef({ title: "", desc: "", content: "" });
 
@@ -78,6 +83,7 @@ function ProjectWritePageContent() {
           setContentEn(p.contentEn || "");
           setTech(JSON.parse(p.techStack || "[]").join(", "));
           setThumb(p.thumbnail || "");
+          setIcon(p.icon || "");
           originalRef.current = { title: p.title, desc: p.description, content: p.content || "" };
           try {
             const parsed = JSON.parse(p.link || "[]");
@@ -137,6 +143,29 @@ function ProjectWritePageContent() {
     setTranslating(false);
   };
 
+  const handleGithubImport = async () => {
+    if (!githubUrl.trim()) return;
+    setImporting(true);
+    try {
+      const result = await importFromGitHub(githubUrl.trim());
+      setTitle(result.title);
+      setTitleEn(result.titleEn);
+      setDesc(result.description);
+      setDescEn(result.descriptionEn);
+      setContent(result.content);
+      setTech(result.techStack.join(", "));
+      setLinks((prev) => [
+        { badge: "github" as BadgeType, label: "GitHub", url: result.repoUrl },
+        ...prev,
+      ]);
+      setShowGithubImport(false);
+      setGithubUrl("");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "가져오기에 실패했습니다.");
+    }
+    setImporting(false);
+  };
+
   const handleSave = async () => {
     if (!title.trim()) { alert("프로젝트명을 입력하세요."); return; }
     if (!desc.trim()) { alert("한줄 소개를 입력하세요."); return; }
@@ -149,6 +178,7 @@ function ProjectWritePageContent() {
     fd.set("content", content); fd.set("contentEn", contentEn);
     fd.set("techStack", tech);
     fd.set("link", JSON.stringify(links.filter((l) => l.url.trim()).map((l) => ({ ...l, label: l.label || BADGE_OPTIONS.find((o) => o.value === l.badge)?.label || l.badge }))));
+    fd.set("icon", icon);
     fd.set("thumbnail", thumb);
     fd.set("postIds", JSON.stringify(selectedPostIds));
     editId ? await updatePortfolio(fd) : await createPortfolio(fd);
@@ -178,20 +208,64 @@ function ProjectWritePageContent() {
       {/* Top */}
       <div className="pt-5 pb-3 space-y-2 shrink-0">
         {/* Language toggle */}
+        {/* GitHub Import */}
+        {showGithubImport && (
+          <div className="flex items-center gap-2 p-3 bg-bg-elevated rounded-lg border border-border">
+            <svg className="w-4 h-4 text-text-secondary shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            <input
+              type="text"
+              value={githubUrl}
+              onChange={(e) => setGithubUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleGithubImport()}
+              placeholder="https://github.com/owner/repo"
+              className="flex-1 px-3 py-1.5 text-sm bg-bg-primary border border-border rounded-md focus:outline-none focus:border-accent"
+              autoFocus
+            />
+            <button
+              onClick={handleGithubImport}
+              disabled={importing}
+              className="px-3 py-1.5 text-xs bg-text-primary text-bg-primary rounded-md hover:opacity-80 transition-opacity disabled:opacity-50 whitespace-nowrap"
+            >
+              {importing ? "가져오는 중..." : "가져오기"}
+            </button>
+            <button
+              onClick={() => { setShowGithubImport(false); setGithubUrl(""); }}
+              className="p-1 text-text-tertiary hover:text-text-primary"
+            >
+              &times;
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 bg-bg-elevated rounded-lg p-0.5">
-            <button
-              onClick={() => setLang("ko")}
-              className={`px-3 py-1 text-xs rounded-md transition-colors font-medium ${lang === "ko" ? "bg-bg-primary text-text-primary shadow-sm" : "text-text-tertiary hover:text-text-secondary"}`}
-            >
-              한국어
-            </button>
-            <button
-              onClick={() => setLang("en")}
-              className={`px-3 py-1 text-xs rounded-md transition-colors font-medium ${lang === "en" ? "bg-bg-primary text-text-primary shadow-sm" : "text-text-tertiary hover:text-text-secondary"}`}
-            >
-              English
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-bg-elevated rounded-lg p-0.5">
+              <button
+                onClick={() => setLang("ko")}
+                className={`px-3 py-1 text-xs rounded-md transition-colors font-medium ${lang === "ko" ? "bg-bg-primary text-text-primary shadow-sm" : "text-text-tertiary hover:text-text-secondary"}`}
+              >
+                한국어
+              </button>
+              <button
+                onClick={() => setLang("en")}
+                className={`px-3 py-1 text-xs rounded-md transition-colors font-medium ${lang === "en" ? "bg-bg-primary text-text-primary shadow-sm" : "text-text-tertiary hover:text-text-secondary"}`}
+              >
+                English
+              </button>
+            </div>
+            {!editId && !showGithubImport && (
+              <button
+                onClick={() => setShowGithubImport(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-bg-elevated transition-colors text-text-secondary"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                GitHub에서 가져오기
+              </button>
+            )}
           </div>
           <button
             onClick={handleTranslate}
@@ -311,6 +385,21 @@ function ProjectWritePageContent() {
             <button type="button" onClick={() => addLink()} className="px-3 py-1.5 text-xs border border-border rounded-md hover:bg-bg-elevated transition-colors text-text-secondary">
               + {lang === "en" ? "Add link" : "링크 추가"}
             </button>
+          </section>
+
+          {/* Icon */}
+          <section className="space-y-3">
+            <h3 className="text-xs text-text-tertiary uppercase tracking-wider font-medium">
+              {lang === "en" ? "Icon URL" : "아이콘 URL"}
+            </h3>
+            <div className="flex items-center gap-3">
+              {icon && <img src={icon} alt="" className="w-5 h-5 rounded object-contain shrink-0" />}
+              <Input
+                value={icon}
+                onChange={(e) => setIcon(e.target.value)}
+                placeholder={lang === "en" ? "Favicon URL (auto-detected if empty)" : "파비콘 URL (비워두면 자동 감지)"}
+              />
+            </div>
           </section>
 
           {/* Thumbnail */}
