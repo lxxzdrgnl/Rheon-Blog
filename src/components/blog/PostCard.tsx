@@ -12,7 +12,7 @@ interface PostCardProps {
   categoryName: string;
   categoryNameEn: string;
   tags?: { name: string; nameEn: string }[];
-  thumbnailTextLength?: number;
+  thumbnailTextLength?: number | null;
 }
 
 const PATTERNS = [
@@ -40,7 +40,7 @@ function hashString(str: string) {
   return Math.abs(hash);
 }
 
-export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryName, categoryNameEn, tags, thumbnailTextLength = 8 }: PostCardProps) {
+export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryName, categoryNameEn, tags, thumbnailTextLength }: PostCardProps) {
   const localized = useLocalized();
   const displayTitle = localized(title, titleEn);
   const displayCategory = localized(categoryName, categoryNameEn);
@@ -70,7 +70,7 @@ export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryN
             <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full bg-white/[0.03] blur-3xl" />
             <div className="relative h-full flex items-center justify-center p-4">
               <h3 className="font-serif text-6xl md:text-7xl font-black leading-[0.9] text-white tracking-tighter text-center break-keep">
-                {displayTitle.slice(0, thumbnailTextLength)}
+                {displayTitle.slice(0, thumbnailTextLength || 8)}
               </h3>
             </div>
             <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/[0.08] pointer-events-none" />

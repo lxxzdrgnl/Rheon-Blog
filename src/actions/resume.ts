@@ -4,6 +4,27 @@ import { db } from "@/db";
 import { experiences, education, skills, socialLinks } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { translateTitle, translateToEnglish } from "@/lib/translate";
+
+// ── AI Translation ──
+
+export async function translateResumeFields(
+  fields: Record<string, string>,
+): Promise<Record<string, string>> {
+  const result: Record<string, string> = {};
+  const entries = Object.entries(fields).filter(([, v]) => v.trim());
+  const translations = await Promise.all(
+    entries.map(([key, value]) =>
+      key === "about" || key === "description"
+        ? translateToEnglish(value)
+        : translateTitle(value),
+    ),
+  );
+  entries.forEach(([key], i) => {
+    result[key] = translations[i];
+  });
+  return result;
+}
 
 // ── Experiences ──
 

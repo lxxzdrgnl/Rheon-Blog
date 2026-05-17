@@ -26,6 +26,7 @@ export const posts = sqliteTable("posts", {
   publishedAt: text("published_at"),
   seriesId: integer("series_id").references(() => series.id),
   seriesOrder: integer("series_order"),
+  thumbnailTextLength: integer("thumbnail_text_length"),
 });
 
 export const tags = sqliteTable("tags", {

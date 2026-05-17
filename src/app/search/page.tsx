@@ -2,13 +2,11 @@ import { PostGrid } from "@/components/blog/PostGrid";
 import { searchPosts } from "@/actions/search";
 import { getCategories } from "@/actions/categories";
 import { SearchBar } from "@/components/ui/SearchBar";
-import { getSetting } from "@/actions/settings";
-
 interface Props { searchParams: Promise<{ q?: string }>; }
 
 export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams;
-  const [allCategories, thumbLen] = await Promise.all([getCategories(), getSetting("thumbnail_text_length")]);
+  const allCategories = await getCategories();
 
   const results = q ? await searchPosts(q) : [];
   const postsWithCategory = results.map((post) => {
@@ -27,7 +25,7 @@ export default async function SearchPage({ searchParams }: Props) {
           &quot;{q}&quot; 검색 결과 {results.length}건
         </p>
       )}
-      <PostGrid posts={postsWithCategory} thumbnailTextLength={Number(thumbLen) || 8} />
+      <PostGrid posts={postsWithCategory} />
     </div>
   );
 }

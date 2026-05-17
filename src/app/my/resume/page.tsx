@@ -7,6 +7,7 @@ import {
   getEducation, createEducation, updateEducation, deleteEducation, reorderEducation,
   getSkills, createSkill, updateSkill, deleteSkill,
   getSocialLinks, createSocialLink, updateSocialLink, deleteSocialLink, reorderSocialLinks,
+  translateResumeFields,
 } from "@/actions/resume";
 import { uploadImage } from "@/lib/upload";
 
@@ -196,10 +197,51 @@ export default function ResumePage() {
     { key: "links" as const, label: "소셜 링크" },
   ];
 
+  const [translatingSection, setTranslatingSection] = useState<string | null>(null);
+
+  const handleTranslateSection = async (
+    section: string,
+    fields: Record<string, string>,
+    setters: Record<string, (v: string) => void>,
+  ) => {
+    const nonEmpty = Object.fromEntries(Object.entries(fields).filter(([, v]) => v.trim()));
+    if (Object.keys(nonEmpty).length === 0) return;
+    setTranslatingSection(section);
+    try {
+      const result = await translateResumeFields(nonEmpty);
+      for (const [key, value] of Object.entries(result)) {
+        if (value && setters[key]) setters[key](value);
+      }
+    } catch { alert("\ubc88\uc5ed\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4."); }
+    setTranslatingSection(null);
+  };
+
   const inputClass = "w-full px-3 py-2 text-sm bg-bg-primary border border-border rounded-lg focus:outline-none focus:border-accent text-text-primary";
   const labelClass = "block text-xs text-text-tertiary uppercase tracking-wider font-medium mb-1.5";
   const btnPrimary = "px-4 py-2 bg-accent text-bg-primary text-sm font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50";
   const btnSecondary = "px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary border border-border rounded-lg hover:bg-bg-elevated transition-colors";
+
+  const TranslateButton = ({ section, onClick }: { section: string; onClick: () => void }) => (
+    <button
+      onClick={onClick}
+      disabled={translatingSection !== null}
+      className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-bg-elevated transition-colors text-text-secondary disabled:opacity-50"
+    >
+      {translatingSection === section ? (
+        <>
+          <span className="w-3 h-3 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          번역 중...
+        </>
+      ) : (
+        <>
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
+          </svg>
+          AI 번역
+        </>
+      )}
+    </button>
+  );
 
   return (
     <div>
@@ -221,6 +263,12 @@ export default function ResumePage() {
 
       {tab === "intro" && (
         <div className="space-y-6 max-w-2xl">
+          <div className="flex justify-end">
+            <TranslateButton section="intro" onClick={() => handleTranslateSection("intro",
+              { name, title, tagline, about },
+              { name: setNameEn, title: setTitleEn, tagline: setTaglineEn, about: setAboutEn },
+            )} />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div><label className={labelClass}>이름</label><input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} /></div>
             <div><label className={labelClass}>Name (EN)</label><input className={inputClass} value={nameEn} onChange={(e) => setNameEn(e.target.value)} /></div>
@@ -260,6 +308,12 @@ export default function ResumePage() {
           <button onClick={() => setEditingExp({})} className={btnPrimary}>+ 경력 추가</button>
           {editingExp && (
             <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
+              <div className="flex justify-end">
+                <TranslateButton section="experience" onClick={() => handleTranslateSection("experience",
+                  { company: editingExp.company || "", role: editingExp.role || "", description: editingExp.description || "" },
+                  { company: (v) => setEditingExp((p) => ({ ...p, companyEn: v })), role: (v) => setEditingExp((p) => ({ ...p, roleEn: v })), description: (v) => setEditingExp((p) => ({ ...p, descriptionEn: v })) },
+                )} />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className={labelClass}>회사</label><input className={inputClass} value={editingExp.company || ""} onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })} /></div>
                 <div><label className={labelClass}>Company (EN)</label><input className={inputClass} value={editingExp.companyEn || ""} onChange={(e) => setEditingExp({ ...editingExp, companyEn: e.target.value })} /></div>
@@ -304,6 +358,12 @@ export default function ResumePage() {
           <button onClick={() => setEditingEdu({})} className={btnPrimary}>+ 학력 추가</button>
           {editingEdu && (
             <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
+              <div className="flex justify-end">
+                <TranslateButton section="education" onClick={() => handleTranslateSection("education",
+                  { school: editingEdu.school || "", degree: editingEdu.degree || "", field: editingEdu.field || "", description: editingEdu.description || "" },
+                  { school: (v) => setEditingEdu((p) => ({ ...p, schoolEn: v })), degree: (v) => setEditingEdu((p) => ({ ...p, degreeEn: v })), field: (v) => setEditingEdu((p) => ({ ...p, fieldEn: v })), description: (v) => setEditingEdu((p) => ({ ...p, descriptionEn: v })) },
+                )} />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className={labelClass}>학교</label><input className={inputClass} value={editingEdu.school || ""} onChange={(e) => setEditingEdu({ ...editingEdu, school: e.target.value })} /></div>
                 <div><label className={labelClass}>School (EN)</label><input className={inputClass} value={editingEdu.schoolEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, schoolEn: e.target.value })} /></div>
@@ -352,6 +412,12 @@ export default function ResumePage() {
           <button onClick={() => setEditingSkill({})} className={btnPrimary}>+ 기술 추가</button>
           {editingSkill && (
             <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
+              <div className="flex justify-end">
+                <TranslateButton section="skill" onClick={() => handleTranslateSection("skill",
+                  { category: editingSkill.category || "" },
+                  { category: (v) => setEditingSkill((p) => ({ ...p, categoryEn: v })) },
+                )} />
+              </div>
               <div><label className={labelClass}>기술명</label><input className={inputClass} value={editingSkill.name || ""} onChange={(e) => setEditingSkill({ ...editingSkill, name: e.target.value })} placeholder="React" /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className={labelClass}>카테고리</label><input className={inputClass} value={editingSkill.category || ""} onChange={(e) => setEditingSkill({ ...editingSkill, category: e.target.value })} placeholder="프론트엔드" /></div>
