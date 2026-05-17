@@ -86,6 +86,7 @@ export const experiences = sqliteTable("experiences", {
   descriptionEn: text("description_en"),
   startDate: text("start_date").notNull(),
   endDate: text("end_date"),
+  links: text("links"), // JSON array of { label, url }
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
