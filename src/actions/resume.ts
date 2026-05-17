@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { experiences, skills, socialLinks } from "@/db/schema";
+import { experiences, education, skills, socialLinks } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -39,6 +39,47 @@ export async function deleteExperience(id: number) {
 export async function reorderExperiences(orderedIds: number[]) {
   for (let i = 0; i < orderedIds.length; i++) {
     db.update(experiences).set({ sortOrder: i }).where(eq(experiences.id, orderedIds[i])).run();
+  }
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+}
+
+// ── Education ──
+
+export async function getEducation() {
+  return db.select().from(education).orderBy(asc(education.sortOrder)).all();
+}
+
+export async function createEducation(data: {
+  school: string; schoolEn?: string; degree?: string; degreeEn?: string;
+  field?: string; fieldEn?: string; description?: string; descriptionEn?: string;
+  startDate: string; endDate?: string;
+}) {
+  const all = await getEducation();
+  db.insert(education).values({ ...data, sortOrder: all.length }).run();
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+}
+
+export async function updateEducation(id: number, data: {
+  school: string; schoolEn?: string; degree?: string; degreeEn?: string;
+  field?: string; fieldEn?: string; description?: string; descriptionEn?: string;
+  startDate: string; endDate?: string;
+}) {
+  db.update(education).set(data).where(eq(education.id, id)).run();
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+}
+
+export async function deleteEducation(id: number) {
+  db.delete(education).where(eq(education.id, id)).run();
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+}
+
+export async function reorderEducation(orderedIds: number[]) {
+  for (let i = 0; i < orderedIds.length; i++) {
+    db.update(education).set({ sortOrder: i }).where(eq(education.id, orderedIds[i])).run();
   }
   revalidatePath("/");
   revalidatePath("/my/resume");

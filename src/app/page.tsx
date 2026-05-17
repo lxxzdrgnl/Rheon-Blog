@@ -1,6 +1,7 @@
 import { ResumeHeroSection } from "@/components/blog/ResumeHeroSection";
 import { AboutSection } from "@/components/blog/AboutSection";
 import { ExperienceSection } from "@/components/blog/ExperienceSection";
+import { EducationSection } from "@/components/blog/EducationSection";
 import { SkillsSection } from "@/components/blog/SkillsSection";
 import { PortfolioSection } from "@/components/blog/PortfolioSection";
 import { RecentPostsSection } from "@/components/blog/RecentPostsSection";
@@ -9,16 +10,17 @@ import { getPosts, getAllPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getSettings } from "@/actions/settings";
 import { getPortfolios } from "@/actions/portfolios";
-import { getExperiences, getSkills, getSocialLinks } from "@/actions/resume";
+import { getExperiences, getEducation, getSkills, getSocialLinks } from "@/actions/resume";
 
 export default async function Home() {
-  const [settings, allPosts, allCategories, allPortfolios, postTagsMap, experiences, skillsList, socialLinks] = await Promise.all([
+  const [settings, allPosts, allCategories, allPortfolios, postTagsMap, experiences, educationList, skillsList, socialLinks] = await Promise.all([
     getSettings(),
     getPosts({ published: true, limit: 6 }),
     getCategories(),
     getPortfolios(),
     getAllPostTags(),
     getExperiences(),
+    getEducation(),
     getSkills(),
     getSocialLinks(),
   ]);
@@ -49,6 +51,7 @@ export default async function Home() {
         contentEn={(settings.resume_about_en as string) || ""}
       />
       <ExperienceSection experiences={experiences} />
+      <EducationSection education={educationList} />
       <SkillsSection skills={skillsList} />
       <PortfolioSection portfolios={allPortfolios} />
       <RecentPostsSection posts={postsWithCategory} />

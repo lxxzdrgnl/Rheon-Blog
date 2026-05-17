@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { Suspense, useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PostEditor } from "@/components/admin/PostEditor";
 import { Input } from "@/components/ui/Input";
@@ -33,6 +33,14 @@ interface Post {
 }
 
 export default function ProjectWritePage() {
+  return (
+    <Suspense>
+      <ProjectWritePageContent />
+    </Suspense>
+  );
+}
+
+function ProjectWritePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const editId = searchParams.get("id") ? Number(searchParams.get("id")) : null;

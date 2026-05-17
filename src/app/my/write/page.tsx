@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { Suspense, useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PostEditor, PostEditorHandle } from "@/components/admin/PostEditor";
 import { CategorySelect } from "@/components/admin/CategorySelect";
@@ -18,6 +18,14 @@ import { uploadImage } from "@/lib/upload";
 interface Tag { id: number; name: string; nameEn: string; }
 
 export default function WritePage() {
+  return (
+    <Suspense>
+      <WritePageContent />
+    </Suspense>
+  );
+}
+
+function WritePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const editId = searchParams.get("id") ? Number(searchParams.get("id")) : null;

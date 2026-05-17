@@ -31,7 +31,7 @@ export const markdownComponents: Components = {
     );
   },
   img({ src, alt, ...props }) {
-    if (isBadgeImg(src)) {
+    if (isBadgeImg(src as string | undefined)) {
       return <img src={src} alt={alt || ""} className="inline-block !my-0 h-6" {...props} />;
     }
     return <img src={src} alt={alt || ""} {...props} />;

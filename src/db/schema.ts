@@ -97,6 +97,21 @@ export const skills = sqliteTable("skills", {
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
+export const education = sqliteTable("education", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  school: text("school").notNull(),
+  schoolEn: text("school_en"),
+  degree: text("degree"),
+  degreeEn: text("degree_en"),
+  field: text("field"),
+  fieldEn: text("field_en"),
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date"),
+  description: text("description"),
+  descriptionEn: text("description_en"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
 export const socialLinks = sqliteTable("social_links", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   platform: text("platform").notNull(),

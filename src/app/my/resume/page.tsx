@@ -4,17 +4,19 @@ import { useState, useEffect } from "react";
 import { getSettings, updateSettings } from "@/actions/settings";
 import {
   getExperiences, createExperience, updateExperience, deleteExperience, reorderExperiences,
+  getEducation, createEducation, updateEducation, deleteEducation, reorderEducation,
   getSkills, createSkill, updateSkill, deleteSkill,
   getSocialLinks, createSocialLink, updateSocialLink, deleteSocialLink, reorderSocialLinks,
 } from "@/actions/resume";
 import { uploadImage } from "@/lib/upload";
 
 type Experience = { id: number; company: string; companyEn: string | null; role: string; roleEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null; sortOrder: number };
+type Education = { id: number; school: string; schoolEn: string | null; degree: string | null; degreeEn: string | null; field: string | null; fieldEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null; sortOrder: number };
 type Skill = { id: number; name: string; category: string; categoryEn: string | null; sortOrder: number };
 type SocialLink = { id: number; platform: string; url: string; sortOrder: number };
 
 export default function ResumePage() {
-  const [tab, setTab] = useState<"intro" | "experience" | "skills" | "links">("intro");
+  const [tab, setTab] = useState<"intro" | "experience" | "education" | "skills" | "links">("intro");
 
   const [name, setName] = useState("");
   const [nameEn, setNameEn] = useState("");
@@ -29,6 +31,9 @@ export default function ResumePage() {
 
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [editingExp, setEditingExp] = useState<Partial<Experience> | null>(null);
+
+  const [educationList, setEducationList] = useState<Education[]>([]);
+  const [editingEdu, setEditingEdu] = useState<Partial<Education> | null>(null);
 
   const [skills, setSkills] = useState<Skill[]>([]);
   const [editingSkill, setEditingSkill] = useState<Partial<Skill> | null>(null);
@@ -49,6 +54,7 @@ export default function ResumePage() {
       setAboutEn((s.resume_about_en as string) || "");
     });
     getExperiences().then(setExperiences);
+    getEducation().then(setEducationList);
     getSkills().then(setSkills);
     getSocialLinks().then(setLinks);
   }, []);
@@ -101,6 +107,44 @@ export default function ResumePage() {
     setExperiences(await getExperiences());
   };
 
+  const handleSaveEducation = async () => {
+    if (!editingEdu?.school || !editingEdu?.startDate) return;
+    if (editingEdu.id) {
+      await updateEducation(editingEdu.id, {
+        school: editingEdu.school, schoolEn: editingEdu.schoolEn || undefined,
+        degree: editingEdu.degree || undefined, degreeEn: editingEdu.degreeEn || undefined,
+        field: editingEdu.field || undefined, fieldEn: editingEdu.fieldEn || undefined,
+        description: editingEdu.description || undefined, descriptionEn: editingEdu.descriptionEn || undefined,
+        startDate: editingEdu.startDate, endDate: editingEdu.endDate || undefined,
+      });
+    } else {
+      await createEducation({
+        school: editingEdu.school, schoolEn: editingEdu.schoolEn || undefined,
+        degree: editingEdu.degree || undefined, degreeEn: editingEdu.degreeEn || undefined,
+        field: editingEdu.field || undefined, fieldEn: editingEdu.fieldEn || undefined,
+        description: editingEdu.description || undefined, descriptionEn: editingEdu.descriptionEn || undefined,
+        startDate: editingEdu.startDate, endDate: editingEdu.endDate || undefined,
+      });
+    }
+    setEditingEdu(null);
+    setEducationList(await getEducation());
+  };
+
+  const handleDeleteEducation = async (id: number) => {
+    if (!confirm("삭제하시겠습니까?")) return;
+    await deleteEducation(id);
+    setEducationList(await getEducation());
+  };
+
+  const handleMoveEducation = async (idx: number, dir: -1 | 1) => {
+    const ids = educationList.map((e) => e.id);
+    const swapIdx = idx + dir;
+    if (swapIdx < 0 || swapIdx >= ids.length) return;
+    [ids[idx], ids[swapIdx]] = [ids[swapIdx], ids[idx]];
+    await reorderEducation(ids);
+    setEducationList(await getEducation());
+  };
+
   const handleSaveSkill = async () => {
     if (!editingSkill?.name || !editingSkill?.category) return;
     if (editingSkill.id) {
@@ -147,6 +191,7 @@ export default function ResumePage() {
   const TABS = [
     { key: "intro" as const, label: "소개" },
     { key: "experience" as const, label: "경력" },
+    { key: "education" as const, label: "학력" },
     { key: "skills" as const, label: "기술 스택" },
     { key: "links" as const, label: "소셜 링크" },
   ];
@@ -248,6 +293,54 @@ export default function ResumePage() {
                 </div>
                 <button onClick={() => setEditingExp(exp)} className={btnSecondary}>수정</button>
                 <button onClick={() => handleDeleteExperience(exp.id)} className="text-xs text-red-500 hover:text-red-400">삭제</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "education" && (
+        <div className="space-y-4">
+          <button onClick={() => setEditingEdu({})} className={btnPrimary}>+ 학력 추가</button>
+          {editingEdu && (
+            <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={labelClass}>학교</label><input className={inputClass} value={editingEdu.school || ""} onChange={(e) => setEditingEdu({ ...editingEdu, school: e.target.value })} /></div>
+                <div><label className={labelClass}>School (EN)</label><input className={inputClass} value={editingEdu.schoolEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, schoolEn: e.target.value })} /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={labelClass}>학위</label><input className={inputClass} value={editingEdu.degree || ""} onChange={(e) => setEditingEdu({ ...editingEdu, degree: e.target.value })} placeholder="학사, 석사..." /></div>
+                <div><label className={labelClass}>Degree (EN)</label><input className={inputClass} value={editingEdu.degreeEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, degreeEn: e.target.value })} placeholder="Bachelor, Master..." /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={labelClass}>전공</label><input className={inputClass} value={editingEdu.field || ""} onChange={(e) => setEditingEdu({ ...editingEdu, field: e.target.value })} placeholder="컴퓨터공학" /></div>
+                <div><label className={labelClass}>Field (EN)</label><input className={inputClass} value={editingEdu.fieldEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, fieldEn: e.target.value })} placeholder="Computer Science" /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={labelClass}>시작일 (YYYY)</label><input className={inputClass} value={editingEdu.startDate || ""} onChange={(e) => setEditingEdu({ ...editingEdu, startDate: e.target.value })} placeholder="2021" /></div>
+                <div><label className={labelClass}>종료일 (비우면 현재)</label><input className={inputClass} value={editingEdu.endDate || ""} onChange={(e) => setEditingEdu({ ...editingEdu, endDate: e.target.value })} placeholder="2025" /></div>
+              </div>
+              <div><label className={labelClass}>설명</label><textarea className={inputClass + " h-20"} value={editingEdu.description || ""} onChange={(e) => setEditingEdu({ ...editingEdu, description: e.target.value })} /></div>
+              <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-20"} value={editingEdu.descriptionEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, descriptionEn: e.target.value })} /></div>
+              <div className="flex gap-2">
+                <button onClick={handleSaveEducation} className={btnPrimary}>저장</button>
+                <button onClick={() => setEditingEdu(null)} className={btnSecondary}>취소</button>
+              </div>
+            </div>
+          )}
+          <div className="space-y-2">
+            {educationList.map((edu, idx) => (
+              <div key={edu.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
+                <div className="flex flex-col gap-0.5">
+                  <button onClick={() => handleMoveEducation(idx, -1)} disabled={idx === 0} className="text-text-tertiary hover:text-text-primary disabled:opacity-30 text-xs">▲</button>
+                  <button onClick={() => handleMoveEducation(idx, 1)} disabled={idx === educationList.length - 1} className="text-text-tertiary hover:text-text-primary disabled:opacity-30 text-xs">▼</button>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{edu.school}</p>
+                  <p className="text-xs text-text-tertiary">{[edu.degree, edu.field].filter(Boolean).join(" · ")} · {edu.startDate} — {edu.endDate || "현재"}</p>
+                </div>
+                <button onClick={() => setEditingEdu(edu)} className={btnSecondary}>수정</button>
+                <button onClick={() => handleDeleteEducation(edu.id)} className="text-xs text-red-500 hover:text-red-400">삭제</button>
               </div>
             ))}
           </div>
