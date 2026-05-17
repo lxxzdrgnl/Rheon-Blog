@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { getPostBySlug, getPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getSetting } from "@/actions/settings";
+import { getSeriesById, getSeriesPosts } from "@/actions/series";
 import { PostDetailClient } from "./client";
 
 interface Props { params: Promise<{ slug: string }>; }
@@ -31,12 +32,31 @@ export default async function PostPage({ params }: Props) {
 
   const category = categories.find((c) => c.id === post.categoryId);
 
+  let seriesData = null;
+  if (post.seriesId) {
+    const [seriesInfo, seriesPosts] = await Promise.all([
+      getSeriesById(post.seriesId),
+      getSeriesPosts(post.seriesId),
+    ]);
+    if (seriesInfo) {
+      const currentIndex = seriesPosts.findIndex((p) => p.id === post.id);
+      seriesData = {
+        title: seriesInfo.title,
+        titleEn: seriesInfo.titleEn,
+        posts: seriesPosts.map((p) => ({ id: p.id, title: p.title, titleEn: p.titleEn, slug: p.slug })),
+        prevPost: currentIndex > 0 ? seriesPosts[currentIndex - 1] : null,
+        nextPost: currentIndex < seriesPosts.length - 1 ? seriesPosts[currentIndex + 1] : null,
+      };
+    }
+  }
+
   return (
     <PostDetailClient
       post={post}
       postTags={postTags}
       category={category || null}
       showViewCount={!!showViewCount}
+      seriesData={seriesData}
     />
   );
 }

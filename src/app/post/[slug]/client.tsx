@@ -5,6 +5,8 @@ import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { CommentSection } from "@/components/blog/CommentSection";
+import { SeriesTableOfContents } from "@/components/blog/SeriesTableOfContents";
+import { SeriesNavigation } from "@/components/blog/SeriesNavigation";
 import Link from "next/link";
 
 interface PostDetailClientProps {
@@ -16,9 +18,16 @@ interface PostDetailClientProps {
   postTags: { id: number; name: string; nameEn: string }[];
   category: { name: string; nameEn: string; slug: string } | null;
   showViewCount: boolean;
+  seriesData: {
+    title: string;
+    titleEn: string | null;
+    posts: { id: number; title: string; titleEn: string | null; slug: string }[];
+    prevPost: { id: number; title: string; titleEn: string | null; slug: string } | null;
+    nextPost: { id: number; title: string; titleEn: string | null; slug: string } | null;
+  } | null;
 }
 
-export function PostDetailClient({ post, postTags, category, showViewCount }: PostDetailClientProps) {
+export function PostDetailClient({ post, postTags, category, showViewCount, seriesData }: PostDetailClientProps) {
   const { locale, t } = useI18n();
   const localized = useLocalized();
 
@@ -69,6 +78,15 @@ export function PostDetailClient({ post, postTags, category, showViewCount }: Po
           <div className="mt-8 h-px bg-border" />
         </header>
 
+        {seriesData && (
+          <SeriesTableOfContents
+            seriesTitle={seriesData.title}
+            seriesTitleEn={seriesData.titleEn}
+            posts={seriesData.posts}
+            currentPostId={post.id}
+          />
+        )}
+
         {/* Content */}
         <article className="animate-fade-in animate-delay-1">
           <MarkdownRenderer content={content} />
@@ -77,6 +95,12 @@ export function PostDetailClient({ post, postTags, category, showViewCount }: Po
         {/* Comments */}
         <div className="mt-20">
           <div className="h-px bg-border mb-12" />
+          {seriesData && (
+            <SeriesNavigation
+              prevPost={seriesData.prevPost}
+              nextPost={seriesData.nextPost}
+            />
+          )}
           <CommentSection postId={post.id} slug={post.slug} />
         </div>
       </div>
