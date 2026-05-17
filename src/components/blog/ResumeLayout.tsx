@@ -236,25 +236,37 @@ export function ResumeLayout({ settings, socialLinks, experiences, education, sk
         {portfolios.length > 0 && (
           <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
             <SectionLabel>{t("resume.projects")}</SectionLabel>
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {portfolios.map((item) => {
                 const techs: string[] = JSON.parse(item.techStack || "[]");
                 return (
                   <Link key={item.id} href={`/projects/${item.slug}`} className="group block">
-                    <div className="flex items-start gap-3.5">
+                    <div className="relative rounded-xl border border-border/50 hover:border-accent/40 bg-bg-card/40 hover:bg-bg-card transition-all duration-300 overflow-hidden h-full">
                       {item.thumbnail && (
-                        <img src={item.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 ring-1 ring-border/40 mt-0.5" />
+                        <div className="aspect-[2/1] overflow-hidden">
+                          <img
+                            src={item.thumbnail}
+                            alt=""
+                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                          />
+                        </div>
                       )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-text-primary group-hover:text-accent transition-colors leading-snug">
+                      <div className="p-4">
+                        <h3 className="font-semibold text-sm text-text-primary group-hover:text-accent transition-colors">
                           {localized(item.title, item.titleEn)}
-                          <svg className="inline-block w-3 h-3 ml-1 text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity align-baseline" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <svg className="inline-block w-3 h-3 ml-1 text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                           </svg>
                         </h3>
-                        <p className="text-sm text-text-secondary line-clamp-1">{localized(item.description, item.descriptionEn)}</p>
+                        <p className="text-xs text-text-secondary mt-1 line-clamp-2 leading-relaxed">{localized(item.description, item.descriptionEn)}</p>
                         {techs.length > 0 && (
-                          <p className="text-xs text-text-tertiary mt-1">{techs.join(" · ")}</p>
+                          <div className="flex flex-wrap gap-1.5 mt-2.5">
+                            {techs.map((tech) => (
+                              <span key={tech} className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-accent/8 dark:bg-accent/15 text-accent">
+                                {tech}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
                     </div>
