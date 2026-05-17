@@ -11,6 +11,9 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      IMAGE: ghcr.io/lxxzdrgnl/rheon-blog:latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +30,7 @@ jobs:
           context: .
           target: production
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ${{ env.IMAGE }}
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
@@ -58,7 +61,7 @@ jobs:
             cat > ~/blog/docker-compose.prod.yml << 'COMPEOF'
             services:
               app:
-                image: ghcr.io/${{ github.repository }}:latest
+                image: ghcr.io/lxxzdrgnl/rheon-blog:latest
                 ports:
                   - "3200:3000"
                 volumes:
@@ -69,7 +72,7 @@ jobs:
                 restart: unless-stopped
             COMPEOF
 
-            docker pull ghcr.io/${{ github.repository }}:latest
+            docker pull ghcr.io/lxxzdrgnl/rheon-blog:latest
             cd ~/blog
             docker compose -f docker-compose.prod.yml up -d --force-recreate
 
