@@ -65,7 +65,7 @@ function WritePageContent() {
         if (post) {
           setTitle(post.title);
           setTitleEn(post.titleEn || "");
-          setContent(post.content);
+          setContent(post.content || "");
           setContentEn(post.contentEn || "");
           setSlug(post.slug);
           setCategoryId(post.categoryId);
