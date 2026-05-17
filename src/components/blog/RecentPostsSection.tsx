@@ -3,6 +3,7 @@
 import { useI18n } from "@/i18n/provider";
 import { PostCard } from "./PostCard";
 import Link from "next/link";
+import { SectionHeading } from "./ExperienceSection";
 
 interface Post {
   id: number;
@@ -22,13 +23,11 @@ export function RecentPostsSection({ posts }: { posts: Post[] }) {
   if (posts.length === 0) return null;
 
   return (
-    <section className="page-container pb-16">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="flex items-center gap-3 text-xs font-semibold tracking-[0.2em] uppercase text-text-tertiary">
-          <div className="h-px w-8 bg-border" />
-          {t("resume.recentPosts")}
-        </h2>
-        <Link href="/posts" className="text-xs text-text-tertiary hover:text-accent transition-colors tracking-wide uppercase">
+    <section className="page-container py-8 pb-16">
+      <div className="h-px bg-border mb-8" />
+      <div className="flex items-baseline justify-between mb-6">
+        <SectionHeading>{t("resume.recentPosts")}</SectionHeading>
+        <Link href="/posts" className="text-[11px] font-medium text-text-tertiary hover:text-accent transition-colors tracking-wide uppercase">
           {t("hero.allPosts")} &rarr;
         </Link>
       </div>

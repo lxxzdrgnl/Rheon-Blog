@@ -21,63 +21,82 @@ interface ResumeHeroSectionProps {
 
 export function ResumeHeroSection({ name, nameEn, title, titleEn, tagline, taglineEn, profileImage, links }: ResumeHeroSectionProps) {
   const localized = useLocalized();
+  const displayName = localized(name, nameEn);
+  const displayTitle = localized(title, titleEn);
+  const displayTagline = localized(tagline, taglineEn);
+
+  if (!displayName) return null;
 
   return (
-    <section className="pt-16 pb-6 md:pt-24 md:pb-10">
-      <div className="page-container">
-        <div className="flex flex-col-reverse md:flex-row md:items-start md:gap-12">
-          <div className="md:flex-1 mt-6 md:mt-0">
-            <div className="flex items-center gap-3 mb-4 animate-fade-in">
-              <div className="h-px flex-1 max-w-12 bg-accent/60" />
-              <span className="text-xs text-accent font-semibold tracking-[0.2em] uppercase">
-                {localized(title, titleEn)}
-              </span>
-            </div>
-            <h1 className="font-serif text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight animate-fade-in animate-delay-1">
-              {localized(name, nameEn)}
-            </h1>
-            <p className="mt-4 text-base md:text-lg text-text-secondary max-w-md leading-relaxed animate-fade-in animate-delay-2">
-              {localized(tagline, taglineEn)}
-            </p>
-            {links.length > 0 && (
-              <div className="flex items-center gap-4 mt-6 animate-fade-in animate-delay-3">
-                {links.map((link) => {
-                  const iconPath = PLATFORM_ICONS[link.platform.toLowerCase()];
-                  const href = link.platform.toLowerCase() === "email" ? `mailto:${link.url}` : link.url;
-                  return (
-                    <a
-                      key={link.id}
-                      href={href}
-                      target={link.platform.toLowerCase() === "email" ? undefined : "_blank"}
-                      rel="noopener noreferrer"
-                      className="group flex items-center gap-2 text-text-tertiary hover:text-accent transition-colors duration-300"
-                      title={link.platform}
-                    >
-                      {iconPath && (
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                          <path d={iconPath} />
-                        </svg>
-                      )}
-                      <span className="text-sm hidden sm:inline group-hover:underline underline-offset-4">{link.platform}</span>
-                    </a>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+    <section className="relative pt-12 pb-8 md:pt-20 md:pb-12 overflow-hidden">
+      {/* Subtle background texture */}
+      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style={{
+        backgroundImage: `radial-gradient(circle at 1px 1px, var(--text-primary) 1px, transparent 0)`,
+        backgroundSize: "24px 24px",
+      }} />
+
+      <div className="page-container relative">
+        <div className="flex flex-col md:flex-row md:items-end md:gap-10">
+          {/* Profile image */}
           {profileImage && (
-            <div className="shrink-0 animate-fade-in">
-              <div className="relative">
+            <div className="shrink-0 mb-6 md:mb-0 animate-fade-in">
+              <div className="relative inline-block">
                 <img
                   src={profileImage}
-                  alt={localized(name, nameEn)}
-                  className="w-28 h-28 md:w-36 md:h-36 rounded-2xl object-cover shadow-lg"
+                  alt={displayName}
+                  className="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover"
                 />
-                <div className="absolute -inset-1 rounded-2xl border border-accent/20 -z-10" />
+                <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/10 dark:ring-white/10" />
               </div>
             </div>
           )}
+
+          {/* Text content */}
+          <div className="flex-1 min-w-0">
+            <h1 className="font-serif text-3xl md:text-5xl font-bold leading-[1.05] tracking-tight animate-fade-in">
+              {displayName}
+            </h1>
+            <p className="mt-2 text-base md:text-lg text-text-secondary animate-fade-in animate-delay-1">
+              {displayTitle}
+            </p>
+            {displayTagline && (
+              <p className="mt-3 text-sm text-text-tertiary max-w-lg leading-relaxed animate-fade-in animate-delay-2">
+                {displayTagline}
+              </p>
+            )}
+          </div>
+
+          {/* Social links - aligned right on desktop */}
+          {links.length > 0 && (
+            <div className="flex items-center gap-5 mt-5 md:mt-0 md:self-end md:pb-1 animate-fade-in animate-delay-3">
+              {links.map((link) => {
+                const iconPath = PLATFORM_ICONS[link.platform.toLowerCase()];
+                const href = link.platform.toLowerCase() === "email" ? `mailto:${link.url}` : link.url;
+                return (
+                  <a
+                    key={link.id}
+                    href={href}
+                    target={link.platform.toLowerCase() === "email" ? undefined : "_blank"}
+                    rel="noopener noreferrer"
+                    className="text-text-tertiary hover:text-accent transition-colors duration-200"
+                    title={link.platform}
+                  >
+                    {iconPath ? (
+                      <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor">
+                        <path d={iconPath} />
+                      </svg>
+                    ) : (
+                      <span className="text-sm">{link.platform}</span>
+                    )}
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        {/* Divider */}
+        <div className="mt-8 h-px bg-border" />
       </div>
     </section>
   );

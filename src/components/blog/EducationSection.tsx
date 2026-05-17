@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n, useLocalized } from "@/i18n/provider";
+import { SectionHeading } from "./ExperienceSection";
 
 interface Education {
   id: number;
@@ -23,40 +24,36 @@ export function EducationSection({ education }: { education: Education[] }) {
   if (education.length === 0) return null;
 
   return (
-    <section className="page-container pb-10">
-      <h2 className="flex items-center gap-3 text-xs font-semibold tracking-[0.2em] uppercase text-text-tertiary mb-6">
-        <div className="h-px flex-1 max-w-8 bg-border" />
-        {t("resume.education")}
-        <div className="h-px flex-1 bg-border" />
-      </h2>
-      <div className="space-y-6">
-        {education.map((edu) => (
-          <div
-            key={edu.id}
-            className="group relative p-5 rounded-xl border border-border/40 hover:border-accent/30 bg-bg-card/30 hover:bg-bg-card/60 transition-all duration-300"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
-              <div>
-                <h3 className="font-semibold text-text-primary group-hover:text-accent transition-colors">
-                  {localized(edu.school, edu.schoolEn)}
-                </h3>
-                {(edu.degree || edu.field) && (
-                  <p className="text-sm text-text-secondary mt-0.5">
-                    {[localized(edu.degree, edu.degreeEn), localized(edu.field, edu.fieldEn)].filter(Boolean).join(" · ")}
-                  </p>
-                )}
+    <section className="page-container py-8">
+      <div className="h-px bg-border mb-8" />
+      <div className="grid grid-cols-1 md:grid-cols-[140px_1fr] gap-2 md:gap-8">
+        <SectionHeading>{t("resume.education")}</SectionHeading>
+        <div className="space-y-6">
+          {education.map((edu) => (
+            <div key={edu.id}>
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5">
+                <div>
+                  <h3 className="font-semibold text-[0.95rem] text-text-primary">
+                    {localized(edu.school, edu.schoolEn)}
+                  </h3>
+                  {(edu.degree || edu.field) && (
+                    <p className="text-sm text-text-secondary mt-0.5">
+                      {[localized(edu.degree, edu.degreeEn), localized(edu.field, edu.fieldEn)].filter(Boolean).join(", ")}
+                    </p>
+                  )}
+                </div>
+                <span className="text-xs text-text-tertiary tabular-nums shrink-0">
+                  {edu.startDate} — {edu.endDate || t("resume.present")}
+                </span>
               </div>
-              <span className="text-xs text-text-tertiary font-mono whitespace-nowrap mt-1 sm:mt-0.5">
-                {edu.startDate} — {edu.endDate || t("resume.present")}
-              </span>
+              {edu.description && (
+                <p className="text-sm text-text-secondary mt-2 leading-relaxed">
+                  {localized(edu.description, edu.descriptionEn)}
+                </p>
+              )}
             </div>
-            {edu.description && (
-              <p className="text-sm text-text-secondary mt-3 leading-relaxed">
-                {localized(edu.description, edu.descriptionEn)}
-              </p>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

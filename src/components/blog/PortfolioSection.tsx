@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLocalized } from "@/i18n/provider";
+import { SectionHeading } from "./ExperienceSection";
 
 interface Portfolio {
   id: number;
@@ -21,54 +22,49 @@ export function PortfolioSection({ portfolios }: { portfolios: Portfolio[] }) {
   if (portfolios.length === 0) return null;
 
   return (
-    <section className="page-container pb-10">
-      <h2 className="flex items-center gap-3 text-xs font-semibold tracking-[0.2em] uppercase text-text-tertiary mb-6">
-        <div className="h-px flex-1 max-w-8 bg-border" />
-        Projects
-        <div className="h-px flex-1 bg-border" />
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {portfolios.map((item) => {
-          const displayTitle = localized(item.title, item.titleEn);
-          const displayDesc = localized(item.description, item.descriptionEn);
-          const techs: string[] = JSON.parse(item.techStack || "[]");
+    <section className="page-container py-8">
+      <div className="h-px bg-border mb-8" />
+      <div className="grid grid-cols-1 md:grid-cols-[140px_1fr] gap-2 md:gap-8">
+        <SectionHeading>Projects</SectionHeading>
+        <div className="space-y-5">
+          {portfolios.map((item) => {
+            const displayTitle = localized(item.title, item.titleEn);
+            const displayDesc = localized(item.description, item.descriptionEn);
+            const techs: string[] = JSON.parse(item.techStack || "[]");
 
-          return (
-            <Link key={item.id} href={`/projects/${item.slug}`} className="group block">
-              <article className="relative h-full p-5 rounded-xl border border-border/40 hover:border-accent/30 bg-bg-card/30 hover:bg-bg-card/60 transition-all duration-300 overflow-hidden">
-                <div className="flex items-start gap-4">
-                  {item.thumbnail && (
-                    <img
-                      src={item.thumbnail}
-                      alt={displayTitle}
-                      className="w-14 h-14 rounded-lg object-cover shrink-0 border border-border/40"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-text-primary group-hover:text-accent transition-colors truncate">
-                        {displayTitle}
-                      </h3>
-                      <svg className="w-3.5 h-3.5 text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity shrink-0 -translate-x-1 group-hover:translate-x-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-                      </svg>
-                    </div>
-                    <p className="text-sm text-text-secondary mt-1 leading-relaxed line-clamp-2">{displayDesc}</p>
-                  </div>
-                </div>
-                {techs.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-3 pl-0">
-                    {techs.map((tech) => (
-                      <span key={tech} className="px-2 py-0.5 text-[11px] font-medium bg-accent/8 dark:bg-accent/15 rounded text-accent">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
+            return (
+              <Link key={item.id} href={`/projects/${item.slug}`} className="group flex items-start gap-4">
+                {item.thumbnail && (
+                  <img
+                    src={item.thumbnail}
+                    alt={displayTitle}
+                    className="w-12 h-12 rounded-lg object-cover shrink-0 border border-border/40 mt-0.5"
+                  />
                 )}
-              </article>
-            </Link>
-          );
-        })}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="font-semibold text-[0.95rem] text-text-primary group-hover:text-accent transition-colors">
+                      {displayTitle}
+                    </h3>
+                    <svg className="w-3 h-3 text-text-tertiary opacity-0 group-hover:opacity-100 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-text-secondary mt-0.5 line-clamp-1">{displayDesc}</p>
+                  {techs.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {techs.map((tech) => (
+                        <span key={tech} className="text-[11px] text-accent/80 font-medium">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
