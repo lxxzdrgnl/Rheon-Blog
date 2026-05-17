@@ -1,11 +1,4 @@
-import { ResumeHeroSection } from "@/components/blog/ResumeHeroSection";
-import { AboutSection } from "@/components/blog/AboutSection";
-import { ExperienceSection } from "@/components/blog/ExperienceSection";
-import { EducationSection } from "@/components/blog/EducationSection";
-import { SkillsSection } from "@/components/blog/SkillsSection";
-import { PortfolioSection } from "@/components/blog/PortfolioSection";
-import { RecentPostsSection } from "@/components/blog/RecentPostsSection";
-import { ContactSection } from "@/components/blog/ContactSection";
+import { ResumeLayout } from "@/components/blog/ResumeLayout";
 import { getPosts, getAllPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getSettings } from "@/actions/settings";
@@ -25,7 +18,7 @@ export default async function Home() {
     getSocialLinks(),
   ]);
 
-  const postsWithCategory = allPosts.map((post) => {
+  const posts = allPosts.map((post) => {
     const cat = allCategories.find((c) => c.id === post.categoryId);
     return {
       ...post,
@@ -36,26 +29,14 @@ export default async function Home() {
   });
 
   return (
-    <div>
-      <ResumeHeroSection
-        name={(settings.resume_name as string) || ""}
-        nameEn={(settings.resume_name_en as string) || ""}
-        title={(settings.resume_title as string) || ""}
-        titleEn={(settings.resume_title_en as string) || ""}
-        tagline={(settings.resume_tagline as string) || ""}
-        taglineEn={(settings.resume_tagline_en as string) || ""}
-        profileImage={(settings.resume_profile_image as string) || null}
-        links={socialLinks}
-      />
-      <AboutSection
-        content={(settings.resume_about as string) || ""}
-        contentEn={(settings.resume_about_en as string) || ""}
-      />
-      <PortfolioSection portfolios={allPortfolios} />
-      <ExperienceSection experiences={experiences} />
-      <EducationSection education={educationList} />
-      <SkillsSection skills={skillsList} />
-      <RecentPostsSection posts={postsWithCategory} />
-    </div>
+    <ResumeLayout
+      settings={settings}
+      socialLinks={socialLinks}
+      experiences={experiences}
+      education={educationList}
+      skills={skillsList}
+      portfolios={allPortfolios}
+      posts={posts}
+    />
   );
 }
