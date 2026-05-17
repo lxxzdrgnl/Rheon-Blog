@@ -173,9 +173,12 @@ export async function savePost(formData: FormData) {
   // 번역 데이터가 함께 전달된 경우 저장
   const titleEn = formData.get("titleEn") as string | null;
   const contentEn = formData.get("contentEn") as string | null;
-  if (titleEn && contentEn) {
+  if (titleEn || contentEn) {
+    const enFields: Record<string, string> = {};
+    if (titleEn) enFields.titleEn = titleEn;
+    if (contentEn) enFields.contentEn = contentEn;
     db.update(posts)
-      .set({ titleEn, contentEn })
+      .set(enFields)
       .where(eq(posts.id, postId))
       .run();
   }

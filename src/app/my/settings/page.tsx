@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { buildTree } from "@/lib/tree";
 import type { TreeNode } from "@/lib/tree";
-import { uploadImage } from "@/lib/upload";
+
 
 type CategoryTree = TreeNode<CategoryWithCount>;
 
@@ -147,24 +147,6 @@ export default function SettingsPage() {
             <div className="space-y-1.5">
               <label className="text-xs text-text-tertiary uppercase tracking-wider">Blog Title</label>
               <Input value={(settings.blog_title_en as string) || ""} onChange={(e) => updateField("blog_title_en", e.target.value)} placeholder="English" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
-            <div className="space-y-1.5">
-              <label className="text-xs text-text-tertiary uppercase tracking-wider">히어로 제목</label>
-              <Input value={(settings.hero_title as string) || ""} onChange={(e) => updateField("hero_title", e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-text-tertiary uppercase tracking-wider">Hero Title</label>
-              <Input value={(settings.hero_title_en as string) || ""} onChange={(e) => updateField("hero_title_en", e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-text-tertiary uppercase tracking-wider">히어로 부제</label>
-              <Input value={(settings.hero_subtitle as string) || ""} onChange={(e) => updateField("hero_subtitle", e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs text-text-tertiary uppercase tracking-wider">Hero Subtitle</label>
-              <Input value={(settings.hero_subtitle_en as string) || ""} onChange={(e) => updateField("hero_subtitle_en", e.target.value)} />
             </div>
           </div>
           <div className="p-5">

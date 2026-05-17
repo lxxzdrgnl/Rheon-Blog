@@ -28,7 +28,7 @@ export async function getCategoriesWithCount(): Promise<CategoryWithCount[]> {
       name: categories.name,
       nameEn: categories.nameEn,
       slug: categories.slug,
-      postCount: sql<number>`(SELECT COUNT(*) FROM posts WHERE posts.category_id = ${categories.id})`,
+      postCount: sql<number>`(SELECT COUNT(*) FROM posts WHERE posts.category_id = ${categories.id})`.as("post_count"),
     })
     .from(categories)
     .all();
