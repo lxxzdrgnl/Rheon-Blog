@@ -168,27 +168,6 @@ export default function SettingsPage() {
             </div>
           </div>
           <div className="p-5">
-            <label className="text-xs text-text-tertiary uppercase tracking-wider">히어로 이미지</label>
-            <div className="mt-3">
-              {(settings.hero_image as string) ? (
-                <div className="relative group inline-block">
-                  <img src={settings.hero_image as string} alt="" className="w-40 h-24 object-cover rounded-lg" />
-                  <button onClick={() => updateField("hero_image", "")} className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
-                </div>
-              ) : (
-                <label className="w-40 h-24 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-text-tertiary transition-colors text-text-tertiary inline-flex">
-                  <div className="text-center"><span className="text-lg">+</span><p className="text-xs">업로드</p></div>
-                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                    const file = e.target.files?.[0]; if (!file) return;
-                    const url = await uploadImage(file);
-                    if (url) updateField("hero_image", url);
-                    e.target.value = "";
-                  }} />
-                </label>
-              )}
-            </div>
-          </div>
-          <div className="p-5">
             <label className="flex items-center gap-3 cursor-pointer">
               <div className={`w-9 h-5 rounded-full transition-colors relative ${settings.show_view_count ? "bg-accent" : "bg-bg-elevated"}`}
                 onClick={() => updateField("show_view_count", !settings.show_view_count)}>
