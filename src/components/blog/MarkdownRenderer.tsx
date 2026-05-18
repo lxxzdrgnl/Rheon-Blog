@@ -19,9 +19,10 @@ export const markdownComponents: Components = {
   code({ className, children, ...props }) {
     const match = /language-(\w+)/.exec(className || "");
     const codeString = String(children).replace(/\n$/, "");
+    const isBlock = codeString.includes("\n");
 
-    if (match) {
-      return <CodeBlock language={match[1]}>{codeString}</CodeBlock>;
+    if (match || isBlock) {
+      return <CodeBlock language={match?.[1]}>{codeString}</CodeBlock>;
     }
 
     return (
@@ -35,6 +36,13 @@ export const markdownComponents: Components = {
       return <img src={src} alt={alt || ""} className="inline-block !my-0 h-6" {...props} />;
     }
     return <img src={src} alt={alt || ""} {...props} />;
+  },
+  table({ children, ...props }) {
+    return (
+      <div className="table-wrapper">
+        <table {...props}>{children}</table>
+      </div>
+    );
   },
   p({ children, ...props }) {
     const childArray = Array.isArray(children) ? children : [children];

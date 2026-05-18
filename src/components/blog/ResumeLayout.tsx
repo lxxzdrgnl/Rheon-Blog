@@ -10,6 +10,7 @@ import Link from "next/link";
 
 interface SocialLink { id: number; platform: string; url: string }
 interface Experience { id: number; company: string; companyEn: string | null; role: string; roleEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null; links: string | null }
+interface Activity { id: number; title: string; titleEn: string | null; organization: string; organizationEn: string | null; date: string; description: string | null; descriptionEn: string | null; link: string | null }
 interface Education { id: number; school: string; schoolEn: string | null; degree: string | null; degreeEn: string | null; field: string | null; fieldEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null }
 interface Skill { id: number; name: string; category: string; categoryEn: string | null }
 interface Portfolio { id: number; title: string; titleEn: string | null; slug: string; description: string; descriptionEn: string | null; techStack: string; link: string | null; icon: string | null; thumbnail: string | null }
@@ -109,13 +110,14 @@ interface ResumeLayoutProps {
   settings: Record<string, unknown>;
   socialLinks: SocialLink[];
   experiences: Experience[];
+  activities: Activity[];
   education: Education[];
   skills: Skill[];
   portfolios: Portfolio[];
   posts: Post[];
 }
 
-export function ResumeLayout({ settings, socialLinks, experiences, education, skills, portfolios, posts }: ResumeLayoutProps) {
+export function ResumeLayout({ settings, socialLinks, experiences, activities, education, skills, portfolios, posts }: ResumeLayoutProps) {
   const { t } = useI18n();
   const localized = useLocalized();
 
@@ -219,6 +221,37 @@ export function ResumeLayout({ settings, socialLinks, experiences, education, sk
                   </div>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {/* ── Activities ── */}
+        {activities.length > 0 && (
+          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
+            <SectionLabel>{t("resume.activities")}</SectionLabel>
+            <div className="space-y-5">
+              {activities.map((act) => (
+                <div key={act.id}>
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-text-primary leading-snug">
+                        {act.link ? (
+                          <a href={act.link} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
+                            {localized(act.title, act.titleEn)}
+                          </a>
+                        ) : localized(act.title, act.titleEn)}
+                      </h3>
+                      <p className="text-sm text-accent">{localized(act.organization, act.organizationEn)}</p>
+                    </div>
+                    <span className="text-xs text-text-tertiary tabular-nums mt-0.5 sm:mt-0 shrink-0">
+                      {act.date}
+                    </span>
+                  </div>
+                  {act.description && (
+                    <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">{localized(act.description, act.descriptionEn)}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </section>
         )}

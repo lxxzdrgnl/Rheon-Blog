@@ -3,10 +3,10 @@ import { getPosts, getAllPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getSettings } from "@/actions/settings";
 import { getPortfolios } from "@/actions/portfolios";
-import { getExperiences, getEducation, getSkills, getSocialLinks } from "@/actions/resume";
+import { getExperiences, getEducation, getSkills, getSocialLinks, getActivities } from "@/actions/resume";
 
 export default async function Home() {
-  const [settings, allPosts, allCategories, allPortfolios, postTagsMap, experiences, educationList, skillsList, socialLinks] = await Promise.all([
+  const [settings, allPosts, allCategories, allPortfolios, postTagsMap, experiences, educationList, skillsList, socialLinks, activitiesList] = await Promise.all([
     getSettings(),
     getPosts({ published: true, limit: 6 }),
     getCategories(),
@@ -16,6 +16,7 @@ export default async function Home() {
     getEducation(),
     getSkills(),
     getSocialLinks(),
+    getActivities(),
   ]);
 
   const posts = allPosts.map((post) => {
@@ -36,6 +37,7 @@ export default async function Home() {
       education={educationList}
       skills={skillsList}
       portfolios={allPortfolios}
+      activities={activitiesList}
       posts={posts}
     />
   );

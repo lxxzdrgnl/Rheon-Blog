@@ -63,6 +63,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html, body {
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -175,7 +179,7 @@ body {
 .prose pre code {
   background-color: transparent;
   padding: 0;
-  color: inherit;
+  color: var(--text-primary);
   font-size: inherit;
   font-weight: inherit;
 }
@@ -196,6 +200,10 @@ body {
 .prose img[width] {
   width: attr(width px);
   max-width: 100%;
+}
+.prose .table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .prose table {
   font-size: 0.9em;

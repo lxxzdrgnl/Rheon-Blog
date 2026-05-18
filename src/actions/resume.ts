@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { experiences, education, skills, socialLinks } from "@/db/schema";
+import { experiences, education, skills, socialLinks, activities } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { translateTitle, translateToEnglish } from "@/lib/translate";
@@ -127,6 +127,45 @@ export async function updateSkill(id: number, data: { name: string; category: st
 
 export async function deleteSkill(id: number) {
   db.delete(skills).where(eq(skills.id, id)).run();
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+}
+
+// ── Activities ──
+
+export async function getActivities() {
+  return db.select().from(activities).orderBy(asc(activities.sortOrder)).all();
+}
+
+export async function createActivity(data: {
+  title: string; titleEn?: string; organization: string; organizationEn?: string;
+  date: string; description?: string; descriptionEn?: string; link?: string;
+}) {
+  const all = await getActivities();
+  db.insert(activities).values({ ...data, sortOrder: all.length }).run();
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+}
+
+export async function updateActivity(id: number, data: {
+  title: string; titleEn?: string; organization: string; organizationEn?: string;
+  date: string; description?: string; descriptionEn?: string; link?: string;
+}) {
+  db.update(activities).set(data).where(eq(activities.id, id)).run();
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+}
+
+export async function deleteActivity(id: number) {
+  db.delete(activities).where(eq(activities.id, id)).run();
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+}
+
+export async function reorderActivities(orderedIds: number[]) {
+  for (let i = 0; i < orderedIds.length; i++) {
+    db.update(activities).set({ sortOrder: i }).where(eq(activities.id, orderedIds[i])).run();
+  }
   revalidatePath("/");
   revalidatePath("/my/resume");
 }

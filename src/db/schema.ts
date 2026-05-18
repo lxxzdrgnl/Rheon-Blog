@@ -92,6 +92,19 @@ export const experiences = sqliteTable("experiences", {
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
+export const activities = sqliteTable("activities", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  titleEn: text("title_en"),
+  organization: text("organization").notNull(),
+  organizationEn: text("organization_en"),
+  date: text("date").notNull(),
+  description: text("description"),
+  descriptionEn: text("description_en"),
+  link: text("link"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
 export const skills = sqliteTable("skills", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),

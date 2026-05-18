@@ -63,9 +63,9 @@ export function CommentSection({ postId, slug }: { postId: number; slug: string 
             <button type="button" onClick={() => setReplyTo(null)} className="text-text-secondary hover:text-text-primary">&times;</button>
           </div>
         )}
-        <div className="flex gap-3">
-          <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder={t("comment.nickname")} className="flex-1 px-4 py-2 rounded-lg border border-border bg-bg-primary text-sm" required />
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("comment.password")} className="flex-1 px-4 py-2 rounded-lg border border-border bg-bg-primary text-sm" required />
+        <div className="grid grid-cols-2 gap-3">
+          <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder={t("comment.nickname")} className="min-w-0 px-4 py-2 rounded-lg border border-border bg-bg-primary text-sm" required />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("comment.password")} className="min-w-0 px-4 py-2 rounded-lg border border-border bg-bg-primary text-sm" required />
         </div>
         <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder={t("comment.content")} rows={4} className="w-full px-4 py-2 rounded-lg border border-border bg-bg-primary text-sm resize-none" required />
         <Button type="submit" disabled={submitting}>{submitting ? "..." : t("comment.submit")}</Button>

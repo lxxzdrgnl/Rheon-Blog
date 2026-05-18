@@ -18,10 +18,21 @@ export function CodeBlock({ language, children }: CodeBlockProps) {
   useEffect(() => setMounted(true), []);
 
   const isDark = mounted && resolvedTheme === "dark";
-  const style = isDark ? oneDark : ghcolors;
+  const baseStyle = isDark ? oneDark : ghcolors;
+
+  // Strip background colors from individual tokens to remove highlighter effect
+  const style = Object.fromEntries(
+    Object.entries(baseStyle).map(([key, value]) => {
+      if (typeof value === "object" && value !== null && "background" in value) {
+        const { background, ...rest } = value as Record<string, string>;
+        return [key, rest];
+      }
+      return [key, value];
+    })
+  );
 
   return (
-    <div className="relative group my-5 rounded-lg overflow-hidden border border-border/60">
+    <div className="relative group my-5 rounded-lg overflow-hidden border border-border max-w-full">
       {language && (
         <div className="flex items-center px-4 py-1.5 bg-bg-elevated text-xs text-text-tertiary border-b border-border/60 font-mono uppercase tracking-wider">
           {language}
@@ -37,7 +48,10 @@ export function CodeBlock({ language, children }: CodeBlockProps) {
           fontSize: "0.8125rem",
           lineHeight: "1.7",
           padding: "1rem 1.25rem",
-          background: isDark ? "#101414" : "#fafaf9",
+          background: isDark ? "#1a1e1e" : "#f0f2f0",
+          overflowX: "auto",
+          wordBreak: "break-all" as const,
+          whiteSpace: "pre-wrap",
         }}
       >
         {children}
