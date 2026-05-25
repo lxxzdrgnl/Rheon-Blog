@@ -4,6 +4,7 @@ import { getPostBySlug, getPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getSetting } from "@/actions/settings";
 import { getSeriesById, getSeriesPosts } from "@/actions/series";
+import { getProjectsForPost } from "@/actions/portfolios";
 import { PostDetailClient } from "./client";
 
 interface Props { params: Promise<{ slug: string }>; }
@@ -24,10 +25,11 @@ export default async function PostPage({ params }: Props) {
   const post = await getPostBySlug(slug);
   if (!post || !post.isPublished || post.isPrivate) notFound();
 
-  const [postTags, categories, showViewCount] = await Promise.all([
+  const [postTags, categories, showViewCount, projects] = await Promise.all([
     getPostTags(post.id),
     getCategories(),
     getSetting("show_view_count"),
+    getProjectsForPost(post.id),
   ]);
 
   const category = categories.find((c) => c.id === post.categoryId);
@@ -57,6 +59,7 @@ export default async function PostPage({ params }: Props) {
       category={category || null}
       showViewCount={!!showViewCount}
       seriesData={seriesData}
+      projects={projects}
     />
   );
 }

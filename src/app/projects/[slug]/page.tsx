@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getPortfolioBySlug, getPortfolioPosts } from "@/actions/portfolios";
 import { getCategories } from "@/actions/categories";
+import { getAllPostTags } from "@/actions/posts";
 import { Metadata } from "next";
 import { ProjectDetailClient } from "./client";
 
@@ -20,9 +21,10 @@ export default async function ProjectDetailPage({ params }: Props) {
   const project = await getPortfolioBySlug(slug);
   if (!project) notFound();
 
-  const [relatedPosts, allCategories] = await Promise.all([
+  const [relatedPosts, allCategories, postTagsMap] = await Promise.all([
     getPortfolioPosts(project.id),
     getCategories(),
+    getAllPostTags(),
   ]);
 
   const postsWithCategory = relatedPosts.map((post) => {
@@ -32,6 +34,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       titleEn: post.titleEn || null,
       categoryName: cat?.name || "",
       categoryNameEn: cat?.nameEn || "",
+      tags: postTagsMap[post.id] || [],
     };
   });
 

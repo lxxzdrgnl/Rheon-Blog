@@ -28,9 +28,11 @@ interface PostWithCategory {
   titleEn: string | null;
   slug: string;
   thumbnail: string | null;
+  thumbnailTextLength?: number | null;
   createdAt: string;
   categoryName: string;
   categoryNameEn: string;
+  tags?: { name: string; nameEn: string }[];
 }
 
 function parseLinks(link: string | null): ProjectLink[] {
@@ -131,7 +133,7 @@ export function ProjectDetailClient({ project, relatedPosts }: { project: Projec
       <div className="max-w-prose mx-auto">
         {/* ── Header ── */}
         <header className="animate-fade-in">
-          <h1 className="font-serif text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
+          <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
             {title}
           </h1>
           <p className="mt-4 text-base text-text-secondary leading-relaxed">

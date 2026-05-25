@@ -4,6 +4,7 @@ import ReactMarkdown, { Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { CodeBlock } from "./CodeBlock";
+import { Mermaid } from "./Mermaid";
 
 export const markdownPlugins = {
   remarkPlugins: [remarkGfm] as const,
@@ -20,6 +21,10 @@ export const markdownComponents: Components = {
     const match = /language-(\w+)/.exec(className || "");
     const codeString = String(children).replace(/\n$/, "");
     const isBlock = codeString.includes("\n");
+
+    if (match?.[1] === "mermaid") {
+      return <Mermaid chart={codeString} />;
+    }
 
     if (match || isBlock) {
       return <CodeBlock language={match?.[1]}>{codeString}</CodeBlock>;

@@ -29,7 +29,15 @@ export async function getPortfolioById(id: number) {
 // 포스트가 속한 프로젝트 목록
 export async function getProjectsForPost(postId: number) {
   return db
-    .select({ id: portfolios.id, title: portfolios.title, slug: portfolios.slug })
+    .select({
+      id: portfolios.id,
+      title: portfolios.title,
+      titleEn: portfolios.titleEn,
+      slug: portfolios.slug,
+      description: portfolios.description,
+      descriptionEn: portfolios.descriptionEn,
+      techStack: portfolios.techStack,
+    })
     .from(portfolioPosts)
     .innerJoin(portfolios, eq(portfolioPosts.portfolioId, portfolios.id))
     .where(eq(portfolioPosts.postId, postId))
@@ -53,6 +61,7 @@ export async function getPortfolioPosts(portfolioId: number) {
       titleEn: posts.titleEn,
       slug: posts.slug,
       thumbnail: posts.thumbnail,
+      thumbnailTextLength: posts.thumbnailTextLength,
       createdAt: posts.createdAt,
       categoryId: posts.categoryId,
     })
