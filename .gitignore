@@ -53,3 +53,6 @@ Thumbs.db
 
 # superpowers
 docs/superpowers/
+
+# build-generated schema snapshot (additive migrator)
+schema-snapshot.json

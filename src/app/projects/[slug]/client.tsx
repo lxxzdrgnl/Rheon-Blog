@@ -29,6 +29,7 @@ interface PostWithCategory {
   slug: string;
   thumbnail: string | null;
   thumbnailTextLength?: number | null;
+  thumbnailTextLengthEn?: number | null;
   createdAt: string;
   categoryName: string;
   categoryNameEn: string;

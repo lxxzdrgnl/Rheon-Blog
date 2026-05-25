@@ -52,6 +52,8 @@ function WritePageContent() {
   const [seriesId, setSeriesId] = useState<number | null>(null);
   const [seriesOrder, setSeriesOrder] = useState<string>("");
   const [thumbnailTextLength, setThumbnailTextLength] = useState<number>(8);
+  const [thumbnailTextLengthEn, setThumbnailTextLengthEn] = useState<number>(8);
+  const [previewLang, setPreviewLang] = useState<"ko" | "en">("ko");
   const editorRef = useRef<PostEditorHandle>(null);
   const originalRef = useRef({ title: "", content: "" });
 
@@ -73,6 +75,7 @@ function WritePageContent() {
           setCategoryId(post.categoryId);
           setThumbnail(post.thumbnail || "");
           if (post.thumbnailTextLength) setThumbnailTextLength(post.thumbnailTextLength);
+          if (post.thumbnailTextLengthEn) setThumbnailTextLengthEn(post.thumbnailTextLengthEn);
           originalRef.current = { title: post.title, content: post.content };
           if (post.seriesId) setSeriesId(post.seriesId);
           if (post.seriesOrder != null) setSeriesOrder(String(post.seriesOrder));
@@ -139,6 +142,7 @@ function WritePageContent() {
     fd.set("categoryId", String(categoryId || 0));
     fd.set("thumbnail", thumbnail || "");
     fd.set("thumbnailTextLength", String(!thumbnail ? thumbnailTextLength : 0));
+    fd.set("thumbnailTextLengthEn", String(!thumbnail ? thumbnailTextLengthEn : 0));
     fd.set("tagIds", JSON.stringify(selectedTags.map((t) => t.id)));
     fd.set("publish", "false"); fd.set("isPrivate", "false");
     if (titleEn) fd.set("titleEn", titleEn);
@@ -169,6 +173,7 @@ function WritePageContent() {
     fd.set("categoryId", String(categoryId || 0));
     fd.set("thumbnail", thumbnail || "");
     fd.set("thumbnailTextLength", String(!thumbnail ? thumbnailTextLength : 0));
+    fd.set("thumbnailTextLengthEn", String(!thumbnail ? thumbnailTextLengthEn : 0));
     fd.set("tagIds", JSON.stringify(selectedTags.map((t) => t.id)));
     fd.set("publish", "true"); fd.set("isPrivate", String(publishIsPrivate));
     if (titleEn) fd.set("titleEn", titleEn);
@@ -268,7 +273,9 @@ function WritePageContent() {
                 !thumbnail ? "border-accent bg-accent/5" : "border-border hover:border-text-tertiary"
               }`}
             >
-              <span className="text-2xl font-bold text-text-primary">{title.slice(0, thumbnailTextLength) || "제목"}</span>
+              <span className="text-2xl font-bold text-text-primary break-keep text-center px-2">
+                {(previewLang === "en" ? (titleEn || title).slice(0, thumbnailTextLengthEn) : title.slice(0, thumbnailTextLength)) || "제목"}
+              </span>
               <span className="text-xs text-text-tertiary mt-2">제목으로 표시</span>
             </button>
             {images.length > 0 && (
@@ -300,17 +307,31 @@ function WritePageContent() {
             </div>
           )}
           {!thumbnail && (
-            <div className="flex items-center gap-3">
-              <label className="text-xs text-text-tertiary whitespace-nowrap">글자 수</label>
-              <input
-                type="range"
-                min={1}
-                max={Math.max(title.length, 1)}
-                value={thumbnailTextLength}
-                onChange={(e) => setThumbnailTextLength(Number(e.target.value))}
-                className="flex-1 accent-accent"
-              />
-              <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{thumbnailTextLength}</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <label className="text-xs text-text-tertiary whitespace-nowrap w-16">한글 글자 수</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={Math.max(title.length, 1)}
+                  value={thumbnailTextLength}
+                  onChange={(e) => { setThumbnailTextLength(Number(e.target.value)); setPreviewLang("ko"); }}
+                  className="flex-1 accent-accent"
+                />
+                <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{thumbnailTextLength}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-xs text-text-tertiary whitespace-nowrap w-16">영문 글자 수</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={Math.max((titleEn || title).length, 1)}
+                  value={thumbnailTextLengthEn}
+                  onChange={(e) => { setThumbnailTextLengthEn(Number(e.target.value)); setPreviewLang("en"); }}
+                  className="flex-1 accent-accent"
+                />
+                <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{thumbnailTextLengthEn}</span>
+              </div>
             </div>
           )}
           <label className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-border rounded-lg cursor-pointer hover:bg-bg-elevated transition-colors text-text-secondary">

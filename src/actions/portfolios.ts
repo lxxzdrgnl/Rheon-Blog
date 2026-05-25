@@ -62,6 +62,7 @@ export async function getPortfolioPosts(portfolioId: number) {
       slug: posts.slug,
       thumbnail: posts.thumbnail,
       thumbnailTextLength: posts.thumbnailTextLength,
+      thumbnailTextLengthEn: posts.thumbnailTextLengthEn,
       createdAt: posts.createdAt,
       categoryId: posts.categoryId,
     })
