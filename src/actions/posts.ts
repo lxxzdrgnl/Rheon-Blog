@@ -7,7 +7,6 @@ import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { extractImageUrls, getOrphanedImages } from "@/lib/markdown";
 import { deleteImages, rewriteImageUrl, rewriteContentUrls } from "@/lib/minio";
-import { translateToEnglish, translateTitle, translatePartial } from "@/lib/translate";
 
 export async function getPosts(options?: {
   published?: boolean;
@@ -189,29 +188,6 @@ export async function savePost(formData: FormData) {
   revalidatePath("/my");
 
   return { postId, slug };
-}
-
-export async function translatePost(
-  fields: { title?: string; content?: string },
-): Promise<{ titleEn?: string; contentEn?: string }> {
-  const result: { titleEn?: string; contentEn?: string } = {};
-  const tasks: { key: keyof typeof result; promise: Promise<string> }[] = [];
-
-  if (fields.title) tasks.push({ key: "titleEn", promise: translateTitle(fields.title) });
-  if (fields.content?.trim()) tasks.push({ key: "contentEn", promise: translateToEnglish(fields.content) });
-
-  const results = await Promise.all(tasks.map((t) => t.promise));
-  tasks.forEach((t, i) => { result[t.key] = results[i]; });
-
-  return result;
-}
-
-export async function translateSelection(
-  koreanContent: string,
-  selectedKorean: string,
-  existingEnglish: string,
-): Promise<string> {
-  return translatePartial(koreanContent, selectedKorean, existingEnglish);
 }
 
 export async function updateTranslation(formData: FormData) {

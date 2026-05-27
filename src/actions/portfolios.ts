@@ -2,10 +2,9 @@
 
 import { db } from "@/db";
 import { portfolios, portfolioPosts, posts } from "@/db/schema";
-import { eq, asc, and } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
-import { translateToEnglish, translateTitle } from "@/lib/translate";
 import { rewriteImageUrl, rewriteContentUrls } from "@/lib/minio";
 
 function rewritePortfolio<T extends { thumbnail: string | null; content: string | null; contentEn: string | null }>(p: T): T {
@@ -138,22 +137,6 @@ export async function updatePortfolio(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/my/projects");
-}
-
-export async function translatePortfolio(
-  fields: { title?: string; description?: string; content?: string },
-): Promise<{ titleEn?: string; descriptionEn?: string; contentEn?: string | null }> {
-  const result: { titleEn?: string; descriptionEn?: string; contentEn?: string | null } = {};
-  const tasks: { key: keyof typeof result; promise: Promise<string> }[] = [];
-
-  if (fields.title) tasks.push({ key: "titleEn", promise: translateTitle(fields.title) });
-  if (fields.description) tasks.push({ key: "descriptionEn", promise: translateTitle(fields.description) });
-  if (fields.content?.trim()) tasks.push({ key: "contentEn", promise: translateToEnglish(fields.content) });
-
-  const results = await Promise.all(tasks.map((t) => t.promise));
-  tasks.forEach((t, i) => { result[t.key] = results[i]; });
-
-  return result;
 }
 
 export async function deletePortfolio(id: number) {

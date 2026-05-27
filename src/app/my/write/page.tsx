@@ -9,11 +9,12 @@ import { SlugInput } from "@/components/admin/SlugInput";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { LanguageEditorBar } from "@/components/admin/LanguageEditorBar";
 import { getCategories } from "@/actions/categories";
-import { getPostById, getPostTags, savePost, translatePost, translateSelection } from "@/actions/posts";
+import { getPostById, getPostTags, savePost } from "@/actions/posts";
 import { getPortfolios, getProjectsForPost, updatePostProjects } from "@/actions/portfolios";
 import { getAllSeries } from "@/actions/series";
 import { extractImageUrls } from "@/lib/markdown";
 import { uploadImage } from "@/lib/upload";
+import { streamTranslate } from "@/lib/translate-client";
 
 interface Tag { id: number; name: string; nameEn: string; }
 
@@ -94,10 +95,11 @@ function WritePageContent() {
     if (sel) {
       setTranslating(true);
       try {
-        const translated = await translateSelection(content, sel.text, contentEn);
-        editorRef.current?.replaceSelection(translated);
-      } catch {
-        alert("번역에 실패했습니다.");
+        const translated = await streamTranslate({ kind: "selection", content, selected: sel.text });
+        editorRef.current?.replaceSelection(translated.trim());
+      } catch (e) {
+        console.error("[translate] 선택 번역 실패:", e);
+        alert(`번역에 실패했습니다.\n${e instanceof Error ? e.message : ""}`);
       }
       setTranslating(false);
       return;
@@ -123,12 +125,23 @@ function WritePageContent() {
 
     setTranslating(true);
     try {
-      const result = await translatePost(changed);
-      if (result.titleEn) setTitleEn(result.titleEn);
-      if (result.contentEn !== undefined) setContentEn(result.contentEn || "");
+      const jobs: Promise<void>[] = [];
+      if (changed.title !== undefined) {
+        jobs.push(streamTranslate({ kind: "title", text: changed.title }).then((t) => setTitleEn(t.trim())));
+      }
+      if (changed.content !== undefined) {
+        setLang("en"); // 스트리밍되는 번역을 실시간으로 보여주기 위해 영문 탭으로 전환
+        jobs.push(
+          streamTranslate({ kind: "content", text: changed.content }, (full) => setContentEn(full)).then((t) =>
+            setContentEn(t),
+          ),
+        );
+      }
+      await Promise.all(jobs);
       setLang("en");
-    } catch {
-      alert("번역에 실패했습니다.");
+    } catch (e) {
+      console.error("[translate] 전체 번역 실패:", e);
+      alert(`번역에 실패했습니다.\n${e instanceof Error ? e.message : ""}`);
     }
     setTranslating(false);
   };

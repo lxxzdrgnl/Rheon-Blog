@@ -6,9 +6,10 @@ import { PostEditor } from "@/components/admin/PostEditor";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { getPosts } from "@/actions/posts";
-import { getPortfolioById, createPortfolio, updatePortfolio, getPortfolioPosts, translatePortfolio } from "@/actions/portfolios";
+import { getPortfolioById, createPortfolio, updatePortfolio, getPortfolioPosts } from "@/actions/portfolios";
 import { importFromGitHub } from "@/actions/github-import";
 import { uploadImage } from "@/lib/upload";
+import { streamTranslate } from "@/lib/translate-client";
 
 const BADGE_OPTIONS = [
   { value: "github", label: "GitHub" },
@@ -132,13 +133,26 @@ function ProjectWritePageContent() {
 
     setTranslating(true);
     try {
-      const result = await translatePortfolio(changed);
-      if (result.titleEn) setTitleEn(result.titleEn);
-      if (result.descriptionEn) setDescEn(result.descriptionEn);
-      if (result.contentEn !== undefined) setContentEn(result.contentEn || "");
+      const jobs: Promise<void>[] = [];
+      if (changed.title !== undefined) {
+        jobs.push(streamTranslate({ kind: "title", text: changed.title }).then((t) => setTitleEn(t.trim())));
+      }
+      if (changed.description !== undefined) {
+        jobs.push(streamTranslate({ kind: "title", text: changed.description }).then((t) => setDescEn(t.trim())));
+      }
+      if (changed.content !== undefined) {
+        setLang("en"); // 스트리밍되는 번역을 실시간으로 보여주기 위해 영문 탭으로 전환
+        jobs.push(
+          streamTranslate({ kind: "content", text: changed.content }, (full) => setContentEn(full)).then((t) =>
+            setContentEn(t),
+          ),
+        );
+      }
+      await Promise.all(jobs);
       setLang("en"); // 번역 후 영문 탭으로 전환
-    } catch {
-      alert("번역에 실패했습니다.");
+    } catch (e) {
+      console.error("[translate] 프로젝트 번역 실패:", e);
+      alert(`번역에 실패했습니다.\n${e instanceof Error ? e.message : ""}`);
     }
     setTranslating(false);
   };
