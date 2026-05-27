@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { useI18n, useLocalized } from "@/i18n/provider";
 
 interface SeriesPost {

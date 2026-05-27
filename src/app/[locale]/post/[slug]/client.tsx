@@ -8,7 +8,7 @@ import { TableOfContents } from "@/components/blog/TableOfContents";
 import { CommentSection } from "@/components/blog/CommentSection";
 import { SeriesTableOfContents } from "@/components/blog/SeriesTableOfContents";
 import { SeriesNavigation } from "@/components/blog/SeriesNavigation";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 
 interface PostDetailClientProps {
   post: {

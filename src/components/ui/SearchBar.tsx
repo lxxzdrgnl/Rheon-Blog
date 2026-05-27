@@ -3,16 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useI18n } from "@/i18n/provider";
+import { localizeHref } from "@/lib/locale";
 
 export function SearchBar() {
   const [query, setQuery] = useState("");
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      router.push(localizeHref(`/search?q=${encodeURIComponent(query.trim())}`, locale));
     }
   };
 

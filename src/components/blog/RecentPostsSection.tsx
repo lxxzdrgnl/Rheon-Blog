@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/i18n/provider";
 import { PostCard } from "./PostCard";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { SectionHeading } from "./ExperienceSection";
 
 interface Post {
