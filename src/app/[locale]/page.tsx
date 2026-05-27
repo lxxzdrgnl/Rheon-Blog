@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isEn = loc === "en";
   const blogTitle = await getSetting(isEn ? "blog_title_en" : "blog_title");
   const blogTitleKo = await getSetting("blog_title");
-  const title = blogTitle || blogTitleKo || "rheon blog";
+  const title = blogTitle || blogTitleKo || "Rheon's Blog";
   const tagline = await getSetting(isEn ? "resume_tagline_en" : "resume_tagline");
   const description = tagline || (isEn ? "Personal blog and portfolio" : "개인 블로그와 포트폴리오");
   return {

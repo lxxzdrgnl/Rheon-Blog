@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 
 function getBlogTitle(): string {
   const row = db.select().from(settings).where(eq(settings.key, "blog_title")).get();
-  return row ? JSON.parse(row.value) : "My Blog";
+  return row ? JSON.parse(row.value) : "Rheon's Blog";
 }
 
 export function SiteHeader() {

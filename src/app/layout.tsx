@@ -7,8 +7,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "My Blog",
-  description: "A personal blog",
+  title: "Rheon's Blog",
+  description: "개인 블로그와 포트폴리오",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
