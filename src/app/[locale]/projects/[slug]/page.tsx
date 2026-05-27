@@ -3,17 +3,35 @@ import { getPortfolioBySlug, getPortfolioPosts } from "@/actions/portfolios";
 import { getCategories } from "@/actions/categories";
 import { getAllPostTags } from "@/actions/posts";
 import { Metadata } from "next";
+import { alternates, socialMeta } from "@/lib/seo";
 import { ProjectDetailClient } from "./client";
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const project = await getPortfolioBySlug(slug);
   if (!project) return {};
-  return { title: project.title, description: project.description };
+  const loc = (locale === "en" ? "en" : "ko") as "en" | "ko";
+  const isEn = loc === "en";
+  const title = isEn && project.titleEn ? project.titleEn : project.title;
+  const description = (isEn && project.descriptionEn ? project.descriptionEn : project.description) || title;
+  const path = `/projects/${slug}`;
+  return {
+    title,
+    description,
+    alternates: alternates(path, loc),
+    ...socialMeta({
+      title,
+      description,
+      path,
+      locale: loc,
+      type: "article",
+      images: project.thumbnail ? [project.thumbnail] : undefined,
+    }),
+  };
 }
 
 export default async function ProjectDetailPage({ params }: Props) {

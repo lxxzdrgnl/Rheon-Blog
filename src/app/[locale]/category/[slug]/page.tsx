@@ -4,7 +4,28 @@ import { FilterBar } from "@/components/blog/FilterBar";
 import { getPosts } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getTags } from "@/actions/tags";
-interface Props { params: Promise<{ slug: string }>; }
+import type { Metadata } from "next";
+import { alternates, socialMeta } from "@/lib/seo";
+
+interface Props { params: Promise<{ locale: string; slug: string }>; }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const loc = (locale === "en" ? "en" : "ko") as "en" | "ko";
+  const isEn = loc === "en";
+  const categories = await getCategories();
+  const category = categories.find((c) => c.slug === slug);
+  if (!category) return {};
+  const title = isEn && category.nameEn ? category.nameEn : category.name;
+  const description = isEn ? `Posts in ${title}` : `${title} 카테고리의 글`;
+  const path = `/category/${slug}`;
+  return {
+    title,
+    description,
+    alternates: alternates(path, loc),
+    ...socialMeta({ title, description, path, locale: loc, type: "website" }),
+  };
+}
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;

@@ -5,18 +5,33 @@ import { getCategories } from "@/actions/categories";
 import { getSetting } from "@/actions/settings";
 import { getSeriesById, getSeriesPosts } from "@/actions/series";
 import { getProjectsForPost } from "@/actions/portfolios";
+import { alternates, socialMeta } from "@/lib/seo";
 import { PostDetailClient } from "./client";
 
-interface Props { params: Promise<{ slug: string }>; }
+interface Props { params: Promise<{ locale: string; slug: string }>; }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) return {};
+  const loc = (locale === "en" ? "en" : "ko") as "en" | "ko";
+  const isEn = loc === "en";
+  const title = isEn && post.titleEn ? post.titleEn : post.title;
+  const body = isEn && post.contentEn ? post.contentEn : post.content;
+  const description = body.slice(0, 160);
+  const path = `/post/${slug}`;
   return {
-    title: post.title,
-    description: post.content.slice(0, 160),
-    openGraph: { title: post.title, description: post.content.slice(0, 160), images: post.thumbnail ? [post.thumbnail] : [] },
+    title,
+    description,
+    alternates: alternates(path, loc),
+    ...socialMeta({
+      title,
+      description,
+      path,
+      locale: loc,
+      type: "article",
+      images: post.thumbnail ? [post.thumbnail] : undefined,
+    }),
   };
 }
 

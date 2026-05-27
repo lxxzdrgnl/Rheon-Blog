@@ -1,5 +1,22 @@
 import { getPortfolios } from "@/actions/portfolios";
 import { PortfolioSection } from "@/components/blog/PortfolioSection";
+import type { Metadata } from "next";
+import { alternates, socialMeta } from "@/lib/seo";
+
+interface Props { params: Promise<{ locale: string }>; }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const loc = (locale === "en" ? "en" : "ko") as "en" | "ko";
+  const title = loc === "en" ? "Projects" : "프로젝트";
+  const description = loc === "en" ? "Projects and portfolio" : "프로젝트와 포트폴리오";
+  return {
+    title,
+    description,
+    alternates: alternates("/projects", loc),
+    ...socialMeta({ title, description, path: "/projects", locale: loc, type: "website" }),
+  };
+}
 
 export default async function ProjectsListPage() {
   const allProjects = await getPortfolios();

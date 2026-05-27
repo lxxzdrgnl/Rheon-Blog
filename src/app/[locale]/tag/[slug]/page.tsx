@@ -5,8 +5,29 @@ import { getCategories } from "@/actions/categories";
 import { db } from "@/db";
 import { posts, postTags, tags } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import type { Metadata } from "next";
+import { alternates, socialMeta } from "@/lib/seo";
 
-interface Props { params: Promise<{ slug: string }>; }
+interface Props { params: Promise<{ locale: string; slug: string }>; }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const loc = (locale === "en" ? "en" : "ko") as "en" | "ko";
+  const isEn = loc === "en";
+  const allTags = await getTags();
+  const tag = allTags.find((t) => t.nameEn.toLowerCase().replace(/\s+/g, "-") === slug);
+  if (!tag) return {};
+  const name = isEn && tag.nameEn ? tag.nameEn : tag.name;
+  const title = `#${name}`;
+  const description = isEn ? `Posts tagged ${name}` : `${name} 태그의 글`;
+  const path = `/tag/${slug}`;
+  return {
+    title,
+    description,
+    alternates: alternates(path, loc),
+    ...socialMeta({ title, description, path, locale: loc, type: "website" }),
+  };
+}
 
 export default async function TagPage({ params }: Props) {
   const { slug } = await params;
