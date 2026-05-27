@@ -45,7 +45,7 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
   const catName = category ? localized(category.name, category.nameEn) : null;
 
   return (
-    <div className="page-container py-16 relative">
+    <div className="page-container py-10 relative">
       <div className="max-w-prose mx-auto">
         {/* Header */}
         <header className="mb-6 animate-fade-in">
@@ -85,7 +85,7 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
 
         {/* Related Project(s) */}
         {projects.length > 0 && (
-          <div className="mb-3 space-y-2 animate-fade-in" style={{ fontFamily: "var(--font-family-sans)" }}>
+          <div className="mb-5 space-y-2 animate-fade-in" style={{ fontFamily: "var(--font-family-sans)" }}>
             {projects.map((p) => {
               const pTitle = localized(p.title, p.titleEn);
               const pDesc = localized(p.description, p.descriptionEn);

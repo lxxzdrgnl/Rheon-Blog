@@ -310,15 +310,15 @@ export default function ResumePage() {
               { name: setNameEn, title: setTitleEn, tagline: setTaglineEn, about: setAboutEn },
             )} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className={labelClass}>이름</label><input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} /></div>
             <div><label className={labelClass}>Name (EN)</label><input className={inputClass} value={nameEn} onChange={(e) => setNameEn(e.target.value)} /></div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className={labelClass}>직함</label><input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} /></div>
             <div><label className={labelClass}>Title (EN)</label><input className={inputClass} value={titleEn} onChange={(e) => setTitleEn(e.target.value)} /></div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className={labelClass}>한 줄 소개</label><input className={inputClass} value={tagline} onChange={(e) => setTagline(e.target.value)} /></div>
             <div><label className={labelClass}>Tagline (EN)</label><input className={inputClass} value={taglineEn} onChange={(e) => setTaglineEn(e.target.value)} /></div>
           </div>
@@ -355,15 +355,15 @@ export default function ResumePage() {
                   { company: (v) => setEditingExp((p) => ({ ...p, companyEn: v })), role: (v) => setEditingExp((p) => ({ ...p, roleEn: v })), description: (v) => setEditingExp((p) => ({ ...p, descriptionEn: v })) },
                 )} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>회사</label><input className={inputClass} value={editingExp.company || ""} onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })} /></div>
                 <div><label className={labelClass}>Company (EN)</label><input className={inputClass} value={editingExp.companyEn || ""} onChange={(e) => setEditingExp({ ...editingExp, companyEn: e.target.value })} /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>직책</label><input className={inputClass} value={editingExp.role || ""} onChange={(e) => setEditingExp({ ...editingExp, role: e.target.value })} /></div>
                 <div><label className={labelClass}>Role (EN)</label><input className={inputClass} value={editingExp.roleEn || ""} onChange={(e) => setEditingExp({ ...editingExp, roleEn: e.target.value })} /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>시작일 (YYYY-MM)</label><input className={inputClass} value={editingExp.startDate || ""} onChange={(e) => setEditingExp({ ...editingExp, startDate: e.target.value })} placeholder="2024-01" /></div>
                 <div><label className={labelClass}>종료일 (비우면 현재)</label><input className={inputClass} value={editingExp.endDate || ""} onChange={(e) => setEditingExp({ ...editingExp, endDate: e.target.value })} placeholder="2025-03" /></div>
               </div>
@@ -405,15 +405,15 @@ export default function ResumePage() {
                   { title: (v) => setEditingAct((p) => ({ ...p, titleEn: v })), organization: (v) => setEditingAct((p) => ({ ...p, organizationEn: v })), description: (v) => setEditingAct((p) => ({ ...p, descriptionEn: v })) },
                 )} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>제목</label><input className={inputClass} value={editingAct.title || ""} onChange={(e) => setEditingAct({ ...editingAct, title: e.target.value })} placeholder="LG Aimers 6기 수료" /></div>
                 <div><label className={labelClass}>Title (EN)</label><input className={inputClass} value={editingAct.titleEn || ""} onChange={(e) => setEditingAct({ ...editingAct, titleEn: e.target.value })} /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>기관/주최</label><input className={inputClass} value={editingAct.organization || ""} onChange={(e) => setEditingAct({ ...editingAct, organization: e.target.value })} placeholder="LG AI연구원" /></div>
                 <div><label className={labelClass}>Organization (EN)</label><input className={inputClass} value={editingAct.organizationEn || ""} onChange={(e) => setEditingAct({ ...editingAct, organizationEn: e.target.value })} /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>날짜</label><input className={inputClass} value={editingAct.date || ""} onChange={(e) => setEditingAct({ ...editingAct, date: e.target.value })} placeholder="2025.01 — 2025.02" /></div>
                 <div><label className={labelClass}>관련 링크</label><input className={inputClass} value={editingAct.link || ""} onChange={(e) => setEditingAct({ ...editingAct, link: e.target.value })} placeholder="https://..." /></div>
               </div>
@@ -455,19 +455,19 @@ export default function ResumePage() {
                   { school: (v) => setEditingEdu((p) => ({ ...p, schoolEn: v })), degree: (v) => setEditingEdu((p) => ({ ...p, degreeEn: v })), field: (v) => setEditingEdu((p) => ({ ...p, fieldEn: v })), description: (v) => setEditingEdu((p) => ({ ...p, descriptionEn: v })) },
                 )} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>학교</label><input className={inputClass} value={editingEdu.school || ""} onChange={(e) => setEditingEdu({ ...editingEdu, school: e.target.value })} /></div>
                 <div><label className={labelClass}>School (EN)</label><input className={inputClass} value={editingEdu.schoolEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, schoolEn: e.target.value })} /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>학위</label><input className={inputClass} value={editingEdu.degree || ""} onChange={(e) => setEditingEdu({ ...editingEdu, degree: e.target.value })} placeholder="학사, 석사..." /></div>
                 <div><label className={labelClass}>Degree (EN)</label><input className={inputClass} value={editingEdu.degreeEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, degreeEn: e.target.value })} placeholder="Bachelor, Master..." /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>전공</label><input className={inputClass} value={editingEdu.field || ""} onChange={(e) => setEditingEdu({ ...editingEdu, field: e.target.value })} placeholder="컴퓨터공학" /></div>
                 <div><label className={labelClass}>Field (EN)</label><input className={inputClass} value={editingEdu.fieldEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, fieldEn: e.target.value })} placeholder="Computer Science" /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>시작일 (YYYY)</label><input className={inputClass} value={editingEdu.startDate || ""} onChange={(e) => setEditingEdu({ ...editingEdu, startDate: e.target.value })} placeholder="2021" /></div>
                 <div><label className={labelClass}>종료일 (비우면 현재)</label><input className={inputClass} value={editingEdu.endDate || ""} onChange={(e) => setEditingEdu({ ...editingEdu, endDate: e.target.value })} placeholder="2025" /></div>
               </div>
@@ -510,7 +510,7 @@ export default function ResumePage() {
                 )} />
               </div>
               <div><label className={labelClass}>기술명</label><input className={inputClass} value={editingSkill.name || ""} onChange={(e) => setEditingSkill({ ...editingSkill, name: e.target.value })} placeholder="React" /></div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><label className={labelClass}>카테고리</label><input className={inputClass} value={editingSkill.category || ""} onChange={(e) => setEditingSkill({ ...editingSkill, category: e.target.value })} placeholder="프론트엔드" /></div>
                 <div><label className={labelClass}>Category (EN)</label><input className={inputClass} value={editingSkill.categoryEn || ""} onChange={(e) => setEditingSkill({ ...editingSkill, categoryEn: e.target.value })} placeholder="Frontend" /></div>
               </div>

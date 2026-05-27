@@ -226,7 +226,7 @@ export const PostEditor = forwardRef<PostEditorHandle, PostEditorProps>(function
     <>
       <div className="flex flex-col h-full rounded-lg border border-border overflow-hidden">
         {/* Toolbar */}
-        <div className="flex items-center gap-0.5 px-4 py-2 border-b border-border bg-bg-primary shrink-0">
+        <div className="flex items-center gap-0.5 px-4 py-2 border-b border-border bg-bg-primary shrink-0 overflow-x-auto scrollbar-hide">
           {TOOLBAR.map((item, i) => {
             const sep = lastGroup && lastGroup !== item.group;
             lastGroup = item.group;

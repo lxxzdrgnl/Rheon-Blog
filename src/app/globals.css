@@ -17,7 +17,7 @@
   --max-width-content: 1100px;
   --max-width-prose: 720px;
 
-  --spacing-page-x: 2rem;
+  --spacing-page-x: 1.25rem;
   --spacing-page-x-md: 4rem;
 
   --font-family-sans: "Pretendard Variable", "Pretendard", "-apple-system",
@@ -64,7 +64,8 @@
 }
 
 html, body {
-  overflow-x: hidden;
+  /* clip(not hidden): 가로 넘침은 막되 스크롤 컨테이너를 만들지 않아 position:sticky 유지 */
+  overflow-x: clip;
 }
 
 body {
@@ -216,11 +217,18 @@ body {
   border-bottom: 1px solid var(--border-color);
 }
 
+/* 첫 콘텐츠의 상단 마진 제거 → 관련 프로젝트 등 위 요소와의 간격 축소 */
+.prose > :first-child { margin-top: 0; }
+
 /* ─── Prose mobile overflow fixes ─── */
 .prose pre { max-width: 100%; overflow-x: auto; }
 .prose :not(pre) > code { overflow-wrap: anywhere; word-break: break-word; }
 .prose a { overflow-wrap: anywhere; }
 .prose img, .prose svg { max-width: 100%; height: auto; }
+
+/* 표 안 이미지: 셀이 이미지 원본 크기로 늘어나 넘치지 않게, 셀 폭을 고정하고 이미지를 맞춤 */
+.prose table:has(img) { width: 100%; table-layout: fixed; }
+.prose td img, .prose th img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
 
 /* ─── Transitions ─── */
 a, button {

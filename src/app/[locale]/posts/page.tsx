@@ -40,7 +40,7 @@ export default async function PostsPage() {
   });
 
   return (
-    <div className="page-container py-16 space-y-8">
+    <div className="page-container py-10 space-y-8">
       <h1 className="text-2xl font-bold tracking-tight">Posts</h1>
       <FilterBar categories={allCategories} tags={allTags} />
       <PostGrid posts={postsWithCategory} />

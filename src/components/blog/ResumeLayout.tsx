@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostCard } from "./PostCard";
@@ -129,6 +129,19 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
   const displayAbout = localized(s("resume_about"), s("resume_about_en"));
   const profileImage = s("resume_profile_image") || null;
 
+  // 프로필 사진을 오른쪽 텍스트 칸 높이에 맞춘 정사각형으로(겹침 없이). 측정 후 px 지정.
+  const textColRef = useRef<HTMLDivElement>(null);
+  const [photoSize, setPhotoSize] = useState<number | null>(null);
+  useEffect(() => {
+    const el = textColRef.current;
+    if (!el) return;
+    const update = () => setPhotoSize(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   // Group skills by category
   const skillGroups: Record<string, Skill[]> = {};
   for (const skill of skills) {
@@ -138,21 +151,20 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
   }
 
   return (
-    <div className="page-container pt-12 pb-20 md:pt-20">
+    <div className="page-container pt-8 pb-6 md:pt-12">
       {/* ━━━ HEADER ━━━ */}
       <header className="animate-fade-in">
-        <div className="flex items-start gap-5 md:gap-8">
+        <div className="flex items-start gap-4 md:gap-6">
           {profileImage && (
-            <div className="shrink-0">
-              <img
-                src={profileImage}
-                alt={displayName}
-                className="w-20 h-20 md:w-28 md:h-28 rounded-2xl object-cover ring-1 ring-border/60"
-              />
-            </div>
+            <img
+              src={profileImage}
+              alt={displayName}
+              style={photoSize ? { width: photoSize, height: photoSize } : undefined}
+              className="shrink-0 w-28 h-28 object-cover rounded-2xl ring-1 ring-border/60"
+            />
           )}
-          <div className="flex-1 min-w-0 pt-1">
-            <h1 className="font-serif text-2xl md:text-4xl font-bold tracking-tight leading-none">
+          <div ref={textColRef} className="flex-1 min-w-0">
+            <h1 className="text-2xl md:text-4xl font-bold tracking-tight leading-none">
               {displayName}
             </h1>
             {displayTitle && (
@@ -160,20 +172,34 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
             )}
             {/* Social links inline */}
             {socialLinks.length > 0 && (
-              <div className="flex items-center gap-4 mt-3">
-                {socialLinks.map((link) => {
-                  const icon = ICONS[link.platform.toLowerCase()];
-                  const href = link.platform.toLowerCase() === "email" ? `mailto:${link.url}` : link.url;
-                  return (
-                    <a key={link.id} href={href} target={link.platform.toLowerCase() === "email" ? undefined : "_blank"} rel="noopener noreferrer" className="text-text-tertiary hover:text-accent transition-colors" title={link.platform}>
-                      {icon ? (
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d={icon} /></svg>
-                      ) : (
-                        <span className="text-xs">{link.platform}</span>
-                      )}
+              <div className="mt-3 space-y-2">
+                {/* 아이콘 링크 (이메일 제외) — 한 줄 */}
+                {socialLinks.some((l) => l.platform.toLowerCase() !== "email") && (
+                  <div className="flex items-center gap-4">
+                    {socialLinks
+                      .filter((l) => l.platform.toLowerCase() !== "email")
+                      .map((link) => {
+                        const icon = ICONS[link.platform.toLowerCase()];
+                        return (
+                          <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="text-text-tertiary hover:text-accent transition-colors" title={link.platform}>
+                            {icon ? (
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d={icon} /></svg>
+                            ) : (
+                              <span className="text-xs">{link.platform}</span>
+                            )}
+                          </a>
+                        );
+                      })}
+                  </div>
+                )}
+                {/* 이메일 — 다른 줄에 주소 텍스트 */}
+                {socialLinks
+                  .filter((l) => l.platform.toLowerCase() === "email")
+                  .map((link) => (
+                    <a key={link.id} href={`mailto:${link.url}`} className="block text-sm text-text-tertiary hover:text-accent transition-colors">
+                      {link.url}
                     </a>
-                  );
-                })}
+                  ))}
               </div>
             )}
           </div>

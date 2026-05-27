@@ -18,7 +18,7 @@ export function SeriesDetailClient({ series, posts }: SeriesDetailClientProps) {
   const localized = useLocalized();
 
   return (
-    <div className="page-container py-16">
+    <div className="page-container py-10">
       <header className="mb-12">
         <span className="text-xs text-accent font-medium uppercase tracking-wider">{t("series.title")}</span>
         <h1 className="text-2xl md:text-4xl font-bold leading-tight mt-2">

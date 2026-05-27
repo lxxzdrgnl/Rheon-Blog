@@ -231,7 +231,7 @@ function WritePageContent() {
           placeholder={lang === "en" ? "Enter title" : "제목을 입력하세요"}
           className="w-full text-2xl font-bold bg-transparent border-0 border-b-2 border-border pb-2 focus:outline-none focus:border-text-primary text-text-primary placeholder:text-text-tertiary"
         />
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} onCategoriesChange={setCategories} />
           <SlugInput title={title} value={slug} onChange={setSlug} locked={!!editId} />
         </div>

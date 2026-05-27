@@ -24,7 +24,7 @@ export function SeriesTableOfContents({ seriesTitle, seriesTitleEn, posts, curre
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <div className="mb-10 rounded-xl border border-border/60 bg-bg-elevated/50 overflow-hidden">
+    <div className="mb-6 rounded-xl border border-border/60 bg-bg-elevated/50 overflow-hidden animate-fade-in">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-bg-elevated transition-colors"
