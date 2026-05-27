@@ -1,7 +1,7 @@
 "use client";
 
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
@@ -15,10 +15,29 @@ interface HeaderProps {
 
 export function Header({ blogTitle }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const lastYRef = useRef(0);
   const { t } = useI18n();
 
+  useEffect(() => {
+    lastYRef.current = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y < 64) setHidden(false);          // 최상단 근처: 항상 표시
+      else if (y > lastYRef.current) setHidden(true);   // 아래로 스크롤: 숨김
+      else if (y < lastYRef.current) setHidden(false);  // 위로 스크롤: 표시
+      lastYRef.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-xl">
+    <header
+      className={`sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-xl transition-transform duration-300 ${
+        hidden && !mobileMenuOpen ? "-translate-y-full" : "translate-y-0"
+      }`}
+    >
       <div className="page-container">
         <div className="h-14 flex items-center justify-between border-b border-border/50">
           <div className="flex items-center gap-10">

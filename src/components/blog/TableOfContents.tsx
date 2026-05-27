@@ -8,29 +8,36 @@ interface TOCItem { id: string; text: string; level: number; }
 export function TableOfContents() {
   const [headings, setHeadings] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
+  // locale 변경 시 본문이 한/영으로 다시 렌더되므로, 그 후 DOM 헤딩을 재스캔한다.
   useEffect(() => {
-    const elements = document.querySelectorAll(".prose h1, .prose h2, .prose h3");
-    const items: TOCItem[] = Array.from(elements).map((el) => {
-      const id = el.textContent?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9가-힣-]/g, "") || "";
-      el.id = id;
-      return { id, text: el.textContent || "", level: Number(el.tagName[1]) };
+    let observer: IntersectionObserver | undefined;
+    const raf = requestAnimationFrame(() => {
+      const elements = document.querySelectorAll(".prose h1, .prose h2, .prose h3");
+      const items: TOCItem[] = Array.from(elements).map((el) => {
+        const id = el.textContent?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9가-힣-]/g, "") || "";
+        el.id = id;
+        return { id, text: el.textContent || "", level: Number(el.tagName[1]) };
+      });
+      setHeadings(items);
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) setActiveId(entry.target.id);
+          });
+        },
+        { rootMargin: "-80px 0px -80% 0px" }
+      );
+      elements.forEach((el) => observer!.observe(el));
     });
-    setHeadings(items);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveId(entry.target.id);
-        });
-      },
-      { rootMargin: "-80px 0px -80% 0px" }
-    );
-
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+    };
+  }, [locale]);
 
   if (headings.length === 0) return null;
 
