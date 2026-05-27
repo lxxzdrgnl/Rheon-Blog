@@ -48,7 +48,7 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
     <div className="page-container py-16 relative">
       <div className="max-w-prose mx-auto">
         {/* Header */}
-        <header className="mb-12 animate-fade-in">
+        <header className="mb-6 animate-fade-in">
           <h1 className="text-2xl md:text-4xl font-bold leading-[1.15] tracking-tight">
             {title}
           </h1>
@@ -85,7 +85,7 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
 
         {/* Related Project(s) */}
         {projects.length > 0 && (
-          <div className="mb-6 space-y-2 animate-fade-in" style={{ fontFamily: "var(--font-family-sans)" }}>
+          <div className="mb-3 space-y-2 animate-fade-in" style={{ fontFamily: "var(--font-family-sans)" }}>
             {projects.map((p) => {
               const pTitle = localized(p.title, p.titleEn);
               const pDesc = localized(p.description, p.descriptionEn);

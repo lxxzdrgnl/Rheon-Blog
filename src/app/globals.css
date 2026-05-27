@@ -155,7 +155,7 @@ body {
   transition: text-decoration-color 0.2s;
 }
 .prose a:hover { text-decoration-color: var(--accent); }
-.prose strong { color: var(--text-primary); font-weight: 600; }
+.prose strong { color: var(--text-primary); font-weight: 700; }
 .prose blockquote {
   color: var(--text-secondary);
   border-left: 3px solid var(--accent);
@@ -215,6 +215,12 @@ body {
 .prose td {
   border-bottom: 1px solid var(--border-color);
 }
+
+/* ─── Prose mobile overflow fixes ─── */
+.prose pre { max-width: 100%; overflow-x: auto; }
+.prose :not(pre) > code { overflow-wrap: anywhere; word-break: break-word; }
+.prose a { overflow-wrap: anywhere; }
+.prose img, .prose svg { max-width: 100%; height: auto; }
 
 /* ─── Transitions ─── */
 a, button {
