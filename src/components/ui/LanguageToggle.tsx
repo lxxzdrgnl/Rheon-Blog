@@ -1,13 +1,26 @@
 "use client";
 
+import { useRouter, usePathname } from "next/navigation";
 import { useI18n } from "@/i18n/provider";
+import { isLocale, swapLocaleInPath } from "@/lib/locale";
 
 export function LanguageToggle() {
-  const { locale, setLocale } = useI18n();
+  const { locale } = useI18n();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // 비-locale 경로(admin 등)에서는 토글을 숨긴다
+  if (!isLocale(pathname.split("/")[1])) return null;
+
+  const other = locale === "ko" ? "en" : "ko";
+  const handleToggle = () => {
+    document.cookie = `NEXT_LOCALE=${other}; path=/; max-age=31536000`;
+    router.push(swapLocaleInPath(pathname, other), { scroll: false }); // 스크롤 유지
+  };
 
   return (
     <button
-      onClick={() => setLocale(locale === "ko" ? "en" : "ko")}
+      onClick={handleToggle}
       className="px-2 py-1 rounded-md text-xs font-medium hover:bg-bg-elevated transition-colors text-text-tertiary hover:text-text-primary tracking-wide"
     >
       {locale === "ko" ? "KR" : "EN"}
