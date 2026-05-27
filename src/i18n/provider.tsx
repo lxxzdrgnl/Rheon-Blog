@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useEffect, ReactNode } from "react";
 import type { Locale } from "./config";
 import ko from "./messages/ko.json";
 import en from "./messages/en.json";
@@ -9,26 +9,16 @@ const messages = { ko, en } as const;
 
 interface I18nContextType {
   locale: Locale;
-  setLocale: (locale: Locale) => void;
   t: (key: string) => string;
 }
 
 const I18nContext = createContext<I18nContextType | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("ko");
-
+export function I18nProvider({ locale, children }: { locale: Locale; children: ReactNode }) {
+  // <html lang>은 루트 레이아웃 소유라 직접 못 바꿈 → 클라이언트에서 동기화
   useEffect(() => {
-    const saved = localStorage.getItem("locale") as Locale | null;
-    if (saved && (saved === "ko" || saved === "en")) {
-      setLocaleState(saved);
-    }
-  }, []);
-
-  const setLocale = (newLocale: Locale) => {
-    setLocaleState(newLocale);
-    localStorage.setItem("locale", newLocale);
-  };
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const t = (key: string): string => {
     const keys = key.split(".");
@@ -39,11 +29,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return (value as string) || key;
   };
 
-  return (
-    <I18nContext.Provider value={{ locale, setLocale, t }}>
-      {children}
-    </I18nContext.Provider>
-  );
+  return <I18nContext.Provider value={{ locale, t }}>{children}</I18nContext.Provider>;
 }
 
 export function useI18n() {
@@ -52,10 +38,7 @@ export function useI18n() {
   return ctx;
 }
 
-/**
- * 로케일에 따라 한국어/영어 값을 선택하는 헬퍼.
- * 영어 값이 없으면 한국어로 폴백.
- */
+/** 로케일에 따라 한국어/영어 값을 선택. 영어 값 없으면 한국어 폴백. */
 export function useLocalized() {
   const { locale } = useI18n();
   return function localized<T>(ko: T, en: T | null | undefined): T {
