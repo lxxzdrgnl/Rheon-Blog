@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostCard } from "./PostCard";
@@ -129,6 +129,19 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
   const displayAbout = localized(s("resume_about"), s("resume_about_en"));
   const profileImage = s("resume_profile_image") || null;
 
+  // 프로필 사진을 오른쪽 텍스트 칸 높이에 맞춘 정사각형으로(겹침 없이). 측정 후 px 지정.
+  const textColRef = useRef<HTMLDivElement>(null);
+  const [photoSize, setPhotoSize] = useState<number | null>(null);
+  useEffect(() => {
+    const el = textColRef.current;
+    if (!el) return;
+    const update = () => setPhotoSize(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   // Group skills by category
   const skillGroups: Record<string, Skill[]> = {};
   for (const skill of skills) {
@@ -141,15 +154,16 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
     <div className="page-container pt-8 pb-6 md:pt-12">
       {/* ━━━ HEADER ━━━ */}
       <header className="animate-fade-in">
-        <div className="flex items-stretch gap-4 md:gap-6">
+        <div className="flex items-start gap-4 md:gap-6">
           {profileImage && (
             <img
               src={profileImage}
               alt={displayName}
-              className="shrink-0 self-stretch aspect-square h-auto w-auto object-cover rounded-2xl ring-1 ring-border/60"
+              style={photoSize ? { width: photoSize, height: photoSize } : undefined}
+              className="shrink-0 w-28 h-28 object-cover rounded-2xl ring-1 ring-border/60"
             />
           )}
-          <div className="flex-1 min-w-0">
+          <div ref={textColRef} className="flex-1 min-w-0">
             <h1 className="text-2xl md:text-4xl font-bold tracking-tight leading-none">
               {displayName}
             </h1>
@@ -202,36 +216,9 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
       {/* ━━━ RESUME GRID ━━━ */}
       <div className="mt-10 space-y-0 divide-y divide-border">
 
-        {/* ── Education ── */}
-        {education.length > 0 && (
-          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8 first:pt-0">
-            <SectionLabel>{t("resume.education")}</SectionLabel>
-            <div className="space-y-5">
-              {education.map((edu) => (
-                <div key={edu.id}>
-                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
-                    <div>
-                      <h3 className="font-semibold text-text-primary leading-snug">{localized(edu.school, edu.schoolEn)}</h3>
-                      {(edu.degree || edu.field) && (
-                        <p className="text-sm text-text-secondary">{[localized(edu.degree, edu.degreeEn), localized(edu.field, edu.fieldEn)].filter(Boolean).join(", ")}</p>
-                      )}
-                    </div>
-                    <span className="text-xs text-text-tertiary tabular-nums mt-0.5 sm:mt-0 shrink-0">
-                      {edu.startDate} — {edu.endDate || t("resume.present")}
-                    </span>
-                  </div>
-                  {edu.description && (
-                    <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">{localized(edu.description, edu.descriptionEn)}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* ── Skills ── */}
         {skills.length > 0 && (
-          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
+          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8 first:pt-0">
             <SectionLabel>{t("resume.skills")}</SectionLabel>
             <div className="space-y-3">
               {Object.entries(skillGroups).map(([cat, items]) => (
@@ -317,6 +304,33 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                   </div>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {/* ── Education ── */}
+        {education.length > 0 && (
+          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
+            <SectionLabel>{t("resume.education")}</SectionLabel>
+            <div className="space-y-5">
+              {education.map((edu) => (
+                <div key={edu.id}>
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-text-primary leading-snug">{localized(edu.school, edu.schoolEn)}</h3>
+                      {(edu.degree || edu.field) && (
+                        <p className="text-sm text-text-secondary">{[localized(edu.degree, edu.degreeEn), localized(edu.field, edu.fieldEn)].filter(Boolean).join(", ")}</p>
+                      )}
+                    </div>
+                    <span className="text-xs text-text-tertiary tabular-nums mt-0.5 sm:mt-0 shrink-0">
+                      {edu.startDate} — {edu.endDate || t("resume.present")}
+                    </span>
+                  </div>
+                  {edu.description && (
+                    <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">{localized(edu.description, edu.descriptionEn)}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </section>
         )}
