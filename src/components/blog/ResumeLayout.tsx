@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostCard } from "./PostCard";
@@ -129,19 +129,6 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
   const displayAbout = localized(s("resume_about"), s("resume_about_en"));
   const profileImage = s("resume_profile_image") || null;
 
-  // 프로필 사진을 오른쪽 텍스트 칸 높이에 맞춘 정사각형으로(겹침 없이). 측정 후 px 지정.
-  const textColRef = useRef<HTMLDivElement>(null);
-  const [photoSize, setPhotoSize] = useState<number | null>(null);
-  useEffect(() => {
-    const el = textColRef.current;
-    if (!el) return;
-    const update = () => setPhotoSize(el.offsetHeight);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
   // Group skills by category
   const skillGroups: Record<string, Skill[]> = {};
   for (const skill of skills) {
@@ -154,16 +141,15 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
     <div className="page-container pt-8 pb-6 md:pt-12">
       {/* ━━━ HEADER ━━━ */}
       <header className="animate-fade-in">
-        <div className="flex items-start gap-4 md:gap-6">
+        <div className="flex items-stretch gap-4 md:gap-6">
           {profileImage && (
             <img
               src={profileImage}
               alt={displayName}
-              style={photoSize ? { width: photoSize, height: photoSize } : undefined}
-              className="shrink-0 w-28 h-28 object-cover rounded-2xl ring-1 ring-border/60"
+              className="shrink-0 self-stretch aspect-square h-auto w-auto object-cover rounded-2xl ring-1 ring-border/60"
             />
           )}
-          <div ref={textColRef} className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl md:text-4xl font-bold tracking-tight leading-none">
               {displayName}
             </h1>
@@ -216,75 +202,9 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
       {/* ━━━ RESUME GRID ━━━ */}
       <div className="mt-10 space-y-0 divide-y divide-border">
 
-        {/* ── Experience ── */}
-        {experiences.length > 0 && (
-          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8 first:pt-0">
-            <SectionLabel>{t("resume.experience")}</SectionLabel>
-            <div className="space-y-7">
-              {experiences.map((exp) => {
-                const expLinks: ExperienceLink[] = exp.links ? JSON.parse(exp.links) : [];
-                return (
-                  <div key={exp.id}>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
-                      <div>
-                        <h3 className="font-semibold text-text-primary leading-snug">
-                          {localized(exp.role, exp.roleEn)}
-                        </h3>
-                        <p className="text-sm text-accent">{localized(exp.company, exp.companyEn)}</p>
-                      </div>
-                      <span className="text-xs text-text-tertiary tabular-nums mt-0.5 sm:mt-0 shrink-0">
-                        {exp.startDate} — {exp.endDate || t("resume.present")}
-                      </span>
-                    </div>
-                    {exp.description && (
-                      <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">{localized(exp.description, exp.descriptionEn)}</p>
-                    )}
-                    {expLinks.length > 0 && (
-                      <div className="flex gap-2.5 mt-3 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
-                        {expLinks.map((link) => <LinkPreview key={link.url} link={link} />)}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ── Activities ── */}
-        {activities.length > 0 && (
-          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
-            <SectionLabel>{t("resume.activities")}</SectionLabel>
-            <div className="space-y-5">
-              {activities.map((act) => (
-                <div key={act.id}>
-                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
-                    <div>
-                      <h3 className="font-semibold text-text-primary leading-snug">
-                        {act.link ? (
-                          <a href={act.link} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
-                            {localized(act.title, act.titleEn)}
-                          </a>
-                        ) : localized(act.title, act.titleEn)}
-                      </h3>
-                      <p className="text-sm text-accent">{localized(act.organization, act.organizationEn)}</p>
-                    </div>
-                    <span className="text-xs text-text-tertiary tabular-nums mt-0.5 sm:mt-0 shrink-0">
-                      {act.date}
-                    </span>
-                  </div>
-                  {act.description && (
-                    <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">{localized(act.description, act.descriptionEn)}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* ── Education ── */}
         {education.length > 0 && (
-          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
+          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8 first:pt-0">
             <SectionLabel>{t("resume.education")}</SectionLabel>
             <div className="space-y-5">
               {education.map((edu) => (
@@ -397,6 +317,72 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                   </div>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {/* ── Experience ── */}
+        {experiences.length > 0 && (
+          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
+            <SectionLabel>{t("resume.experience")}</SectionLabel>
+            <div className="space-y-7">
+              {experiences.map((exp) => {
+                const expLinks: ExperienceLink[] = exp.links ? JSON.parse(exp.links) : [];
+                return (
+                  <div key={exp.id}>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                      <div>
+                        <h3 className="font-semibold text-text-primary leading-snug">
+                          {localized(exp.role, exp.roleEn)}
+                        </h3>
+                        <p className="text-sm text-accent">{localized(exp.company, exp.companyEn)}</p>
+                      </div>
+                      <span className="text-xs text-text-tertiary tabular-nums mt-0.5 sm:mt-0 shrink-0">
+                        {exp.startDate} — {exp.endDate || t("resume.present")}
+                      </span>
+                    </div>
+                    {exp.description && (
+                      <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">{localized(exp.description, exp.descriptionEn)}</p>
+                    )}
+                    {expLinks.length > 0 && (
+                      <div className="flex gap-2.5 mt-3 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+                        {expLinks.map((link) => <LinkPreview key={link.url} link={link} />)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ── Activities ── */}
+        {activities.length > 0 && (
+          <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
+            <SectionLabel>{t("resume.activities")}</SectionLabel>
+            <div className="space-y-5">
+              {activities.map((act) => (
+                <div key={act.id}>
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-text-primary leading-snug">
+                        {act.link ? (
+                          <a href={act.link} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
+                            {localized(act.title, act.titleEn)}
+                          </a>
+                        ) : localized(act.title, act.titleEn)}
+                      </h3>
+                      <p className="text-sm text-accent">{localized(act.organization, act.organizationEn)}</p>
+                    </div>
+                    <span className="text-xs text-text-tertiary tabular-nums mt-0.5 sm:mt-0 shrink-0">
+                      {act.date}
+                    </span>
+                  </div>
+                  {act.description && (
+                    <p className="text-sm text-text-secondary mt-1.5 leading-relaxed">{localized(act.description, act.descriptionEn)}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </section>
         )}
