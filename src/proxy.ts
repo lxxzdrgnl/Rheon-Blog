@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
       pathname.startsWith("/api/view") ||
       pathname.startsWith("/api/favicon") ||
       pathname.startsWith("/api/og") ||
-      pathname.startsWith("/api/mcp")
+      pathname === "/api/mcp"
     ) {
       return NextResponse.next();
     }

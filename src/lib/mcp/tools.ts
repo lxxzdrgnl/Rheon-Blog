@@ -62,6 +62,15 @@ const RESUME_SCHEMAS = {
 } as const;
 type ResumeType = keyof typeof RESUME_SCHEMAS;
 
+// 분류 체계는 name/nameEn(notNull)을 요구하므로 type별로 명시 검증한다.
+// (태그·시리즈를 이름만으로 자동 생성하고 싶으면 create_post의 tags/series를 쓰면 됨.)
+const TAXONOMY_SCHEMAS = {
+  category: z.object({ name: z.string(), nameEn: z.string(), parentId: z.number().int().optional() }),
+  tag: z.object({ name: z.string(), nameEn: z.string() }),
+  series: z.object({ title: z.string(), titleEn: z.string().optional(), description: z.string().optional(), descriptionEn: z.string().optional() }),
+} as const;
+type TaxonomyType = keyof typeof TAXONOMY_SCHEMAS;
+
 async function savePostFromInput(input: z.infer<z.ZodObject<typeof postBody>> & { id?: number }) {
   const tagIds = input.tags?.length ? await resolveTags(input.tags) : [];
   const seriesId = input.series ? (await resolveSeries(input.series)) ?? undefined : undefined;
@@ -131,18 +140,23 @@ export const TOOLS: ToolDef[] = [
   { name: "taxonomy_list", description: "카테고리/태그/시리즈 목록 조회(글·프로젝트 작성 시 참조용).",
     schema: z.object({ type: z.enum(["category", "tag", "series"]) }),
     handler: async (a) => { const t = (a as { type: string }).type; if (t === "category") return getCategoriesWithCount(); if (t === "tag") return getTags(); return getAllSeries(); } },
-  { name: "taxonomy_create", description: "카테고리/태그/시리즈 생성.",
+  { name: "taxonomy_create", description: "카테고리/태그/시리즈 생성. category/tag는 name·nameEn(영문명) 필수.",
     schema: z.object({ type: z.enum(["category", "tag", "series"]), data: z.record(z.string(), z.unknown()) }),
     handler: async (a) => {
-      const { type, data } = a as { type: string; data: Record<string, unknown> };
+      const { type, data } = a as { type: TaxonomyType; data: unknown };
       if (type === "category") {
+        const d = TAXONOMY_SCHEMAS.category.parse(data);
         const fd = new FormData();
-        fd.set("name", String(data.name)); fd.set("nameEn", String(data.nameEn));
-        if (data.parentId != null) fd.set("parentId", String(data.parentId));
+        fd.set("name", d.name); fd.set("nameEn", d.nameEn);
+        if (d.parentId != null) fd.set("parentId", String(d.parentId));
         await createCategory(fd); return { created: true };
       }
-      if (type === "tag") return createTag(String(data.name), String(data.nameEn));
-      return createSeries({ title: String(data.title), titleEn: data.titleEn as string | undefined, description: data.description as string | undefined, descriptionEn: data.descriptionEn as string | undefined });
+      if (type === "tag") {
+        const d = TAXONOMY_SCHEMAS.tag.parse(data);
+        return createTag(d.name, d.nameEn);
+      }
+      const d = TAXONOMY_SCHEMAS.series.parse(data);
+      return createSeries(d);
     } },
 ];
 

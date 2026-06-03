@@ -54,3 +54,20 @@ describe("delete_post (integration)", () => {
     expect(db.select().from(posts).all()).toHaveLength(0);
   });
 });
+
+describe("taxonomy_create (integration)", () => {
+  it("category는 name·nameEn으로 생성된다", async () => {
+    await TOOL_MAP.get("taxonomy_create")!.handler({ type: "category", data: { name: "알고리즘", nameEn: "Algorithms" } });
+    const rows = db.select().from(categories).all();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].name).toBe("알고리즘");
+    expect(rows[0].nameEn).toBe("Algorithms");
+    expect(rows[0].slug).toBe("algorithms"); // "undefined"가 아님
+  });
+  it("nameEn 누락 시 검증 에러로 거부한다(\"undefined\" 저장 방지)", async () => {
+    await expect(
+      TOOL_MAP.get("taxonomy_create")!.handler({ type: "category", data: { name: "누락" } })
+    ).rejects.toThrow();
+    expect(db.select().from(categories).all()).toHaveLength(0);
+  });
+});

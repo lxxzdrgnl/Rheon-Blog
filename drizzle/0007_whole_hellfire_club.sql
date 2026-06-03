@@ -1,4 +1,4 @@
-CREATE TABLE `activities` (
+CREATE TABLE IF NOT EXISTS `activities` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`title` text NOT NULL,
 	`title_en` text,
