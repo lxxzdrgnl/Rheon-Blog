@@ -28,7 +28,7 @@ export function Mermaid({ chart }: MermaidProps) {
           theme: resolvedTheme === "dark" ? "dark" : "default",
           securityLevel: "strict",
           suppressErrorRendering: true,
-          flowchart: { curve: "linear" },
+          flowchart: { curve: "basis" },
         });
         const { svg } = await mermaid.render(idRef.current, chart);
         if (!cancelled) {
