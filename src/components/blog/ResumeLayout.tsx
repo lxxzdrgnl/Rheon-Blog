@@ -264,42 +264,44 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                       </div>
                     </Link>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {githubLink && (
+                      {githubLink ? (
                         <a
                           href={githubLink.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-7 h-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-primary hover:bg-bg-card transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-primary hover:bg-bg-card transition-colors shrink-0"
                           title="GitHub"
                         >
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                             <path d={ICONS.github} />
                           </svg>
                         </a>
+                      ) : (
+                        <span className="w-7 h-7 shrink-0" aria-hidden />
                       )}
-                      {demoLink && (
+                      {demoLink ? (
                         <a
                           href={demoLink.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-7 h-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-accent hover:bg-accent/8 transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-accent hover:bg-accent/8 transition-colors shrink-0"
                           title="Live Demo"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                           </svg>
                         </a>
+                      ) : (
+                        <span className="w-7 h-7 shrink-0" aria-hidden />
                       )}
-                      {techs.length > 0 && (
-                        <div className="hidden sm:flex flex-wrap gap-1 shrink-0 max-w-[200px] justify-end ml-1">
-                          {techs.slice(0, 3).map((tech) => (
-                            <span key={tech} className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-accent/8 dark:bg-accent/15 text-accent">
-                              {tech}
-                            </span>
-                          ))}
-                          {techs.length > 3 && <span className="text-[10px] text-text-tertiary">+{techs.length - 3}</span>}
-                        </div>
-                      )}
+                      <div className="hidden sm:flex flex-wrap gap-1 shrink-0 w-[200px] justify-end ml-1">
+                        {techs.slice(0, 3).map((tech) => (
+                          <span key={tech} className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-accent/8 dark:bg-accent/15 text-accent">
+                            {tech}
+                          </span>
+                        ))}
+                        {techs.length > 3 && <span className="text-[10px] text-text-tertiary">+{techs.length - 3}</span>}
+                      </div>
                     </div>
                   </div>
                 );
