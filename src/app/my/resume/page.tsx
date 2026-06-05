@@ -11,6 +11,7 @@ import {
   translateResumeFields,
 } from "@/actions/resume";
 import { uploadImage } from "@/lib/upload";
+import { SOCIAL_ICONS, SOCIAL_PRESETS } from "@/lib/socialIcons";
 
 type Experience = { id: number; company: string; companyEn: string | null; role: string; roleEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null; sortOrder: number };
 type Education = { id: number; school: string; schoolEn: string | null; degree: string | null; degreeEn: string | null; field: string | null; fieldEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null; sortOrder: number };
@@ -20,6 +21,13 @@ type SocialLink = { id: number; platform: string; url: string; sortOrder: number
 
 export default function ResumePage() {
   const [tab, setTab] = useState<"intro" | "experience" | "activities" | "education" | "skills" | "links">("intro");
+
+  // 저장/삭제 완료 토스트
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast((cur) => (cur === msg ? null : cur)), 1800);
+  };
 
   const [name, setName] = useState("");
   const [nameEn, setNameEn] = useState("");
@@ -43,6 +51,9 @@ export default function ResumePage() {
 
   const [skills, setSkills] = useState<Skill[]>([]);
   const [editingSkill, setEditingSkill] = useState<Partial<Skill> | null>(null);
+  const [skillCatForm, setSkillCatForm] = useState(false);
+  const [newSkillCat, setNewSkillCat] = useState({ name: "", nameEn: "" });
+  const [customCategories, setCustomCategories] = useState<{ name: string; nameEn: string }[]>([]);
 
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [editingLink, setEditingLink] = useState<Partial<SocialLink> | null>(null);
@@ -76,6 +87,7 @@ export default function ResumePage() {
       resume_about: about, resume_about_en: aboutEn,
     });
     setSavingIntro(false);
+    showToast("저장되었습니다");
   };
 
   const handleSaveExperience = async () => {
@@ -97,12 +109,14 @@ export default function ResumePage() {
     }
     setEditingExp(null);
     setExperiences(await getExperiences());
+    showToast("저장되었습니다");
   };
 
   const handleDeleteExperience = async (id: number) => {
     if (!confirm("삭제하시겠습니까?")) return;
     await deleteExperience(id);
     setExperiences(await getExperiences());
+    showToast("삭제되었습니다");
   };
 
   const handleMoveExperience = async (idx: number, dir: -1 | 1) => {
@@ -131,12 +145,14 @@ export default function ResumePage() {
     }
     setEditingAct(null);
     setActivitiesList(await getActivities());
+    showToast("저장되었습니다");
   };
 
   const handleDeleteActivity = async (id: number) => {
     if (!confirm("삭제하시겠습니까?")) return;
     await deleteActivity(id);
     setActivitiesList(await getActivities());
+    showToast("삭제되었습니다");
   };
 
   const handleMoveActivity = async (idx: number, dir: -1 | 1) => {
@@ -169,12 +185,14 @@ export default function ResumePage() {
     }
     setEditingEdu(null);
     setEducationList(await getEducation());
+    showToast("저장되었습니다");
   };
 
   const handleDeleteEducation = async (id: number) => {
     if (!confirm("삭제하시겠습니까?")) return;
     await deleteEducation(id);
     setEducationList(await getEducation());
+    showToast("삭제되었습니다");
   };
 
   const handleMoveEducation = async (idx: number, dir: -1 | 1) => {
@@ -195,12 +213,22 @@ export default function ResumePage() {
     }
     setEditingSkill(null);
     setSkills(await getSkills());
+    showToast("저장되었습니다");
   };
 
   const handleDeleteSkill = async (id: number) => {
     if (!confirm("삭제하시겠습니까?")) return;
     await deleteSkill(id);
     setSkills(await getSkills());
+    showToast("삭제되었습니다");
+  };
+
+  const handleAddSkillCategory = () => {
+    const name = newSkillCat.name.trim();
+    if (!name) return;
+    setCustomCategories((prev) => (prev.some((c) => c.name === name) ? prev : [...prev, { name, nameEn: newSkillCat.nameEn.trim() }]));
+    setNewSkillCat({ name: "", nameEn: "" });
+    setSkillCatForm(false);
   };
 
   const handleSaveLink = async () => {
@@ -212,12 +240,14 @@ export default function ResumePage() {
     }
     setEditingLink(null);
     setLinks(await getSocialLinks());
+    showToast("저장되었습니다");
   };
 
   const handleDeleteLink = async (id: number) => {
     if (!confirm("삭제하시겠습니까?")) return;
     await deleteSocialLink(id);
     setLinks(await getSocialLinks());
+    showToast("삭제되었습니다");
   };
 
   const handleMoveLink = async (idx: number, dir: -1 | 1) => {
@@ -284,6 +314,143 @@ export default function ResumePage() {
     </button>
   );
 
+  // 편집 폼 — 신규는 목록 상단, 수정은 해당 항목 자리에 인라인으로 렌더(같은 엘리먼트 재사용).
+  const experienceForm = editingExp ? (
+    <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
+      <div className="flex justify-end">
+        <TranslateButton section="experience" onClick={() => handleTranslateSection("experience",
+          { company: editingExp.company || "", role: editingExp.role || "", description: editingExp.description || "" },
+          { company: (v) => setEditingExp((p) => ({ ...p, companyEn: v })), role: (v) => setEditingExp((p) => ({ ...p, roleEn: v })), description: (v) => setEditingExp((p) => ({ ...p, descriptionEn: v })) },
+        )} />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>회사</label><input className={inputClass} value={editingExp.company || ""} onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })} /></div>
+        <div><label className={labelClass}>Company (EN)</label><input className={inputClass} value={editingExp.companyEn || ""} onChange={(e) => setEditingExp({ ...editingExp, companyEn: e.target.value })} /></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>직책</label><input className={inputClass} value={editingExp.role || ""} onChange={(e) => setEditingExp({ ...editingExp, role: e.target.value })} /></div>
+        <div><label className={labelClass}>Role (EN)</label><input className={inputClass} value={editingExp.roleEn || ""} onChange={(e) => setEditingExp({ ...editingExp, roleEn: e.target.value })} /></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>시작일 (YYYY-MM)</label><input className={inputClass} value={editingExp.startDate || ""} onChange={(e) => setEditingExp({ ...editingExp, startDate: e.target.value })} placeholder="2024-01" /></div>
+        <div><label className={labelClass}>종료일 (비우면 현재)</label><input className={inputClass} value={editingExp.endDate || ""} onChange={(e) => setEditingExp({ ...editingExp, endDate: e.target.value })} placeholder="2025-03" /></div>
+      </div>
+      <div><label className={labelClass}>설명</label><textarea className={inputClass + " h-20"} value={editingExp.description || ""} onChange={(e) => setEditingExp({ ...editingExp, description: e.target.value })} /></div>
+      <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-20"} value={editingExp.descriptionEn || ""} onChange={(e) => setEditingExp({ ...editingExp, descriptionEn: e.target.value })} /></div>
+      <div className="flex gap-2">
+        <button onClick={handleSaveExperience} className={btnPrimary}>저장</button>
+        <button onClick={() => setEditingExp(null)} className={btnSecondary}>취소</button>
+      </div>
+    </div>
+  ) : null;
+
+  const activityForm = editingAct ? (
+    <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
+      <div className="flex justify-end">
+        <TranslateButton section="activity" onClick={() => handleTranslateSection("activity",
+          { title: editingAct.title || "", organization: editingAct.organization || "", description: editingAct.description || "" },
+          { title: (v) => setEditingAct((p) => ({ ...p, titleEn: v })), organization: (v) => setEditingAct((p) => ({ ...p, organizationEn: v })), description: (v) => setEditingAct((p) => ({ ...p, descriptionEn: v })) },
+        )} />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>제목</label><input className={inputClass} value={editingAct.title || ""} onChange={(e) => setEditingAct({ ...editingAct, title: e.target.value })} placeholder="LG Aimers 6기 수료" /></div>
+        <div><label className={labelClass}>Title (EN)</label><input className={inputClass} value={editingAct.titleEn || ""} onChange={(e) => setEditingAct({ ...editingAct, titleEn: e.target.value })} /></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>기관/주최</label><input className={inputClass} value={editingAct.organization || ""} onChange={(e) => setEditingAct({ ...editingAct, organization: e.target.value })} placeholder="LG AI연구원" /></div>
+        <div><label className={labelClass}>Organization (EN)</label><input className={inputClass} value={editingAct.organizationEn || ""} onChange={(e) => setEditingAct({ ...editingAct, organizationEn: e.target.value })} /></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>날짜</label><input className={inputClass} value={editingAct.date || ""} onChange={(e) => setEditingAct({ ...editingAct, date: e.target.value })} placeholder="2025.01 — 2025.02" /></div>
+        <div><label className={labelClass}>관련 링크</label><input className={inputClass} value={editingAct.link || ""} onChange={(e) => setEditingAct({ ...editingAct, link: e.target.value })} placeholder="https://..." /></div>
+      </div>
+      <div><label className={labelClass}>설명</label><textarea className={inputClass + " h-20"} value={editingAct.description || ""} onChange={(e) => setEditingAct({ ...editingAct, description: e.target.value })} /></div>
+      <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-20"} value={editingAct.descriptionEn || ""} onChange={(e) => setEditingAct({ ...editingAct, descriptionEn: e.target.value })} /></div>
+      <div className="flex gap-2">
+        <button onClick={handleSaveActivity} className={btnPrimary}>저장</button>
+        <button onClick={() => setEditingAct(null)} className={btnSecondary}>취소</button>
+      </div>
+    </div>
+  ) : null;
+
+  const educationForm = editingEdu ? (
+    <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
+      <div className="flex justify-end">
+        <TranslateButton section="education" onClick={() => handleTranslateSection("education",
+          { school: editingEdu.school || "", degree: editingEdu.degree || "", field: editingEdu.field || "", description: editingEdu.description || "" },
+          { school: (v) => setEditingEdu((p) => ({ ...p, schoolEn: v })), degree: (v) => setEditingEdu((p) => ({ ...p, degreeEn: v })), field: (v) => setEditingEdu((p) => ({ ...p, fieldEn: v })), description: (v) => setEditingEdu((p) => ({ ...p, descriptionEn: v })) },
+        )} />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>학교</label><input className={inputClass} value={editingEdu.school || ""} onChange={(e) => setEditingEdu({ ...editingEdu, school: e.target.value })} /></div>
+        <div><label className={labelClass}>School (EN)</label><input className={inputClass} value={editingEdu.schoolEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, schoolEn: e.target.value })} /></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>학위</label><input className={inputClass} value={editingEdu.degree || ""} onChange={(e) => setEditingEdu({ ...editingEdu, degree: e.target.value })} placeholder="학사, 석사..." /></div>
+        <div><label className={labelClass}>Degree (EN)</label><input className={inputClass} value={editingEdu.degreeEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, degreeEn: e.target.value })} placeholder="Bachelor, Master..." /></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>전공</label><input className={inputClass} value={editingEdu.field || ""} onChange={(e) => setEditingEdu({ ...editingEdu, field: e.target.value })} placeholder="컴퓨터공학" /></div>
+        <div><label className={labelClass}>Field (EN)</label><input className={inputClass} value={editingEdu.fieldEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, fieldEn: e.target.value })} placeholder="Computer Science" /></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className={labelClass}>시작일 (YYYY)</label><input className={inputClass} value={editingEdu.startDate || ""} onChange={(e) => setEditingEdu({ ...editingEdu, startDate: e.target.value })} placeholder="2021" /></div>
+        <div><label className={labelClass}>종료일 (비우면 현재)</label><input className={inputClass} value={editingEdu.endDate || ""} onChange={(e) => setEditingEdu({ ...editingEdu, endDate: e.target.value })} placeholder="2025" /></div>
+      </div>
+      <div><label className={labelClass}>설명</label><textarea className={inputClass + " h-20"} value={editingEdu.description || ""} onChange={(e) => setEditingEdu({ ...editingEdu, description: e.target.value })} /></div>
+      <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-20"} value={editingEdu.descriptionEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, descriptionEn: e.target.value })} /></div>
+      <div className="flex gap-2">
+        <button onClick={handleSaveEducation} className={btnPrimary}>저장</button>
+        <button onClick={() => setEditingEdu(null)} className={btnSecondary}>취소</button>
+      </div>
+    </div>
+  ) : null;
+
+  const linkForm = editingLink ? (
+    <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
+      <div>
+        <label className={labelClass}>플랫폼</label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {SOCIAL_PRESETS.map((p) => {
+            const active = (editingLink.platform || "").toLowerCase() === p.key;
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => setEditingLink({ ...editingLink, platform: p.label })}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors ${active ? "border-accent text-accent bg-accent/5" : "border-border text-text-secondary hover:bg-bg-elevated"}`}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d={SOCIAL_ICONS[p.key]} /></svg>
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+        <input className={inputClass} value={editingLink.platform || ""} onChange={(e) => setEditingLink({ ...editingLink, platform: e.target.value })} placeholder="직접 입력 (예: Velog, Notion)" />
+      </div>
+      <div>
+        <label className={labelClass}>URL</label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+            </svg>
+          </span>
+          <input
+            className={inputClass + " pl-9"}
+            value={editingLink.url || ""}
+            onChange={(e) => setEditingLink({ ...editingLink, url: e.target.value })}
+            placeholder={SOCIAL_PRESETS.find((p) => p.key === (editingLink.platform || "").toLowerCase())?.placeholder || "https://..."}
+          />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={handleSaveLink} className={btnPrimary}>저장</button>
+        <button onClick={() => setEditingLink(null)} className={btnSecondary}>취소</button>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div>
       <h1 className="text-xl font-bold mb-6">이력서 관리</h1>
@@ -347,36 +514,10 @@ export default function ResumePage() {
       {tab === "experience" && (
         <div className="space-y-4">
           <button onClick={() => setEditingExp({})} className={btnPrimary}>+ 경력 추가</button>
-          {editingExp && (
-            <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
-              <div className="flex justify-end">
-                <TranslateButton section="experience" onClick={() => handleTranslateSection("experience",
-                  { company: editingExp.company || "", role: editingExp.role || "", description: editingExp.description || "" },
-                  { company: (v) => setEditingExp((p) => ({ ...p, companyEn: v })), role: (v) => setEditingExp((p) => ({ ...p, roleEn: v })), description: (v) => setEditingExp((p) => ({ ...p, descriptionEn: v })) },
-                )} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>회사</label><input className={inputClass} value={editingExp.company || ""} onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })} /></div>
-                <div><label className={labelClass}>Company (EN)</label><input className={inputClass} value={editingExp.companyEn || ""} onChange={(e) => setEditingExp({ ...editingExp, companyEn: e.target.value })} /></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>직책</label><input className={inputClass} value={editingExp.role || ""} onChange={(e) => setEditingExp({ ...editingExp, role: e.target.value })} /></div>
-                <div><label className={labelClass}>Role (EN)</label><input className={inputClass} value={editingExp.roleEn || ""} onChange={(e) => setEditingExp({ ...editingExp, roleEn: e.target.value })} /></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>시작일 (YYYY-MM)</label><input className={inputClass} value={editingExp.startDate || ""} onChange={(e) => setEditingExp({ ...editingExp, startDate: e.target.value })} placeholder="2024-01" /></div>
-                <div><label className={labelClass}>종료일 (비우면 현재)</label><input className={inputClass} value={editingExp.endDate || ""} onChange={(e) => setEditingExp({ ...editingExp, endDate: e.target.value })} placeholder="2025-03" /></div>
-              </div>
-              <div><label className={labelClass}>설명</label><textarea className={inputClass + " h-20"} value={editingExp.description || ""} onChange={(e) => setEditingExp({ ...editingExp, description: e.target.value })} /></div>
-              <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-20"} value={editingExp.descriptionEn || ""} onChange={(e) => setEditingExp({ ...editingExp, descriptionEn: e.target.value })} /></div>
-              <div className="flex gap-2">
-                <button onClick={handleSaveExperience} className={btnPrimary}>저장</button>
-                <button onClick={() => setEditingExp(null)} className={btnSecondary}>취소</button>
-              </div>
-            </div>
-          )}
+          {editingExp && editingExp.id == null && experienceForm}
           <div className="space-y-2">
-            {experiences.map((exp, idx) => (
+            {experiences.map((exp, idx) =>
+              editingExp?.id === exp.id ? <div key={exp.id}>{experienceForm}</div> : (
               <div key={exp.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
                 <div className="flex flex-col gap-0.5">
                   <button onClick={() => handleMoveExperience(idx, -1)} disabled={idx === 0} className="text-text-tertiary hover:text-text-primary disabled:opacity-30 text-xs">▲</button>
@@ -397,36 +538,10 @@ export default function ResumePage() {
       {tab === "activities" && (
         <div className="space-y-4">
           <button onClick={() => setEditingAct({})} className={btnPrimary}>+ 경험 추가</button>
-          {editingAct && (
-            <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
-              <div className="flex justify-end">
-                <TranslateButton section="activity" onClick={() => handleTranslateSection("activity",
-                  { title: editingAct.title || "", organization: editingAct.organization || "", description: editingAct.description || "" },
-                  { title: (v) => setEditingAct((p) => ({ ...p, titleEn: v })), organization: (v) => setEditingAct((p) => ({ ...p, organizationEn: v })), description: (v) => setEditingAct((p) => ({ ...p, descriptionEn: v })) },
-                )} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>제목</label><input className={inputClass} value={editingAct.title || ""} onChange={(e) => setEditingAct({ ...editingAct, title: e.target.value })} placeholder="LG Aimers 6기 수료" /></div>
-                <div><label className={labelClass}>Title (EN)</label><input className={inputClass} value={editingAct.titleEn || ""} onChange={(e) => setEditingAct({ ...editingAct, titleEn: e.target.value })} /></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>기관/주최</label><input className={inputClass} value={editingAct.organization || ""} onChange={(e) => setEditingAct({ ...editingAct, organization: e.target.value })} placeholder="LG AI연구원" /></div>
-                <div><label className={labelClass}>Organization (EN)</label><input className={inputClass} value={editingAct.organizationEn || ""} onChange={(e) => setEditingAct({ ...editingAct, organizationEn: e.target.value })} /></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>날짜</label><input className={inputClass} value={editingAct.date || ""} onChange={(e) => setEditingAct({ ...editingAct, date: e.target.value })} placeholder="2025.01 — 2025.02" /></div>
-                <div><label className={labelClass}>관련 링크</label><input className={inputClass} value={editingAct.link || ""} onChange={(e) => setEditingAct({ ...editingAct, link: e.target.value })} placeholder="https://..." /></div>
-              </div>
-              <div><label className={labelClass}>설명</label><textarea className={inputClass + " h-20"} value={editingAct.description || ""} onChange={(e) => setEditingAct({ ...editingAct, description: e.target.value })} /></div>
-              <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-20"} value={editingAct.descriptionEn || ""} onChange={(e) => setEditingAct({ ...editingAct, descriptionEn: e.target.value })} /></div>
-              <div className="flex gap-2">
-                <button onClick={handleSaveActivity} className={btnPrimary}>저장</button>
-                <button onClick={() => setEditingAct(null)} className={btnSecondary}>취소</button>
-              </div>
-            </div>
-          )}
+          {editingAct && editingAct.id == null && activityForm}
           <div className="space-y-2">
-            {activitiesList.map((act, idx) => (
+            {activitiesList.map((act, idx) =>
+              editingAct?.id === act.id ? <div key={act.id}>{activityForm}</div> : (
               <div key={act.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
                 <div className="flex flex-col gap-0.5">
                   <button onClick={() => handleMoveActivity(idx, -1)} disabled={idx === 0} className="text-text-tertiary hover:text-text-primary disabled:opacity-30 text-xs">▲</button>
@@ -447,40 +562,10 @@ export default function ResumePage() {
       {tab === "education" && (
         <div className="space-y-4">
           <button onClick={() => setEditingEdu({})} className={btnPrimary}>+ 학력 추가</button>
-          {editingEdu && (
-            <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
-              <div className="flex justify-end">
-                <TranslateButton section="education" onClick={() => handleTranslateSection("education",
-                  { school: editingEdu.school || "", degree: editingEdu.degree || "", field: editingEdu.field || "", description: editingEdu.description || "" },
-                  { school: (v) => setEditingEdu((p) => ({ ...p, schoolEn: v })), degree: (v) => setEditingEdu((p) => ({ ...p, degreeEn: v })), field: (v) => setEditingEdu((p) => ({ ...p, fieldEn: v })), description: (v) => setEditingEdu((p) => ({ ...p, descriptionEn: v })) },
-                )} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>학교</label><input className={inputClass} value={editingEdu.school || ""} onChange={(e) => setEditingEdu({ ...editingEdu, school: e.target.value })} /></div>
-                <div><label className={labelClass}>School (EN)</label><input className={inputClass} value={editingEdu.schoolEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, schoolEn: e.target.value })} /></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>학위</label><input className={inputClass} value={editingEdu.degree || ""} onChange={(e) => setEditingEdu({ ...editingEdu, degree: e.target.value })} placeholder="학사, 석사..." /></div>
-                <div><label className={labelClass}>Degree (EN)</label><input className={inputClass} value={editingEdu.degreeEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, degreeEn: e.target.value })} placeholder="Bachelor, Master..." /></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>전공</label><input className={inputClass} value={editingEdu.field || ""} onChange={(e) => setEditingEdu({ ...editingEdu, field: e.target.value })} placeholder="컴퓨터공학" /></div>
-                <div><label className={labelClass}>Field (EN)</label><input className={inputClass} value={editingEdu.fieldEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, fieldEn: e.target.value })} placeholder="Computer Science" /></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>시작일 (YYYY)</label><input className={inputClass} value={editingEdu.startDate || ""} onChange={(e) => setEditingEdu({ ...editingEdu, startDate: e.target.value })} placeholder="2021" /></div>
-                <div><label className={labelClass}>종료일 (비우면 현재)</label><input className={inputClass} value={editingEdu.endDate || ""} onChange={(e) => setEditingEdu({ ...editingEdu, endDate: e.target.value })} placeholder="2025" /></div>
-              </div>
-              <div><label className={labelClass}>설명</label><textarea className={inputClass + " h-20"} value={editingEdu.description || ""} onChange={(e) => setEditingEdu({ ...editingEdu, description: e.target.value })} /></div>
-              <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-20"} value={editingEdu.descriptionEn || ""} onChange={(e) => setEditingEdu({ ...editingEdu, descriptionEn: e.target.value })} /></div>
-              <div className="flex gap-2">
-                <button onClick={handleSaveEducation} className={btnPrimary}>저장</button>
-                <button onClick={() => setEditingEdu(null)} className={btnSecondary}>취소</button>
-              </div>
-            </div>
-          )}
+          {editingEdu && editingEdu.id == null && educationForm}
           <div className="space-y-2">
-            {educationList.map((edu, idx) => (
+            {educationList.map((edu, idx) =>
+              editingEdu?.id === edu.id ? <div key={edu.id}>{educationForm}</div> : (
               <div key={edu.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
                 <div className="flex flex-col gap-0.5">
                   <button onClick={() => handleMoveEducation(idx, -1)} disabled={idx === 0} className="text-text-tertiary hover:text-text-primary disabled:opacity-30 text-xs">▲</button>
@@ -499,47 +584,76 @@ export default function ResumePage() {
       )}
 
       {tab === "skills" && (
-        <div className="space-y-4">
-          <button onClick={() => setEditingSkill({})} className={btnPrimary}>+ 기술 추가</button>
-          {editingSkill && (
-            <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
-              <div className="flex justify-end">
-                <TranslateButton section="skill" onClick={() => handleTranslateSection("skill",
-                  { category: editingSkill.category || "" },
-                  { category: (v) => setEditingSkill((p) => ({ ...p, categoryEn: v })) },
-                )} />
-              </div>
-              <div><label className={labelClass}>기술명</label><input className={inputClass} value={editingSkill.name || ""} onChange={(e) => setEditingSkill({ ...editingSkill, name: e.target.value })} placeholder="React" /></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div><label className={labelClass}>카테고리</label><input className={inputClass} value={editingSkill.category || ""} onChange={(e) => setEditingSkill({ ...editingSkill, category: e.target.value })} placeholder="프론트엔드" /></div>
-                <div><label className={labelClass}>Category (EN)</label><input className={inputClass} value={editingSkill.categoryEn || ""} onChange={(e) => setEditingSkill({ ...editingSkill, categoryEn: e.target.value })} placeholder="Frontend" /></div>
-              </div>
+        <div className="space-y-5">
+          {/* 카테고리 추가 */}
+          {skillCatForm ? (
+            <div className="flex flex-wrap items-end gap-2 p-3 border border-accent/30 rounded-xl bg-bg-elevated/50">
+              <div className="flex-1 min-w-[140px]"><label className={labelClass}>카테고리</label><input className={inputClass} value={newSkillCat.name} autoFocus onChange={(e) => setNewSkillCat({ ...newSkillCat, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") handleAddSkillCategory(); }} placeholder="프론트엔드" /></div>
+              <div className="flex-1 min-w-[140px]"><label className={labelClass}>Category (EN)</label><input className={inputClass} value={newSkillCat.nameEn} onChange={(e) => setNewSkillCat({ ...newSkillCat, nameEn: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") handleAddSkillCategory(); }} placeholder="Frontend" /></div>
               <div className="flex gap-2">
-                <button onClick={handleSaveSkill} className={btnPrimary}>저장</button>
-                <button onClick={() => setEditingSkill(null)} className={btnSecondary}>취소</button>
+                <button onClick={handleAddSkillCategory} className={btnPrimary}>추가</button>
+                <button onClick={() => { setSkillCatForm(false); setNewSkillCat({ name: "", nameEn: "" }); }} className={btnSecondary}>취소</button>
               </div>
             </div>
+          ) : (
+            <button onClick={() => setSkillCatForm(true)} className={btnPrimary}>+ 카테고리 추가</button>
           )}
+
+          {/* 카테고리별 기술 */}
           {(() => {
-            const grouped: Record<string, Skill[]> = {};
+            const grouped: Record<string, { items: Skill[]; categoryEn: string | null }> = {};
             for (const s of skills) {
-              if (!grouped[s.category]) grouped[s.category] = [];
-              grouped[s.category].push(s);
+              if (!grouped[s.category]) grouped[s.category] = { items: [], categoryEn: s.categoryEn };
+              grouped[s.category].items.push(s);
             }
-            return Object.entries(grouped).map(([cat, items]) => (
-              <div key={cat}>
-                <h3 className="text-sm font-medium text-text-secondary mb-2">{cat}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {items.map((s) => (
-                    <span key={s.id} className="group inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-bg-elevated border border-border rounded-lg">
-                      {s.name}
-                      <button onClick={() => setEditingSkill(s)} className="text-text-tertiary hover:text-accent text-xs opacity-0 group-hover:opacity-100 transition-opacity">✎</button>
-                      <button onClick={() => handleDeleteSkill(s.id)} className="text-text-tertiary hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-                    </span>
-                  ))}
-                </div>
+            for (const c of customCategories) {
+              if (!grouped[c.name]) grouped[c.name] = { items: [], categoryEn: c.nameEn || null };
+            }
+            const cats = Object.keys(grouped);
+            if (cats.length === 0) return <p className="text-sm text-text-tertiary">카테고리를 추가해 기술을 등록하세요.</p>;
+            const smallSave = "px-3 py-1.5 bg-accent text-bg-primary text-sm font-medium rounded-lg hover:opacity-90 transition-opacity whitespace-nowrap shrink-0";
+            const smallCancel = btnSecondary + " whitespace-nowrap shrink-0";
+            return (
+              <div className="space-y-5">
+                {cats.map((cat) => {
+                  const { items, categoryEn } = grouped[cat];
+                  const adding = editingSkill != null && editingSkill.id == null && editingSkill.category === cat;
+                  return (
+                    <div key={cat}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-sm font-medium text-text-secondary">{cat}</h3>
+                        <button onClick={() => setEditingSkill({ category: cat, categoryEn })} className="text-xs text-text-tertiary hover:text-accent transition-colors">+ 기술</button>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {items.map((s) =>
+                          editingSkill?.id === s.id ? (
+                            <div key={s.id} className="inline-flex items-center gap-2">
+                              <input className={inputClass + " w-40 shrink-0"} value={editingSkill.name || ""} autoFocus onChange={(e) => setEditingSkill({ ...editingSkill, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") handleSaveSkill(); }} />
+                              <button onClick={handleSaveSkill} className={smallSave}>저장</button>
+                              <button onClick={() => setEditingSkill(null)} className={smallCancel}>취소</button>
+                            </div>
+                          ) : (
+                            <span key={s.id} className="group inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-bg-elevated border border-border rounded-lg">
+                              {s.name}
+                              <button onClick={() => setEditingSkill(s)} className="text-text-tertiary hover:text-accent text-xs opacity-0 group-hover:opacity-100 transition-opacity">✎</button>
+                              <button onClick={() => handleDeleteSkill(s.id)} className="text-text-tertiary hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                            </span>
+                          ),
+                        )}
+                        {adding && (
+                          <div className="inline-flex items-center gap-2">
+                            <input className={inputClass + " w-40 shrink-0"} value={editingSkill?.name || ""} autoFocus placeholder="React" onChange={(e) => setEditingSkill({ ...editingSkill, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") handleSaveSkill(); }} />
+                            <button onClick={handleSaveSkill} className={smallSave}>추가</button>
+                            <button onClick={() => setEditingSkill(null)} className={smallCancel}>취소</button>
+                          </div>
+                        )}
+                        {items.length === 0 && !adding && <span className="text-xs text-text-tertiary">+ 기술을 눌러 추가하세요</span>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ));
+            );
           })()}
         </div>
       )}
@@ -547,18 +661,10 @@ export default function ResumePage() {
       {tab === "links" && (
         <div className="space-y-4">
           <button onClick={() => setEditingLink({})} className={btnPrimary}>+ 링크 추가</button>
-          {editingLink && (
-            <div className="p-4 border border-accent/30 rounded-xl space-y-3 bg-bg-elevated/50">
-              <div><label className={labelClass}>플랫폼</label><input className={inputClass} value={editingLink.platform || ""} onChange={(e) => setEditingLink({ ...editingLink, platform: e.target.value })} placeholder="GitHub, LinkedIn, Email..." /></div>
-              <div><label className={labelClass}>URL</label><input className={inputClass} value={editingLink.url || ""} onChange={(e) => setEditingLink({ ...editingLink, url: e.target.value })} placeholder="https://github.com/..." /></div>
-              <div className="flex gap-2">
-                <button onClick={handleSaveLink} className={btnPrimary}>저장</button>
-                <button onClick={() => setEditingLink(null)} className={btnSecondary}>취소</button>
-              </div>
-            </div>
-          )}
+          {editingLink && editingLink.id == null && linkForm}
           <div className="space-y-2">
-            {links.map((link, idx) => (
+            {links.map((link, idx) =>
+              editingLink?.id === link.id ? <div key={link.id}>{linkForm}</div> : (
               <div key={link.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
                 <div className="flex flex-col gap-0.5">
                   <button onClick={() => handleMoveLink(idx, -1)} disabled={idx === 0} className="text-text-tertiary hover:text-text-primary disabled:opacity-30 text-xs">▲</button>
@@ -573,6 +679,16 @@ export default function ResumePage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* 저장/삭제 토스트 */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-text-primary text-bg-primary text-sm font-medium shadow-lg animate-fade-in">
+          <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+          {toast}
         </div>
       )}
     </div>
