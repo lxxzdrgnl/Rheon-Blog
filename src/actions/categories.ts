@@ -21,17 +21,34 @@ export interface CategoryWithCount {
 }
 
 export async function getCategoriesWithCount(): Promise<CategoryWithCount[]> {
-  return db
-    .select({
-      id: categories.id,
-      parentId: categories.parentId,
-      name: categories.name,
-      nameEn: categories.nameEn,
-      slug: categories.slug,
-      postCount: sql<number>`(SELECT COUNT(*) FROM posts WHERE posts.category_id = ${categories.id})`.as("post_count"),
-    })
-    .from(categories)
+  // 카테고리별 글 수: 상관 서브쿼리(drizzle 렌더링 이슈로 0 반환)를 피해
+  // 글을 category_id로 집계한 뒤 매핑한다.
+  const counts = db
+    .select({ categoryId: posts.categoryId, count: sql<number>`COUNT(*)` })
+    .from(posts)
+    .groupBy(posts.categoryId)
     .all();
+  const countMap = new Map(counts.map((c) => [c.categoryId, Number(c.count)]));
+  return db
+    .select()
+    .from(categories)
+    .all()
+    .map((c) => ({
+      id: c.id,
+      parentId: c.parentId,
+      name: c.name,
+      nameEn: c.nameEn,
+      slug: c.slug,
+      postCount: countMap.get(c.id) ?? 0,
+    }));
+}
+
+export async function updateCategory(id: number, data: { name: string; nameEn: string }) {
+  // 슬러그는 URL 안정성을 위해 변경하지 않고 이름만 수정한다.
+  db.update(categories).set({ name: data.name, nameEn: data.nameEn }).where(eq(categories.id, id)).run();
+  revalidatePath("/my/settings");
+  revalidatePath("/my/posts");
+  revalidatePath("/");
 }
 
 export async function getCategoryTree() {
