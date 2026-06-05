@@ -50,6 +50,10 @@
     "tableOfContents": "목차",
     "prev": "이전 글",
     "next": "다음 글",
-    "postsCount": "개의 포스트"
+    "postsCount": "개의 포스트",
+    "lastUpdated": "마지막 업데이트",
+    "sortAsc": "오름차순",
+    "sortDesc": "내림차순",
+    "empty": "아직 시리즈가 없습니다."
   }
 }

@@ -1,12 +1,19 @@
 import { PostGrid } from "@/components/blog/PostGrid";
 import { FilterBar } from "@/components/blog/FilterBar";
+import { PostsTabs } from "@/components/blog/PostsTabs";
+import { SeriesGrid } from "@/components/blog/SeriesGrid";
 import { getPosts, getAllPostTags } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getTags } from "@/actions/tags";
+import { getSeriesForListing } from "@/actions/series";
+import { SeriesEmpty } from "@/components/blog/SeriesEmpty";
 import type { Metadata } from "next";
 import { alternates, socialMeta } from "@/lib/seo";
 
-interface Props { params: Promise<{ locale: string }>; }
+interface Props {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -21,7 +28,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PostsPage() {
+export default async function PostsPage({ searchParams }: Props) {
+  const { tab } = await searchParams;
+  const isSeries = tab === "series";
+
+  return (
+    <div className="page-container py-10 space-y-8">
+      <h1 className="sr-only">Posts</h1>
+      <PostsTabs active={isSeries ? "series" : "posts"} />
+      {isSeries ? <SeriesView /> : <PostsView />}
+    </div>
+  );
+}
+
+async function PostsView() {
   const [allPosts, allCategories, allTags, postTagsMap] = await Promise.all([
     getPosts({ published: true }),
     getCategories(),
@@ -40,10 +60,15 @@ export default async function PostsPage() {
   });
 
   return (
-    <div className="page-container py-10 space-y-8">
-      <h1 className="text-2xl font-bold tracking-tight">Posts</h1>
+    <>
       <FilterBar categories={allCategories} tags={allTags} />
       <PostGrid posts={postsWithCategory} />
-    </div>
+    </>
   );
+}
+
+async function SeriesView() {
+  const series = await getSeriesForListing();
+  if (series.length === 0) return <SeriesEmpty />;
+  return <SeriesGrid series={series} />;
 }

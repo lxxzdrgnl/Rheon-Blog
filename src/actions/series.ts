@@ -5,6 +5,7 @@ import { series, posts } from "@/db/schema";
 import { eq, asc, and, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
+import { rewriteImageUrl } from "@/lib/minio";
 
 export async function getAllSeries() {
   return db.select().from(series).orderBy(asc(series.createdAt)).all();
@@ -65,6 +66,34 @@ export async function reorderSeriesPosts(seriesId: number, orderedPostIds: numbe
       .run();
   }
   revalidatePath("/");
+}
+
+// 공개 시리즈 목록(카드용) — 게시글 1개 이상인 시리즈만. 최근 글 썸네일·마지막 업데이트·글 수 포함.
+export async function getSeriesForListing() {
+  const allSeries = db.select().from(series).all();
+  return allSeries
+    .map((s) => {
+      const sp = db
+        .select({ thumbnail: posts.thumbnail, publishedAt: posts.publishedAt, createdAt: posts.createdAt })
+        .from(posts)
+        .where(and(eq(posts.seriesId, s.id), eq(posts.isPublished, true), eq(posts.isPrivate, false)))
+        .all();
+      if (sp.length === 0) return null;
+      const latest = [...sp].sort((a, b) =>
+        (b.publishedAt || b.createdAt).localeCompare(a.publishedAt || a.createdAt),
+      )[0];
+      return {
+        id: s.id,
+        title: s.title,
+        titleEn: s.titleEn,
+        slug: s.slug,
+        postCount: sp.length,
+        lastUpdated: latest.publishedAt || latest.createdAt,
+        thumbnail: rewriteImageUrl(latest.thumbnail),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated)); // 최근 업데이트 순
 }
 
 export async function getSeriesWithPostCount() {

@@ -50,6 +50,10 @@
     "tableOfContents": "Table of Contents",
     "prev": "Previous",
     "next": "Next",
-    "postsCount": "posts"
+    "postsCount": "posts",
+    "lastUpdated": "Last updated",
+    "sortAsc": "Oldest first",
+    "sortDesc": "Newest first",
+    "empty": "No series yet."
   }
 }

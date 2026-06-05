@@ -3,10 +3,14 @@ import { Metadata } from "next";
 import { getSeriesBySlug, getSeriesPosts } from "@/actions/series";
 import { getCategories } from "@/actions/categories";
 import { getAllPostTags } from "@/actions/posts";
+import { excerptFromMarkdown } from "@/lib/markdown";
 import { alternates, socialMeta } from "@/lib/seo";
 import { SeriesDetailClient } from "./client";
 
-interface Props { params: Promise<{ locale: string; slug: string }>; }
+interface Props {
+  params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ order?: string }>;
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
@@ -25,8 +29,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function SeriesPage({ params }: Props) {
+export default async function SeriesPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { order } = await searchParams;
+  const desc = order === "desc";
   const s = await getSeriesBySlug(slug);
   if (!s) notFound();
 
@@ -36,15 +42,28 @@ export default async function SeriesPage({ params }: Props) {
     getAllPostTags(),
   ]);
 
-  const postsWithCategory = seriesPosts.map((post) => {
+  // 챕터 번호는 오름차순 기준으로 고정 — 내림차순으로 봐도 번호는 그대로 유지.
+  const numbered = seriesPosts.map((post, i) => ({ post, num: i + 1 }));
+  const ordered = desc ? [...numbered].reverse() : numbered;
+
+  const postsWithCategory = ordered.map(({ post, num }) => {
     const cat = categories.find((c) => c.id === post.categoryId);
     return {
-      ...post,
+      id: post.id,
+      num,
+      title: post.title,
+      titleEn: post.titleEn,
+      slug: post.slug,
+      thumbnail: post.thumbnail,
+      createdAt: post.createdAt,
+      publishedAt: post.publishedAt,
+      excerpt: excerptFromMarkdown(post.content),
+      excerptEn: excerptFromMarkdown(post.contentEn),
       categoryName: cat?.name || "",
       categoryNameEn: cat?.nameEn || "",
       tags: postTagsMap[post.id] || [],
     };
   });
 
-  return <SeriesDetailClient series={s} posts={postsWithCategory} />;
+  return <SeriesDetailClient series={s} posts={postsWithCategory} order={desc ? "desc" : "asc"} />;
 }
