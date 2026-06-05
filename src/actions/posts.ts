@@ -219,6 +219,36 @@ export async function savePost(formData: FormData) {
   return { postId, slug };
 }
 
+// 출간 설정만 부분수정(PATCH) — 본문/제목/슬러그/시리즈/태그는 건드리지 않는다.
+export async function updatePublishSettings(
+  id: number,
+  data: {
+    thumbnail: string | null;
+    thumbnailTextLength: number | null;
+    thumbnailTextLengthEn: number | null;
+    isPublished: boolean;
+    isPrivate: boolean;
+  },
+) {
+  const existing = db.select().from(posts).where(eq(posts.id, id)).get();
+  if (!existing) return;
+  db.update(posts)
+    .set({
+      thumbnail: data.thumbnail,
+      thumbnailTextLength: data.thumbnailTextLength,
+      thumbnailTextLengthEn: data.thumbnailTextLengthEn,
+      isPublished: data.isPublished,
+      isPrivate: data.isPrivate,
+      publishedAt: data.isPublished && !existing.publishedAt ? sql`datetime('now')` : undefined,
+      updatedAt: sql`datetime('now')`,
+    })
+    .where(eq(posts.id, id))
+    .run();
+  revalidatePath("/");
+  revalidatePath("/my");
+  revalidatePath(`/post/${existing.slug}`);
+}
+
 export async function updateTranslation(formData: FormData) {
   const id = Number(formData.get("id"));
   const titleEn = formData.get("titleEn") as string;
