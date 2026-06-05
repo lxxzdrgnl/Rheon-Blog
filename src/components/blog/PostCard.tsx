@@ -1,8 +1,8 @@
 "use client";
 
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
-import { useI18n, useLocalized } from "@/i18n/provider";
-import { PostThumbnail } from "./PostThumbnail";
+import { useLocalized } from "@/i18n/provider";
+import { LocalizedThumbnail } from "./LocalizedThumbnail";
 
 interface PostCardProps {
   title: string;
@@ -18,17 +18,15 @@ interface PostCardProps {
 }
 
 export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryName, categoryNameEn, tags, thumbnailTextLength, thumbnailTextLengthEn }: PostCardProps) {
-  const { locale } = useI18n();
   const localized = useLocalized();
   const displayTitle = localized(title, titleEn);
   const displayCategory = localized(categoryName, categoryNameEn);
-  const coverLen = locale === "en" ? (thumbnailTextLengthEn ?? thumbnailTextLength) : thumbnailTextLength;
 
   return (
     <Link href={`/post/${slug}`} className="group block">
       <article>
         {/* ── Visual ── */}
-        <PostThumbnail thumbnail={thumbnail} title={displayTitle} textLength={coverLen} />
+        <LocalizedThumbnail title={title} titleEn={titleEn} thumbnail={thumbnail} textLength={thumbnailTextLength} textLengthEn={thumbnailTextLengthEn} />
 
         {/* ── Meta ── */}
         <div className="mt-3 px-0.5">

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LocaleLink } from "@/components/ui/LocaleLink";
 import { useI18n, useLocalized } from "@/i18n/provider";
-import { PostThumbnail } from "@/components/blog/PostThumbnail";
+import { LocalizedThumbnail } from "@/components/blog/LocalizedThumbnail";
 
 interface SeriesPost {
   id: number;
@@ -13,6 +13,8 @@ interface SeriesPost {
   titleEn: string | null;
   slug: string;
   thumbnail: string | null;
+  thumbnailTextLength: number | null;
+  thumbnailTextLengthEn: number | null;
   createdAt: string;
   publishedAt: string | null;
   excerpt: string;
@@ -78,7 +80,13 @@ export function SeriesDetailClient({ series, posts, order }: SeriesDetailClientP
           <li key={post.id}>
             <LocaleLink href={`/post/${post.slug}`} className="group flex gap-5 py-7">
               <div className="w-40 sm:w-52 shrink-0">
-                <PostThumbnail thumbnail={post.thumbnail} title={localized(post.title, post.titleEn)} />
+                <LocalizedThumbnail
+                  title={post.title}
+                  titleEn={post.titleEn}
+                  thumbnail={post.thumbnail}
+                  textLength={post.thumbnailTextLength}
+                  textLengthEn={post.thumbnailTextLengthEn}
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg sm:text-xl font-bold leading-snug text-text-primary group-hover:text-accent transition-colors">

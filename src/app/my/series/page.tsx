@@ -5,8 +5,9 @@ import {
   getSeriesWithPostCount, createSeries, updateSeries, deleteSeries,
   getSeriesPosts, reorderSeriesPosts,
 } from "@/actions/series";
+import { PostThumbnail } from "@/components/blog/PostThumbnail";
 
-type SeriesItem = { id: number; title: string; titleEn: string | null; slug: string; description: string | null; descriptionEn: string | null; createdAt: string; postCount: number };
+type SeriesItem = { id: number; title: string; titleEn: string | null; slug: string; description: string | null; descriptionEn: string | null; thumbnailTextLength: number | null; thumbnailTextLengthEn: number | null; createdAt: string; postCount: number };
 type SeriesPost = { id: number; title: string; titleEn: string | null; slug: string; seriesOrder: number | null };
 
 export default function SeriesPage() {
@@ -30,12 +31,17 @@ export default function SeriesPage() {
 
   const handleSave = async () => {
     if (!editing?.title) return;
+    const lengths = {
+      thumbnailTextLength: editing.thumbnailTextLength ?? undefined,
+      thumbnailTextLengthEn: editing.thumbnailTextLengthEn ?? undefined,
+    };
     if (editing.id) {
       await updateSeries(editing.id, {
         title: editing.title,
         titleEn: editing.titleEn || undefined,
         description: editing.description || undefined,
         descriptionEn: editing.descriptionEn || undefined,
+        ...lengths,
       });
     } else {
       await createSeries({
@@ -43,6 +49,7 @@ export default function SeriesPage() {
         titleEn: editing.titleEn || undefined,
         description: editing.description || undefined,
         descriptionEn: editing.descriptionEn || undefined,
+        ...lengths,
       });
     }
     setEditing(null);
@@ -87,6 +94,37 @@ export default function SeriesPage() {
             <div><label className={labelClass}>설명</label><textarea className={inputClass + " h-20"} value={editing.description || ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
             <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-20"} value={editing.descriptionEn || ""} onChange={(e) => setEditing({ ...editing, descriptionEn: e.target.value })} /></div>
           </div>
+
+          {/* 커버 글자 수 — 시리즈 카드에서 썸네일 없을 때 보이는 폴백 글자 수 */}
+          <div>
+            <label className={labelClass}>커버 글자 수 (썸네일 없을 때)</label>
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-4 items-center">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-text-tertiary whitespace-nowrap w-14">한글</span>
+                  <input
+                    type="range" min={1} max={Math.max((editing.title || "").length, 1)}
+                    value={editing.thumbnailTextLength ?? 8}
+                    onChange={(e) => setEditing({ ...editing, thumbnailTextLength: Number(e.target.value) })}
+                    className="flex-1 accent-accent"
+                  />
+                  <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{editing.thumbnailTextLength ?? 8}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-text-tertiary whitespace-nowrap w-14">영문</span>
+                  <input
+                    type="range" min={1} max={Math.max((editing.titleEn || editing.title || "").length, 1)}
+                    value={editing.thumbnailTextLengthEn ?? 8}
+                    onChange={(e) => setEditing({ ...editing, thumbnailTextLengthEn: Number(e.target.value) })}
+                    className="flex-1 accent-accent"
+                  />
+                  <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{editing.thumbnailTextLengthEn ?? 8}</span>
+                </div>
+              </div>
+              <PostThumbnail thumbnail={null} title={editing.title || "제목"} textLength={editing.thumbnailTextLength ?? 8} />
+            </div>
+          </div>
+
           <div className="flex gap-2">
             <button onClick={handleSave} className={btnPrimary}>저장</button>
             <button onClick={() => setEditing(null)} className={btnSecondary}>취소</button>

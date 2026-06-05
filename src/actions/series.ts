@@ -36,6 +36,7 @@ export async function getSeriesPosts(seriesId: number) {
 
 export async function createSeries(data: {
   title: string; titleEn?: string; description?: string; descriptionEn?: string;
+  thumbnailTextLength?: number; thumbnailTextLengthEn?: number;
 }) {
   const slug = generateSlug(data.titleEn || data.title);
   const result = db.insert(series).values({ ...data, slug }).returning().get();
@@ -45,6 +46,7 @@ export async function createSeries(data: {
 
 export async function updateSeries(id: number, data: {
   title: string; titleEn?: string; description?: string; descriptionEn?: string;
+  thumbnailTextLength?: number; thumbnailTextLengthEn?: number;
 }) {
   db.update(series).set(data).where(eq(series.id, id)).run();
   revalidatePath("/my/series");
@@ -90,6 +92,8 @@ export async function getSeriesForListing() {
         postCount: sp.length,
         lastUpdated: latest.publishedAt || latest.createdAt,
         thumbnail: rewriteImageUrl(latest.thumbnail),
+        thumbnailTextLength: s.thumbnailTextLength,
+        thumbnailTextLengthEn: s.thumbnailTextLengthEn,
       };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)

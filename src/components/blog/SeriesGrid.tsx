@@ -8,6 +8,8 @@ interface SeriesItem {
   thumbnail: string | null;
   postCount: number;
   lastUpdated: string;
+  thumbnailTextLength: number | null;
+  thumbnailTextLengthEn: number | null;
 }
 
 export function SeriesGrid({ series }: { series: SeriesItem[] }) {

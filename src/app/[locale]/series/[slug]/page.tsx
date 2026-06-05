@@ -55,6 +55,8 @@ export default async function SeriesPage({ params, searchParams }: Props) {
       titleEn: post.titleEn,
       slug: post.slug,
       thumbnail: post.thumbnail,
+      thumbnailTextLength: post.thumbnailTextLength,
+      thumbnailTextLengthEn: post.thumbnailTextLengthEn,
       createdAt: post.createdAt,
       publishedAt: post.publishedAt,
       excerpt: excerptFromMarkdown(post.content),

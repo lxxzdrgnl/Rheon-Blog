@@ -143,5 +143,7 @@ export const series = sqliteTable("series", {
   slug: text("slug").notNull().unique(),
   description: text("description"),
   descriptionEn: text("description_en"),
+  thumbnailTextLength: integer("thumbnail_text_length"),
+  thumbnailTextLengthEn: integer("thumbnail_text_length_en"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });

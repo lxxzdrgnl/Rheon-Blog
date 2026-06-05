@@ -2,7 +2,7 @@
 
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { useI18n, useLocalized } from "@/i18n/provider";
-import { PostThumbnail } from "./PostThumbnail";
+import { LocalizedThumbnail } from "./LocalizedThumbnail";
 
 interface SeriesCardProps {
   title: string;
@@ -11,9 +11,11 @@ interface SeriesCardProps {
   thumbnail: string | null;
   postCount: number;
   lastUpdated: string;
+  thumbnailTextLength: number | null;
+  thumbnailTextLengthEn: number | null;
 }
 
-export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpdated }: SeriesCardProps) {
+export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpdated, thumbnailTextLength, thumbnailTextLengthEn }: SeriesCardProps) {
   const { t, locale } = useI18n();
   const localized = useLocalized();
   const displayTitle = localized(title, titleEn);
@@ -30,7 +32,13 @@ export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpd
   return (
     <Link href={`/series/${slug}`} className="group block">
       <article>
-        <PostThumbnail thumbnail={thumbnail} title={displayTitle} />
+        <LocalizedThumbnail
+          title={title}
+          titleEn={titleEn}
+          thumbnail={thumbnail}
+          textLength={thumbnailTextLength}
+          textLengthEn={thumbnailTextLengthEn}
+        />
 
         <div className="mt-3 px-0.5">
           <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">

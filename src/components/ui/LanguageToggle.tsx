@@ -15,7 +15,9 @@ export function LanguageToggle() {
   const other = locale === "ko" ? "en" : "ko";
   const handleToggle = () => {
     document.cookie = `NEXT_LOCALE=${other}; path=/; max-age=31536000`;
-    router.push(swapLocaleInPath(pathname, other), { scroll: false }); // 스크롤 유지
+    // usePathname은 쿼리/해시를 안 담으므로 직접 보존(?tab=series 등 유지)
+    const suffix = typeof window !== "undefined" ? window.location.search + window.location.hash : "";
+    router.push(swapLocaleInPath(pathname, other) + suffix, { scroll: false }); // 스크롤 유지
   };
 
   return (
