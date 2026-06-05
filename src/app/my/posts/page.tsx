@@ -7,6 +7,10 @@ import { getCategories } from "@/actions/categories";
 import { getPortfolios, getProjectsForPost } from "@/actions/portfolios";
 import { Button } from "@/components/ui/Button";
 import { PublishSettingsModal } from "@/components/admin/PublishSettingsModal";
+import { SeriesManager } from "@/components/admin/SeriesManager";
+import { CategoryManager } from "@/components/admin/CategoryManager";
+
+type ContentTab = "posts" | "series" | "category";
 
 interface Post {
   id: number;
@@ -40,6 +44,19 @@ export default function MyPostsPage() {
   const [allProjects, setAllProjects] = useState<{ id: number; title: string }[]>([]);
   const [publishPost, setPublishPost] = useState<Post | null>(null);
   const [publishProjectIds, setPublishProjectIds] = useState<number[]>([]);
+  const [tab, setTab] = useState<ContentTab>(() => {
+    if (typeof window === "undefined") return "posts";
+    const t = new URLSearchParams(window.location.search).get("tab");
+    return t === "series" || t === "category" ? t : "posts";
+  });
+
+  const selectTab = (t: ContentTab) => {
+    setTab(t);
+    if (typeof window !== "undefined") {
+      const url = t === "posts" ? "/my/posts" : `/my/posts?tab=${t}`;
+      window.history.replaceState(null, "", url);
+    }
+  };
 
   const loadAll = () => {
     getPosts().then((p) => setAllPosts(p as Post[]));
@@ -96,12 +113,35 @@ export default function MyPostsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight">글 목록</h1>
-        <Link href="/my/write">
-          <Button>새 글 작성</Button>
-        </Link>
+        <h1 className="text-xl font-bold tracking-tight">콘텐츠</h1>
+        {tab === "posts" && (
+          <Link href="/my/write">
+            <Button>새 글 작성</Button>
+          </Link>
+        )}
       </div>
 
+      {/* 내부 탭: 글 / 시리즈 / 카테고리 */}
+      <div className="flex gap-1 border-b border-border">
+        {([
+          ["posts", "글"],
+          ["series", "시리즈"],
+          ["category", "카테고리"],
+        ] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => selectTab(key)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              tab === key ? "border-accent text-text-primary" : "border-transparent text-text-tertiary hover:text-text-secondary"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "posts" && (
+      <>
       {/* Filters */}
       <div className="space-y-3">
         {/* Search */}
@@ -216,6 +256,11 @@ export default function MyPostsPage() {
           {search || filterCategoryId || filterStatus !== "all" ? "검색 결과가 없습니다" : "아직 작성된 글이 없습니다"}
         </div>
       )}
+      </>
+      )}
+
+      {tab === "series" && <SeriesManager />}
+      {tab === "category" && <CategoryManager />}
 
       {publishPost && (
         <PublishSettingsModal
