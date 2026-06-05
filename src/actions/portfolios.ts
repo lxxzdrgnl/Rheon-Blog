@@ -25,6 +25,11 @@ export async function getPortfolioById(id: number) {
   return p ? rewritePortfolio(p) : p;
 }
 
+// PATCH 머지용 — rewrite 미적용 원본
+export async function getPortfolioRaw(id: number) {
+  return db.select().from(portfolios).where(eq(portfolios.id, id)).get() ?? null;
+}
+
 // 포스트가 속한 프로젝트 목록
 export async function getProjectsForPost(postId: number) {
   return db

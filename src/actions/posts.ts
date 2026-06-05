@@ -75,6 +75,11 @@ export async function getPostById(id: number) {
   return { ...p, thumbnail: rewriteImageUrl(p.thumbnail), content: rewriteContentUrls(p.content), contentEn: rewriteContentUrls(p.contentEn) };
 }
 
+// PATCH 머지용 — URL rewrite 없이 저장된 원본 그대로 반환(되써넣어도 손상 없음)
+export async function getPostRaw(id: number) {
+  return db.select().from(posts).where(eq(posts.id, id)).get() ?? null;
+}
+
 export async function getPostTags(postId: number) {
   return db
     .select({ id: tags.id, name: tags.name, nameEn: tags.nameEn })
@@ -129,8 +134,9 @@ export async function savePost(formData: FormData) {
 
   let postId: number;
 
+  const existing = id ? db.select().from(posts).where(eq(posts.id, id)).get() : null;
+
   if (id) {
-    const existing = db.select().from(posts).where(eq(posts.id, id)).get();
     if (existing) {
       const orphaned = getOrphanedImages(existing.content, content, existing.thumbnail, thumbnail);
       if (orphaned.length > 0) {
@@ -168,6 +174,29 @@ export async function savePost(formData: FormData) {
   db.delete(postTags).where(eq(postTags.postId, postId)).run();
   if (tagIds.length > 0) {
     db.insert(postTags).values(tagIds.map((tagId) => ({ postId, tagId }))).run();
+  }
+
+  // 시리즈에 새로 편입되는 글은 명시적 순서가 없으면 맨 뒤 순서로 자동 배치한다.
+  // 기존 글들의 순서(레거시 null 포함)도 현재 표시 순서대로 정규화해 일관성을 유지한다.
+  const isNewToSeries = seriesId != null && seriesOrder == null && (existing?.seriesId ?? null) !== seriesId;
+  if (isNewToSeries) {
+    const siblings = db
+      .select({ id: posts.id, seriesOrder: posts.seriesOrder, publishedAt: posts.publishedAt, createdAt: posts.createdAt })
+      .from(posts)
+      .where(eq(posts.seriesId, seriesId))
+      .all();
+    // getSeriesPosts와 동일한 정렬 기준으로 기존 글을 정렬하고, 이 글을 맨 끝에 둔다.
+    const others = siblings
+      .filter((p) => p.id !== postId)
+      .sort((a, b) => {
+        if (a.seriesOrder != null && b.seriesOrder != null) return a.seriesOrder - b.seriesOrder;
+        if (a.seriesOrder != null) return -1;
+        if (b.seriesOrder != null) return 1;
+        return (a.publishedAt || a.createdAt).localeCompare(b.publishedAt || b.createdAt);
+      });
+    [...others.map((p) => p.id), postId].forEach((pid, i) => {
+      db.update(posts).set({ seriesOrder: i }).where(eq(posts.id, pid)).run();
+    });
   }
 
   // 번역 데이터가 함께 전달된 경우 저장
