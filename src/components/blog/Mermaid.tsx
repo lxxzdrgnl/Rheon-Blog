@@ -42,6 +42,13 @@ function roundPathCorners(d: string, r: number): string {
 function softenEdges(svg: string, r: number): string {
   try {
     const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+    // DOMParser does NOT throw on malformed XML — it returns a document containing
+    // a <parsererror> node. mermaid renders `<br/>` labels as HTML <br> inside a
+    // <foreignObject>, which is valid HTML but invalid strict XML, so this parse
+    // "succeeds" with a parsererror. If we don't bail here, the serialized error
+    // document gets injected into the page ("Opening and ending tag mismatch: br").
+    // Skip edge-rounding for such diagrams; the original SVG renders fine as HTML.
+    if (doc.querySelector("parsererror")) return svg;
     const paths = doc.querySelectorAll<SVGPathElement>("path.flowchart-link, .edgePaths path");
     if (paths.length === 0) return svg;
     paths.forEach((p) => {
