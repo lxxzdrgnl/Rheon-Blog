@@ -22,6 +22,7 @@ const labelClass = "block text-xs text-text-tertiary uppercase tracking-wider fo
 export function SeriesManager() {
   const [seriesList, setSeriesList] = useState<SeriesItem[]>([]);
   const [editing, setEditing] = useState<Partial<SeriesItem> | null>(null);
+  const [previewLang, setPreviewLang] = useState<"ko" | "en">("ko");
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [posts, setPosts] = useState<SeriesPost[]>([]);
@@ -182,17 +183,21 @@ export function SeriesManager() {
               <div className="flex-1 space-y-2.5 min-w-0">
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-text-tertiary whitespace-nowrap w-8">한글</span>
-                  <input type="range" min={1} max={Math.max((editing.title || "").length, 1)} value={editing.thumbnailTextLength ?? 8} onChange={(e) => setEditing({ ...editing, thumbnailTextLength: Number(e.target.value) })} className="flex-1 accent-accent" />
+                  <input type="range" min={1} max={Math.max((editing.title || "").length, 1)} value={editing.thumbnailTextLength ?? 8} onChange={(e) => { setEditing({ ...editing, thumbnailTextLength: Number(e.target.value) }); setPreviewLang("ko"); }} className="flex-1 accent-accent" />
                   <span className="text-xs text-text-secondary tabular-nums w-5 text-center">{editing.thumbnailTextLength ?? 8}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-text-tertiary whitespace-nowrap w-8">영문</span>
-                  <input type="range" min={1} max={Math.max((editing.titleEn || editing.title || "").length, 1)} value={editing.thumbnailTextLengthEn ?? 8} onChange={(e) => setEditing({ ...editing, thumbnailTextLengthEn: Number(e.target.value) })} className="flex-1 accent-accent" />
+                  <input type="range" min={1} max={Math.max((editing.titleEn || editing.title || "").length, 1)} value={editing.thumbnailTextLengthEn ?? 8} onChange={(e) => { setEditing({ ...editing, thumbnailTextLengthEn: Number(e.target.value) }); setPreviewLang("en"); }} className="flex-1 accent-accent" />
                   <span className="text-xs text-text-secondary tabular-nums w-5 text-center">{editing.thumbnailTextLengthEn ?? 8}</span>
                 </div>
               </div>
               <div className="w-36 shrink-0">
-                <PostThumbnail thumbnail={null} title={editing.title || "제목"} textLength={editing.thumbnailTextLength ?? 8} />
+                <PostThumbnail
+                  thumbnail={null}
+                  title={previewLang === "en" ? (editing.titleEn || editing.title || "Title") : (editing.title || "제목")}
+                  textLength={previewLang === "en" ? (editing.thumbnailTextLengthEn ?? 8) : (editing.thumbnailTextLength ?? 8)}
+                />
               </div>
             </div>
           </div>

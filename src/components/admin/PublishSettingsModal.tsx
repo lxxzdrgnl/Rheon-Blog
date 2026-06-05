@@ -31,6 +31,7 @@ export function PublishSettingsModal({ post, projects, initialProjectIds, onClos
   const [textLen, setTextLen] = useState<number>(post.thumbnailTextLength ?? 8);
   const [textLenEn, setTextLenEn] = useState<number>(post.thumbnailTextLengthEn ?? 8);
   const [isPrivate, setIsPrivate] = useState<boolean>(post.isPrivate);
+  const [previewLang, setPreviewLang] = useState<"ko" | "en">("ko");
   const [projectIds, setProjectIds] = useState<number[]>(initialProjectIds);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -64,18 +65,22 @@ export function PublishSettingsModal({ post, projects, initialProjectIds, onClos
       <section className="space-y-3">
         <h3 className="text-xs text-text-tertiary uppercase tracking-wider font-medium">대표 이미지</h3>
         <div className="max-w-xs">
-          <PostThumbnail thumbnail={thumbnail} title={post.title} textLength={thumbnail ? undefined : textLen} />
+          <PostThumbnail
+            thumbnail={thumbnail}
+            title={previewLang === "en" ? (post.titleEn || post.title) : post.title}
+            textLength={thumbnail ? undefined : previewLang === "en" ? textLenEn : textLen}
+          />
         </div>
         {!thumbnail && (
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <label className="text-xs text-text-tertiary whitespace-nowrap w-16">한글 글자 수</label>
-              <input type="range" min={1} max={Math.max(post.title.length, 1)} value={textLen} onChange={(e) => setTextLen(Number(e.target.value))} className="flex-1 accent-accent" />
+              <input type="range" min={1} max={Math.max(post.title.length, 1)} value={textLen} onChange={(e) => { setTextLen(Number(e.target.value)); setPreviewLang("ko"); }} className="flex-1 accent-accent" />
               <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{textLen}</span>
             </div>
             <div className="flex items-center gap-3">
               <label className="text-xs text-text-tertiary whitespace-nowrap w-16">영문 글자 수</label>
-              <input type="range" min={1} max={Math.max((post.titleEn || post.title).length, 1)} value={textLenEn} onChange={(e) => setTextLenEn(Number(e.target.value))} className="flex-1 accent-accent" />
+              <input type="range" min={1} max={Math.max((post.titleEn || post.title).length, 1)} value={textLenEn} onChange={(e) => { setTextLenEn(Number(e.target.value)); setPreviewLang("en"); }} className="flex-1 accent-accent" />
               <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{textLenEn}</span>
             </div>
           </div>
