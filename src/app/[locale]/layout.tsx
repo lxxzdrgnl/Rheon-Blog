@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { I18nProvider } from "@/i18n/provider";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Footer } from "@/components/layout/Footer";
+import { HtmlLang } from "@/components/HtmlLang";
 import { locales, type Locale } from "@/i18n/config";
 
 export default async function LocaleLayout({
@@ -16,6 +17,7 @@ export default async function LocaleLayout({
 
   return (
     <I18nProvider locale={locale as Locale}>
+      <HtmlLang locale={locale} />
       <SiteHeader />
       <main className="min-h-screen">{children}</main>
       <Footer />

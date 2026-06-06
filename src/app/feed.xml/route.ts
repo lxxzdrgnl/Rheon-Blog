@@ -1,6 +1,6 @@
 import { getPosts } from "@/actions/posts";
 import { getSettings } from "@/actions/settings";
-import { excerptFromMarkdown } from "@/lib/markdown";
+import { excerptFromMarkdown, markdownToHtml } from "@/lib/markdown";
 import { SITE_URL } from "@/lib/locale";
 
 // 런타임 DB를 읽도록 동적 생성(빌드 시점 빈 DB로 구워지는 것 방지).
@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 const ENTITIES: Record<string, string> = { "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" };
 const esc = (s: string) => s.replace(/[<>&'"]/g, (c) => ENTITIES[c]);
+
+const cdata = (s: string) => `<![CDATA[${s.replace(/]]>/g, "]]]]><![CDATA[>")}]]>`;
 
 function rfc822(d: string): string {
   const date = new Date(d.includes("T") ? d : d.replace(" ", "T") + "Z");
@@ -30,12 +32,13 @@ export async function GET() {
       <guid isPermaLink="true">${url}</guid>
       <pubDate>${rfc822(p.publishedAt || p.createdAt)}</pubDate>
       <description>${esc(summary)}</description>
+      <content:encoded>${cdata(markdownToHtml(p.content))}</content:encoded>
     </item>`;
     })
     .join("\n");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>${esc(title)}</title>
     <link>${SITE_URL}</link>
