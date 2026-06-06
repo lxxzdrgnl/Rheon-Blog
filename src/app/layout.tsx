@@ -7,8 +7,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  // 모든 페이지 제목 뒤에 브랜드 부착(이름/브랜드 검색 강화). 홈: "이용재 — … | Rheon's Blog"
-  title: { default: "Rheon's Blog", template: "%s | Rheon's Blog" },
+  // 기본 제목(자체 title 없는 페이지용). 글·프로젝트는 각자 제목 그대로(브랜드 미부착) —
+  // 긴 제목 잘림·사이트명 중복 방지. 브랜드는 홈에서만 붙인다.
+  title: "Rheon's Blog",
   description: "개인 블로그와 포트폴리오",
   alternates: {
     types: { "application/rss+xml": `${SITE_URL}/feed.xml` },

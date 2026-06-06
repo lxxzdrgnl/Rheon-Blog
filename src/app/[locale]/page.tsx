@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = ((isEn ? s.resume_name_en : s.resume_name) as string) || (s.resume_name as string) || "";
   const role = ((isEn ? s.resume_title_en : s.resume_title) as string) || "";
   const blogTitle = ((isEn ? s.blog_title_en : s.blog_title) as string) || (s.blog_title as string) || "Rheon's Blog";
-  // 이름 검색 대응: 제목에 이름(+직함)을 넣고, 설명엔 소개를 쓴다.
-  const title = name ? (role ? `${name} — ${role}` : `${name} | ${blogTitle}`) : blogTitle;
+  // 이름 검색 대응: 홈 제목에 이름(+직함) + 브랜드. (글·프로젝트엔 브랜드 미부착)
+  const title = name ? `${name}${role ? ` — ${role}` : ""} | ${blogTitle}` : blogTitle;
   const about = (isEn ? s.resume_about_en : s.resume_about) as string;
   const tagline = (isEn ? s.resume_tagline_en : s.resume_tagline) as string;
   const description =
