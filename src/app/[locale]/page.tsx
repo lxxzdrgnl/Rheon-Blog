@@ -5,7 +5,8 @@ import { getSettings, getSetting } from "@/actions/settings";
 import { getPortfolios } from "@/actions/portfolios";
 import { getExperiences, getEducation, getSkills, getSocialLinks, getActivities } from "@/actions/resume";
 import type { Metadata } from "next";
-import { pageMetadata, personJsonLd } from "@/lib/seo";
+import { pageMetadata, personJsonLd, websiteJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { excerptFromMarkdown } from "@/lib/markdown";
 
 interface Props { params: Promise<{ locale: string }>; }
@@ -18,8 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = ((isEn ? s.resume_name_en : s.resume_name) as string) || (s.resume_name as string) || "";
   const role = ((isEn ? s.resume_title_en : s.resume_title) as string) || "";
   const blogTitle = ((isEn ? s.blog_title_en : s.blog_title) as string) || (s.blog_title as string) || "Rheon's Blog";
-  // 이름 검색 대응: 홈 제목에 이름(+직함) + 브랜드. (글·프로젝트엔 브랜드 미부착)
-  const title = name ? `${name}${role ? ` — ${role}` : ""} | ${blogTitle}` : blogTitle;
+  // 검색결과 제목을 블로그 브랜드 선두로(이름은 뒤에). 직함은 설명/JSON-LD에 들어감.
+  const title = name ? `Rheon's Blog — ${name}` : (blogTitle || "Rheon's Blog");
   const about = (isEn ? s.resume_about_en : s.resume_about) as string;
   const tagline = (isEn ? s.resume_tagline_en : s.resume_tagline) as string;
   const description =
@@ -67,7 +68,7 @@ export default async function Home({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={[websiteJsonLd(isEn ? "en" : "ko"), jsonLd]} />
       <ResumeLayout
         settings={settings}
         socialLinks={socialLinks}

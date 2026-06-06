@@ -145,6 +145,18 @@ export function creativeWorkJsonLd(opts: {
   };
 }
 
+/** 홈 WebSite 구조화 데이터 — 검색결과 사이트명을 "Rheon's Blog"로 유도(서브도메인이라 구글 보장 X). */
+export function websiteJsonLd(locale: Locale) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Rheon's Blog",
+    alternateName: ["이용재 블로그", "Rheon 블로그"],
+    url: `${SITE_URL}/${locale}`,
+    inLanguage: locale === "ko" ? "ko-KR" : "en-US",
+  };
+}
+
 /** OG/Twitter 공통 메타 생성 */
 export function socialMeta(opts: {
   title: string;
@@ -163,7 +175,7 @@ export function socialMeta(opts: {
       title: opts.title,
       description: opts.description,
       url,
-      siteName: "rheon blog",
+      siteName: "Rheon's Blog",
       locale: opts.locale === "ko" ? "ko_KR" : "en_US",
       type: opts.type ?? "website",
       images,
