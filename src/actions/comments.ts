@@ -49,4 +49,5 @@ export async function deleteComment(formData: FormData) {
     .run();
 
   revalidatePath(`/post/${slug}`);
+  return { ok: true };
 }

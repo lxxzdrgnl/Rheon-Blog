@@ -8,10 +8,11 @@ interface CommentItemProps {
   comment: { id: number; nickname: string; content: string; createdAt: string; isDeleted: boolean; parentId: number | null; };
   slug: string;
   onReply: (commentId: number) => void;
+  onDeleted: () => void;
   isReply?: boolean;
 }
 
-export function CommentItem({ comment, slug, onReply, isReply }: CommentItemProps) {
+export function CommentItem({ comment, slug, onReply, onDeleted, isReply }: CommentItemProps) {
   const [showDeleteForm, setShowDeleteForm] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [error, setError] = useState("");
@@ -23,7 +24,7 @@ export function CommentItem({ comment, slug, onReply, isReply }: CommentItemProp
     fd.set("password", deletePassword);
     fd.set("slug", slug);
     const result = await deleteComment(fd);
-    if (result?.error) { setError(result.error); } else { setShowDeleteForm(false); }
+    if (result?.error) { setError(result.error); } else { setShowDeleteForm(false); onDeleted(); }
   };
 
   if (comment.isDeleted) {
