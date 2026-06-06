@@ -5,7 +5,8 @@ import { getPosts } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getTags } from "@/actions/tags";
 import type { Metadata } from "next";
-import { alternates, socialMeta } from "@/lib/seo";
+import { alternates, socialMeta, collectionPageJsonLd, breadcrumbJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 interface Props { params: Promise<{ locale: string; slug: string }>; }
 
@@ -28,7 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params }: Props) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const isEn = locale === "en";
+  const loc = isEn ? "en" : "ko";
   const [allCategories, allTags] = await Promise.all([getCategories(), getTags()]);
   const category = allCategories.find((c) => c.slug === slug);
   if (!category) notFound();
@@ -40,8 +43,20 @@ export default async function CategoryPage({ params }: Props) {
     categoryNameEn: category.nameEn,
   }));
 
+  const catName = isEn && category.nameEn ? category.nameEn : category.name;
+  const jsonLd = [
+    collectionPageJsonLd({
+      locale: loc,
+      path: `/category/${slug}`,
+      name: catName,
+      description: isEn ? `Posts in ${catName}` : `${catName} 카테고리의 글`,
+    }),
+    breadcrumbJsonLd([{ name: isEn ? "Home" : "홈", path: "" }, { name: catName, path: `/category/${slug}` }], loc),
+  ];
+
   return (
     <div className="page-container py-10 space-y-8">
+      <JsonLd data={jsonLd} />
       <h1 className="text-2xl font-bold">{category.name}</h1>
       <FilterBar categories={allCategories} tags={allTags} />
       <PostGrid posts={postsWithCategory} />

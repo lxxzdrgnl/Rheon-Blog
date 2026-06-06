@@ -3,7 +3,8 @@ import { getPortfolioBySlug, getPortfolioPosts } from "@/actions/portfolios";
 import { getCategories } from "@/actions/categories";
 import { getAllPostTags } from "@/actions/posts";
 import { Metadata } from "next";
-import { alternates, socialMeta } from "@/lib/seo";
+import { alternates, socialMeta, creativeWorkJsonLd, breadcrumbJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { ProjectDetailClient } from "./client";
 
 interface Props {
@@ -35,7 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProjectDetailPage({ params }: Props) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const isEn = locale === "en";
   const project = await getPortfolioBySlug(slug);
   if (!project) notFound();
 
@@ -56,10 +58,34 @@ export default async function ProjectDetailPage({ params }: Props) {
     };
   });
 
+  const loc = isEn ? "en" : "ko";
+  const name = isEn && project.titleEn ? project.titleEn : project.title;
+  const jsonLd = [
+    creativeWorkJsonLd({
+      locale: loc,
+      path: `/projects/${slug}`,
+      name,
+      description: (isEn && project.descriptionEn ? project.descriptionEn : project.description) || "",
+      image: project.thumbnail,
+      keywords: JSON.parse(project.techStack || "[]") as string[],
+    }),
+    breadcrumbJsonLd(
+      [
+        { name: isEn ? "Home" : "홈", path: "" },
+        { name: isEn ? "Projects" : "프로젝트", path: "/projects" },
+        { name, path: `/projects/${slug}` },
+      ],
+      loc,
+    ),
+  ];
+
   return (
-    <ProjectDetailClient
-      project={project}
-      relatedPosts={postsWithCategory}
-    />
+    <>
+      <JsonLd data={jsonLd} />
+      <ProjectDetailClient
+        project={project}
+        relatedPosts={postsWithCategory}
+      />
+    </>
   );
 }

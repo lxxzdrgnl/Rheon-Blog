@@ -4,7 +4,8 @@ import { getSeriesBySlug, getSeriesPosts } from "@/actions/series";
 import { getCategories } from "@/actions/categories";
 import { getAllPostTags } from "@/actions/posts";
 import { excerptFromMarkdown } from "@/lib/markdown";
-import { alternates, socialMeta } from "@/lib/seo";
+import { alternates, socialMeta, collectionPageJsonLd, breadcrumbJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { SeriesDetailClient } from "./client";
 
 interface Props {
@@ -30,7 +31,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function SeriesPage({ params, searchParams }: Props) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const isEn = locale === "en";
+  const loc = isEn ? "en" : "ko";
   const { order } = await searchParams;
   const desc = order === "desc";
   const s = await getSeriesBySlug(slug);
@@ -67,5 +70,21 @@ export default async function SeriesPage({ params, searchParams }: Props) {
     };
   });
 
-  return <SeriesDetailClient series={s} posts={postsWithCategory} order={desc ? "desc" : "asc"} />;
+  const seriesName = isEn && s.titleEn ? s.titleEn : s.title;
+  const jsonLd = [
+    collectionPageJsonLd({
+      locale: loc,
+      path: `/series/${slug}`,
+      name: seriesName,
+      description: (isEn && s.descriptionEn ? s.descriptionEn : s.description) || "",
+    }),
+    breadcrumbJsonLd([{ name: isEn ? "Home" : "홈", path: "" }, { name: seriesName, path: `/series/${slug}` }], loc),
+  ];
+
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      <SeriesDetailClient series={s} posts={postsWithCategory} order={desc ? "desc" : "asc"} />
+    </>
+  );
 }

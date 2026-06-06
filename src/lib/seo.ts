@@ -78,6 +78,53 @@ export function personJsonLd(opts: {
   };
 }
 
+/** 빵부스러기(BreadcrumbList) — 검색결과 경로 표시 */
+export function breadcrumbJsonLd(items: { name: string; path: string }[], locale: Locale) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((it, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: it.name,
+      item: `${SITE_URL}/${locale}${it.path}`,
+    })),
+  };
+}
+
+/** 목록성 페이지(카테고리·시리즈·목록)용 CollectionPage */
+export function collectionPageJsonLd(opts: { locale: Locale; path: string; name: string; description?: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: opts.name,
+    description: opts.description || undefined,
+    url: `${SITE_URL}/${opts.locale}${opts.path}`,
+    inLanguage: opts.locale,
+  };
+}
+
+/** 프로젝트(포트폴리오)용 CreativeWork */
+export function creativeWorkJsonLd(opts: {
+  locale: Locale;
+  path: string;
+  name: string;
+  description?: string;
+  image?: string | null;
+  keywords?: string[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: opts.name,
+    description: opts.description || undefined,
+    image: opts.image ? [opts.image] : undefined,
+    url: `${SITE_URL}/${opts.locale}${opts.path}`,
+    inLanguage: opts.locale,
+    keywords: opts.keywords && opts.keywords.length ? opts.keywords.join(", ") : undefined,
+  };
+}
+
 /** OG/Twitter 공통 메타 생성 */
 export function socialMeta(opts: {
   title: string;
