@@ -17,6 +17,7 @@ import { getAllSeries, createSeries } from "@/actions/series";
 import { getCategoriesWithCount, createCategory } from "@/actions/categories";
 import { resolveTags, resolveSeries } from "@/lib/mcp/taxonomy";
 import { buildPostFormData, buildPortfolioFormData } from "@/lib/mcp/formdata";
+import { uploadImage } from "@/lib/minio";
 
 export interface ToolDef {
   name: string;
@@ -258,6 +259,15 @@ export const TOOLS: ToolDef[] = [
       }
       const d = TAXONOMY_SCHEMAS.series.parse(data);
       return createSeries(d);
+    } },
+
+  { name: "upload_image", description: "이미지를 스토리지(MinIO)에 업로드하고 공개 URL을 반환. dataBase64는 데이터URI 접두어 없는 순수 base64. 반환된 url을 글/프로젝트 본문에 ![](url) 또는 <img src=\"url\">로 삽입한다.",
+    schema: z.object({ filename: z.string(), mimeType: z.string(), dataBase64: z.string() }),
+    handler: async (a) => {
+      const { filename, mimeType, dataBase64 } = a as { filename: string; mimeType: string; dataBase64: string };
+      const buffer = Buffer.from(dataBase64, "base64");
+      const url = await uploadImage(buffer, filename, mimeType);
+      return { url };
     } },
 ];
 
