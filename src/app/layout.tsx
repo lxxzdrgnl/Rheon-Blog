@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   alternates: {
     types: { "application/rss+xml": `${SITE_URL}/feed.xml` },
   },
+  verification: {
+    other: { "naver-site-verification": "e813389b8006a7ea437864a7b2d5806909d0d592" },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
