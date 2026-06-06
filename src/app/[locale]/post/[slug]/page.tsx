@@ -5,7 +5,7 @@ import { getCategories } from "@/actions/categories";
 import { getSetting } from "@/actions/settings";
 import { getSeriesById, getSeriesPosts } from "@/actions/series";
 import { getProjectsForPost } from "@/actions/portfolios";
-import { alternates, socialMeta, articleJsonLd } from "@/lib/seo";
+import { pageMetadata, articleJsonLd } from "@/lib/seo";
 import { excerptFromMarkdown } from "@/lib/markdown";
 import { PostDetailClient } from "./client";
 
@@ -21,19 +21,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const body = isEn && post.contentEn ? post.contentEn : post.content;
   const description = body.slice(0, 160);
   const path = `/post/${slug}`;
-  return {
+  return pageMetadata({
     title,
     description,
-    alternates: alternates(path, loc),
-    ...socialMeta({
-      title,
-      description,
-      path,
-      locale: loc,
-      type: "article",
-      images: post.thumbnail ? [post.thumbnail] : undefined,
-    }),
-  };
+    path,
+    locale: loc,
+    type: "article",
+    images: post.thumbnail ? [post.thumbnail] : undefined,
+  });
 }
 
 export default async function PostPage({ params }: Props) {

@@ -5,7 +5,7 @@ import { getSettings, getSetting } from "@/actions/settings";
 import { getPortfolios } from "@/actions/portfolios";
 import { getExperiences, getEducation, getSkills, getSocialLinks, getActivities } from "@/actions/resume";
 import type { Metadata } from "next";
-import { alternates, socialMeta, personJsonLd } from "@/lib/seo";
+import { pageMetadata, personJsonLd } from "@/lib/seo";
 import { excerptFromMarkdown } from "@/lib/markdown";
 
 interface Props { params: Promise<{ locale: string }>; }
@@ -24,12 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tagline = (isEn ? s.resume_tagline_en : s.resume_tagline) as string;
   const description =
     (about && excerptFromMarkdown(about, 160)) || tagline || (isEn ? "Personal blog and portfolio" : "개인 블로그와 포트폴리오");
-  return {
-    title,
-    description,
-    alternates: alternates("", loc),
-    ...socialMeta({ title, description, path: "", locale: loc, type: "website" }),
-  };
+  return pageMetadata({ title, description, path: "", locale: loc, type: "website" });
 }
 
 export default async function Home({ params }: Props) {

@@ -2,6 +2,26 @@ import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/locale";
 import { locales, defaultLocale, type Locale } from "@/i18n/config";
 
+/** "en"|"ko" 문자열 → Locale (그 외는 기본 로케일) */
+export const resolveLocale = (l: string): Locale => (l === "en" ? "en" : defaultLocale);
+
+/** 페이지 메타데이터 공통: title/description + canonical·hreflang + OG/Twitter를 한 번에. */
+export function pageMetadata(opts: {
+  title: string;
+  description: string;
+  path: string; // locale 없는 경로
+  locale: Locale;
+  type?: "website" | "article";
+  images?: string[];
+}): Metadata {
+  return {
+    title: opts.title,
+    description: opts.description,
+    alternates: alternates(opts.path, opts.locale),
+    ...socialMeta(opts),
+  };
+}
+
 /** locale 없는 경로(path, 예 "/post/abc" 또는 "")로 canonical + hreflang alternates 생성 */
 export function alternates(path: string, locale: Locale): NonNullable<Metadata["alternates"]> {
   const languages: Record<string, string> = {};

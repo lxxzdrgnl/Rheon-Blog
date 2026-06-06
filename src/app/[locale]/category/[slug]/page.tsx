@@ -5,7 +5,7 @@ import { getPosts } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getTags } from "@/actions/tags";
 import type { Metadata } from "next";
-import { alternates, socialMeta, collectionPageJsonLd, breadcrumbJsonLd } from "@/lib/seo";
+import { pageMetadata, collectionPageJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 
 interface Props { params: Promise<{ locale: string; slug: string }>; }
@@ -20,12 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = isEn && category.nameEn ? category.nameEn : category.name;
   const description = isEn ? `Posts in ${title}` : `${title} 카테고리의 글`;
   const path = `/category/${slug}`;
-  return {
-    title,
-    description,
-    alternates: alternates(path, loc),
-    ...socialMeta({ title, description, path, locale: loc, type: "website" }),
-  };
+  return pageMetadata({ title, description, path, locale: loc, type: "website" });
 }
 
 export default async function CategoryPage({ params }: Props) {

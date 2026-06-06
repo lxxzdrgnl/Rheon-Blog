@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { posts, postTags, tags } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type { Metadata } from "next";
-import { alternates, socialMeta } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 
 interface Props { params: Promise<{ locale: string; slug: string }>; }
 
@@ -21,12 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `#${name}`;
   const description = isEn ? `Posts tagged ${name}` : `${name} 태그의 글`;
   const path = `/tag/${slug}`;
-  return {
-    title,
-    description,
-    alternates: alternates(path, loc),
-    ...socialMeta({ title, description, path, locale: loc, type: "website" }),
-  };
+  return pageMetadata({ title, description, path, locale: loc, type: "website" });
 }
 
 export default async function TagPage({ params }: Props) {

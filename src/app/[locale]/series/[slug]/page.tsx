@@ -4,7 +4,7 @@ import { getSeriesBySlug, getSeriesPosts } from "@/actions/series";
 import { getCategories } from "@/actions/categories";
 import { getAllPostTags } from "@/actions/posts";
 import { excerptFromMarkdown } from "@/lib/markdown";
-import { alternates, socialMeta, collectionPageJsonLd, breadcrumbJsonLd } from "@/lib/seo";
+import { pageMetadata, collectionPageJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SeriesDetailClient } from "./client";
 
@@ -22,12 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = isEn && s.titleEn ? s.titleEn : s.title;
   const description = (isEn && s.descriptionEn ? s.descriptionEn : s.description) || title;
   const path = `/series/${slug}`;
-  return {
-    title,
-    description,
-    alternates: alternates(path, loc),
-    ...socialMeta({ title, description, path, locale: loc, type: "website" }),
-  };
+  return pageMetadata({ title, description, path, locale: loc, type: "website" });
 }
 
 export default async function SeriesPage({ params, searchParams }: Props) {
