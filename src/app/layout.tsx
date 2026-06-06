@@ -7,7 +7,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Rheon's Blog",
+  // 모든 페이지 제목 뒤에 브랜드 부착(이름/브랜드 검색 강화). 홈: "이용재 — … | Rheon's Blog"
+  title: { default: "Rheon's Blog", template: "%s | Rheon's Blog" },
   description: "개인 블로그와 포트폴리오",
   alternates: {
     types: { "application/rss+xml": `${SITE_URL}/feed.xml` },
