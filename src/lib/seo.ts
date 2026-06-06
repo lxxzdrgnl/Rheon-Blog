@@ -88,7 +88,9 @@ export function socialMeta(opts: {
   images?: string[];
 }): Pick<Metadata, "openGraph" | "twitter"> {
   const url = `${SITE_URL}/${opts.locale}${opts.path}`;
-  const images = opts.images && opts.images.length ? opts.images : ["/opengraph-image"];
+  // 명시 이미지(예: 글 썸네일)가 있으면 사용, 없으면 locale 기본 OG 이미지(opengraph-image.tsx).
+  const images =
+    opts.images && opts.images.length ? opts.images : [`${SITE_URL}/${opts.locale}/opengraph-image`];
   return {
     openGraph: {
       title: opts.title,
