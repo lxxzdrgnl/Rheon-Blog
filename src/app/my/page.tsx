@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { getPosts, getPostStats } from "@/actions/posts";
 import { getPortfolios } from "@/actions/portfolios";
+import { getRecentComments } from "@/actions/comments";
 import { Button } from "@/components/ui/Button";
 import { PostTable } from "@/components/admin/PostTable";
 
 export default async function DashboardPage() {
-  const [recentPosts, stats, allProjects] = await Promise.all([
+  const [recentPosts, stats, allProjects, recentComments] = await Promise.all([
     getPosts({ limit: 5 }),
     getPostStats(),
     getPortfolios(),
+    getRecentComments(8),
   ]);
 
   return (
@@ -104,6 +106,42 @@ export default async function DashboardPage() {
           </Link>
         </div>
         <PostTable posts={recentPosts} />
+      </section>
+
+      {/* Comments */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold tracking-tight">최근 댓글</h2>
+          <Link href="/my/comments" className="text-xs text-text-tertiary hover:text-text-primary transition-colors">
+            모두 보기 &rarr;
+          </Link>
+        </div>
+        {recentComments.length > 0 ? (
+          <ul className="divide-y divide-border/30 rounded-xl border border-border/30 bg-bg-card">
+            {recentComments.map((c) => (
+              <li key={c.id}>
+                <Link href={`/post/${c.postSlug}`} className="block p-4 group hover:bg-bg-elevated/40 transition-colors">
+                  <div className="flex items-center gap-2 text-xs text-text-tertiary mb-1">
+                    <span className="font-medium text-text-secondary">{c.nickname}</span>
+                    {c.parentId && <span className="px-1 rounded bg-bg-elevated">답글</span>}
+                    <span>·</span>
+                    <span>{new Date(c.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <p className={`text-sm truncate ${c.isDeleted ? "italic text-text-tertiary" : "text-text-primary"}`}>
+                    {c.isDeleted ? "삭제된 댓글" : c.content}
+                  </p>
+                  <p className="text-xs text-text-tertiary mt-1 truncate group-hover:text-text-secondary transition-colors">
+                    {c.postTitle} &rarr;
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border p-8 text-center">
+            <p className="text-xs text-text-tertiary">아직 댓글이 없습니다</p>
+          </div>
+        )}
       </section>
     </div>
   );

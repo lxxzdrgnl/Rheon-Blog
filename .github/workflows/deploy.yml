@@ -57,6 +57,7 @@ jobs:
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             DATABASE_PATH=./data/blog.db
             MCP_TOKEN=${{ secrets.MCP_TOKEN }}
+            DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
             ENVEOF
 
             cat > ~/blog/docker-compose.prod.yml << 'COMPEOF'

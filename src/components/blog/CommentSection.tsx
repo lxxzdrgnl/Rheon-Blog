@@ -7,7 +7,7 @@ import { CommentForm } from "./CommentForm";
 import { useI18n } from "@/i18n/provider";
 
 interface Comment {
-  id: number; postId: number; parentId: number | null; nickname: string; password: string; content: string; createdAt: string; isDeleted: boolean;
+  id: number; postId: number; parentId: number | null; nickname: string; password: string; content: string; createdAt: string; isDeleted: boolean; isOwner: boolean;
 }
 
 export function CommentSection({ postId, slug }: { postId: number; slug: string }) {

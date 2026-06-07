@@ -50,6 +50,7 @@ export const comments = sqliteTable("comments", {
   content: text("content").notNull(),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   isDeleted: integer("is_deleted", { mode: "boolean" }).notNull().default(false),
+  isOwner: integer("is_owner", { mode: "boolean" }).notNull().default(false),
 });
 
 export const portfolios = sqliteTable("portfolios", {
