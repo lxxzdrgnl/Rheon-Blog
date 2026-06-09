@@ -23,7 +23,7 @@ export function LanguageToggle() {
   return (
     <button
       onClick={handleToggle}
-      className="px-2 py-1 rounded-md text-xs font-medium hover:bg-bg-elevated transition-colors text-text-tertiary hover:text-text-primary tracking-wide"
+      className="px-2 py-1 rounded-md text-xs font-medium hover:bg-bg-elevated transition-colors text-text-tertiary hover:text-accent tracking-wide"
     >
       {locale === "ko" ? "KR" : "EN"}
     </button>

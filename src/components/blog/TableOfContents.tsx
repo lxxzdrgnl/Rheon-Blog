@@ -47,7 +47,7 @@ export function TableOfContents() {
       <ul className="space-y-1.5 text-sm">
         {headings.map((heading) => (
           <li key={heading.id} style={{ paddingLeft: `${(heading.level - 1) * 12}px` }}>
-            <a href={`#${heading.id}`} className={`block truncate transition-colors ${activeId === heading.id ? "text-accent font-medium" : "text-text-secondary hover:text-text-primary"}`}>
+            <a href={`#${heading.id}`} className={`block truncate transition-colors ${activeId === heading.id ? "text-accent font-medium" : "text-text-secondary hover:text-accent"}`}>
               {heading.text}
             </a>
           </li>

@@ -54,7 +54,7 @@ export function SeriesTableOfContents({ seriesTitle, seriesTitleEn, posts, curre
                 ) : (
                   <Link
                     href={`/post/${post.slug}`}
-                    className="flex items-baseline gap-2.5 px-3 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+                    className="flex items-baseline gap-2.5 px-3 py-1.5 rounded-lg text-sm text-text-secondary hover:text-accent hover:bg-bg-elevated transition-colors"
                   >
                     <span className="text-xs text-text-tertiary">{idx + 1}.</span>
                     {localized(post.title, post.titleEn)}

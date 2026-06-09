@@ -3,6 +3,7 @@
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostGrid } from "@/components/blog/PostGrid";
+import { TableOfContents } from "@/components/blog/TableOfContents";
 
 interface ProjectLink {
   badge?: string;
@@ -178,7 +179,7 @@ export function ProjectDetailClient({ project, relatedPosts }: { project: Projec
                             <LinkIcon badge={l.badge} label={l.label} />
                           </span>
                         </span>
-                        <span className="flex-1 min-w-0 text-sm text-text-secondary group-hover:text-text-primary truncate transition-colors duration-250">
+                        <span className="flex-1 min-w-0 text-sm text-text-secondary group-hover:text-accent truncate transition-colors duration-250">
                           {l.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                         </span>
                         <svg
@@ -221,6 +222,9 @@ export function ProjectDetailClient({ project, relatedPosts }: { project: Projec
           </>
         )}
       </div>
+
+      {/* 본문(.prose) 헤딩 기반 목차 — 글 상세와 동일하게 오른쪽 fixed */}
+      <TableOfContents />
     </div>
   );
 }

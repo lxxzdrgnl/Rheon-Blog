@@ -34,7 +34,7 @@ export function ContactSection({ links }: { links: SocialLink[] }) {
               href={href}
               target={link.platform.toLowerCase() === "email" ? undefined : "_blank"}
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-border/60 hover:border-accent/30 hover:bg-bg-elevated transition-all text-sm text-text-secondary hover:text-text-primary"
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-border/60 hover:border-accent/30 hover:bg-bg-elevated transition-all text-sm text-text-secondary hover:text-accent"
             >
               {iconPath && (
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

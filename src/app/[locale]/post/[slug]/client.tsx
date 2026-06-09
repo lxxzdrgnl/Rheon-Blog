@@ -54,7 +54,7 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
           </h1>
           <div className="flex items-center gap-3 mt-6 text-sm text-text-secondary">
             {category && (
-              <Link href={`/category/${category.slug}`} className="hover:text-text-primary transition-colors">
+              <Link href={`/category/${category.slug}`} className="hover:text-accent transition-colors">
                 {catName}
               </Link>
             )}

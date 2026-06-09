@@ -30,8 +30,12 @@ export default async function PostsPage({ searchParams }: Props) {
   return (
     <div className="page-container py-10 space-y-8">
       <h1 className="sr-only">Posts</h1>
-      <PostsTabs active={isSeries ? "series" : "posts"} />
-      {isSeries ? <SeriesView /> : <PostsView />}
+      <div className="animate-fade-in">
+        <PostsTabs active={isSeries ? "series" : "posts"} />
+      </div>
+      <div className="animate-fade-in animate-delay-1">
+        {isSeries ? <SeriesView /> : <PostsView />}
+      </div>
     </div>
   );
 }
@@ -55,10 +59,10 @@ async function PostsView() {
   });
 
   return (
-    <>
+    <div className="space-y-7">
       <FilterBar categories={allCategories} tags={allTags} />
       <PostGrid posts={postsWithCategory} />
-    </>
+    </div>
   );
 }
 

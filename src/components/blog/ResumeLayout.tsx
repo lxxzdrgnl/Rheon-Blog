@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostCard } from "./PostCard";
@@ -147,6 +148,29 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
     skillGroups[cat].push(skill);
   }
 
+  // ── Tech-stack filter ──
+  // 기술 스택 버튼 토글 → 선택된 기술이 들어간 프로젝트만 표시. 아무것도 없으면 전체.
+  const [selectedTechs, setSelectedTechs] = useState<Set<string>>(new Set());
+  const toggleTech = (name: string) =>
+    setSelectedTechs((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  const parseTechs = (raw: string): string[] => {
+    try {
+      const v = JSON.parse(raw || "[]");
+      return Array.isArray(v) ? v : [];
+    } catch {
+      return [];
+    }
+  };
+  const filteredPortfolios =
+    selectedTechs.size === 0
+      ? portfolios
+      : portfolios.filter((p) => parseTechs(p.techStack).some((tch) => selectedTechs.has(tch)));
+
   return (
     <div className="page-container pt-8 pb-6 md:pt-12">
       {/* ━━━ HEADER ━━━ */}
@@ -219,15 +243,49 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
             <SectionLabel>{t("resume.skills")}</SectionLabel>
             <div className="space-y-3">
               {Object.entries(skillGroups).map(([cat, items]) => (
-                <div key={cat} className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+                <div key={cat} className="flex flex-wrap items-center gap-1.5">
                   <span className="text-xs text-text-tertiary w-20 shrink-0">{cat}</span>
-                  {items.map((s, i) => (
-                    <span key={s.id} className="text-sm text-text-primary">
-                      {s.name}{i < items.length - 1 && <span className="text-text-tertiary ml-1.5 mr-0.5">·</span>}
-                    </span>
-                  ))}
+                  {items.map((sk) => {
+                    const active = selectedTechs.has(sk.name);
+                    return (
+                      <button
+                        key={sk.id}
+                        type="button"
+                        onClick={() => toggleTech(sk.name)}
+                        aria-pressed={active}
+                        className={`px-2.5 py-0.5 text-sm rounded-full transition-colors duration-150 ${
+                          active
+                            ? "bg-accent/12 text-accent font-medium"
+                            : "text-text-secondary hover:text-accent hover:bg-accent/[0.06]"
+                        }`}
+                      >
+                        {sk.name}
+                      </button>
+                    );
+                  })}
                 </div>
               ))}
+              <AnimatePresence initial={false}>
+                {selectedTechs.size > 0 && (
+                  <motion.div
+                    key="clear-filters"
+                    initial={{ height: 0 }}
+                    animate={{ height: "auto" }}
+                    exit={{ height: 0 }}
+                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ overflow: "hidden" }}
+                    className="!mt-0"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTechs(new Set())}
+                      className="pt-3 text-xs text-accent hover:text-accent/70 transition-colors"
+                    >
+                      {localized("필터 초기화", "Clear filters")} · {filteredPortfolios.length}{localized("개", "")}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </section>
         )}
@@ -236,9 +294,30 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
         {portfolios.length > 0 && (
           <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
             <SectionLabel>{t("resume.projects")}</SectionLabel>
-            <div className="space-y-1.5">
-              {portfolios.map((item) => {
-                const techs: string[] = JSON.parse(item.techStack || "[]");
+            <motion.div
+              layout
+              transition={{ layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }}
+              className="space-y-1.5"
+            >
+              {filteredPortfolios.length === 0 && (
+                <motion.p
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ opacity: { duration: 0.3 } }}
+                  className="text-sm text-text-tertiary py-2"
+                >
+                  {localized("선택한 기술의 프로젝트가 없어요.", "No projects match the selected tech.")}
+                </motion.p>
+              )}
+              {filteredPortfolios.map((item) => {
+                const techsRaw = parseTechs(item.techStack);
+                const techs =
+                  selectedTechs.size > 0
+                    ? [...techsRaw].sort(
+                        (a, b) => (selectedTechs.has(b) ? 1 : 0) - (selectedTechs.has(a) ? 1 : 0),
+                      )
+                    : techsRaw;
                 const links = parsePortfolioLinks(item.link);
                 const githubLink = links.find((l) => {
                   const b = (l.badge || l.label || "").toLowerCase();
@@ -250,7 +329,17 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                 });
                 const title = localized(item.title, item.titleEn);
                 return (
-                  <div key={item.id} className="group flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-bg-card/60 transition-colors">
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                      opacity: { duration: 0.18, ease: "easeOut", delay: 0.1 },
+                    }}
+                    className="group flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-bg-card/60 transition-colors"
+                  >
                     <Link href={`/projects/${item.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
                       <ProjectIcon dbIcon={item.icon} demoUrl={demoLink?.url ?? null} fallbackChar={title.charAt(0).toUpperCase()} />
                       <div className="flex-1 min-w-0">
@@ -266,7 +355,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                           href={githubLink.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-7 h-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-primary hover:bg-bg-card transition-colors shrink-0"
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-accent hover:bg-bg-card transition-colors shrink-0"
                           title="GitHub"
                         >
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -293,17 +382,24 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                       )}
                       <div className="hidden sm:flex flex-wrap gap-1 shrink-0 w-[200px] justify-end ml-1">
                         {techs.slice(0, 3).map((tech) => (
-                          <span key={tech} className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-accent/8 dark:bg-accent/15 text-accent">
+                          <span
+                            key={tech}
+                            className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                              selectedTechs.has(tech)
+                                ? "bg-accent text-white"
+                                : "bg-accent/8 dark:bg-accent/15 text-accent"
+                            }`}
+                          >
                             {tech}
                           </span>
                         ))}
                         {techs.length > 3 && <span className="text-[10px] text-text-tertiary">+{techs.length - 3}</span>}
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           </section>
         )}
 

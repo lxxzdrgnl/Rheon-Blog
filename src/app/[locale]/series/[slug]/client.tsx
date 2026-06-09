@@ -60,7 +60,7 @@ export function SeriesDetailClient({ series, posts, order }: SeriesDetailClientP
           href={toggleHref}
           scroll={false}
           replace
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary transition-colors"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-accent transition-colors"
         >
           <svg
             className={`w-4 h-4 transition-transform ${order === "desc" ? "rotate-180" : ""}`}

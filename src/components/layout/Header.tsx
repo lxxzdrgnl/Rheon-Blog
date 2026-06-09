@@ -41,12 +41,12 @@ export function Header({ blogTitle }: HeaderProps) {
       <div className="page-container">
         <div className="h-14 flex items-center justify-between border-b border-border/50">
           <div className="flex items-center gap-10">
-            <Link href="/" className="text-base font-bold tracking-tight text-text-primary hover:opacity-70">
+            <Link href="/" className="text-base font-bold tracking-tight text-text-primary hover:text-accent transition-colors">
               {blogTitle}
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm text-text-secondary">
               {NAV_LINKS.map((link) => (
-                <Link key={link.href} href={link.href} className="hover:text-text-primary transition-colors">
+                <Link key={link.href} href={link.href} className="hover:text-accent transition-colors">
                   {t(link.labelKey)}
                 </Link>
               ))}
@@ -65,7 +65,7 @@ export function Header({ blogTitle }: HeaderProps) {
             <LanguageToggle />
             <ThemeToggle />
             <button
-              className="p-2 text-text-secondary hover:text-text-primary"
+              className="p-2 text-text-secondary hover:text-accent"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

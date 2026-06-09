@@ -9,7 +9,7 @@ export function PostsTabs({ active }: { active: "posts" | "series" }) {
 
   const base = "px-5 py-2 rounded-lg text-[15px] transition-colors";
   const on = "border border-border bg-bg-elevated font-semibold text-accent";
-  const off = "font-medium text-text-tertiary hover:text-text-primary";
+  const off = "font-medium text-text-tertiary hover:text-accent";
 
   return (
     <nav className="flex items-center justify-center gap-2">

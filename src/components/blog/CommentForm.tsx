@@ -55,7 +55,7 @@ export function CommentForm({
           <button
             type="button"
             onClick={onCancel}
-            className="text-text-secondary hover:text-text-primary"
+            className="text-text-secondary hover:text-accent"
           >
             &times;
           </button>

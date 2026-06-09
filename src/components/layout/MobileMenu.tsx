@@ -19,7 +19,7 @@ export function MobileMenu({ onClose }: MobileMenuProps) {
       <SearchBar />
       <nav className="flex flex-col gap-3 text-sm">
         {NAV_LINKS.map((link) => (
-          <Link key={link.href} href={link.href} onClick={onClose} className="text-text-secondary hover:text-text-primary">
+          <Link key={link.href} href={link.href} onClick={onClose} className="text-text-secondary hover:text-accent transition-colors">
             {t(link.labelKey)}
           </Link>
         ))}

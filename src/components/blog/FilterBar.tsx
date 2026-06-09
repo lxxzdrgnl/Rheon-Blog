@@ -21,7 +21,7 @@ export function FilterBar({ categories, tags }: { categories: Category[]; tags: 
         className={`px-3 py-1 rounded-md text-sm transition-colors ${
           pathname === "/posts"
             ? "bg-accent text-bg-primary font-medium"
-            : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
+            : "text-text-secondary hover:text-accent hover:bg-bg-elevated"
         }`}
       >
         All
@@ -37,7 +37,7 @@ export function FilterBar({ categories, tags }: { categories: Category[]; tags: 
               className={`px-3 py-1 rounded-md text-sm transition-colors inline-flex items-center gap-1 ${
                 isActive
                   ? "bg-accent text-bg-primary font-medium"
-                  : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
+                  : "text-text-secondary hover:text-accent hover:bg-bg-elevated"
               }`}
             >
               {localized(cat.name, cat.nameEn)}
@@ -59,7 +59,7 @@ export function FilterBar({ categories, tags }: { categories: Category[]; tags: 
                         className={`block px-3 py-1.5 text-xs transition-colors flex items-center justify-between ${
                           pathname === `/category/${child.slug}`
                             ? "text-accent font-medium"
-                            : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
+                            : "text-text-secondary hover:text-accent hover:bg-bg-elevated"
                         }`}
                       >
                         {localized(child.name, child.nameEn)}
@@ -79,7 +79,7 @@ export function FilterBar({ categories, tags }: { categories: Category[]; tags: 
                               className={`block px-3 py-1.5 text-xs transition-colors ${
                                 pathname === `/category/${gc.slug}`
                                   ? "text-accent font-medium"
-                                  : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
+                                  : "text-text-secondary hover:text-accent hover:bg-bg-elevated"
                               }`}
                             >
                               {localized(gc.name, gc.nameEn)}
