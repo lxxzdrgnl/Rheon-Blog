@@ -3,7 +3,7 @@ import { PostGrid } from "@/components/blog/PostGrid";
 import { getTags } from "@/actions/tags";
 import { getCategories } from "@/actions/categories";
 import { db } from "@/db";
-import { posts, postTags, tags } from "@/db/schema";
+import { posts, postTags } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
@@ -21,7 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `#${name}`;
   const description = isEn ? `Posts tagged ${name}` : `${name} 태그의 글`;
   const path = `/tag/${slug}`;
-  return pageMetadata({ title, description, path, locale: loc, type: "website" });
+  // 태그 목록은 thin/중복 콘텐츠라 색인 제외(noindex). follow는 유지해 글로 링크 가치는 전달.
+  return { ...pageMetadata({ title, description, path, locale: loc, type: "website" }), robots: { index: false, follow: true } };
 }
 
 export default async function TagPage({ params }: Props) {

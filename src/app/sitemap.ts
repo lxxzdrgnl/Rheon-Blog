@@ -5,22 +5,19 @@ import { getPosts } from "@/actions/posts";
 import { getPortfolios } from "@/actions/portfolios";
 import { getCategories } from "@/actions/categories";
 import { getAllSeries } from "@/actions/series";
-import { getTags } from "@/actions/tags";
 
 // 런타임 DB를 읽도록 동적 생성(빌드 시점 빈 DB로 구워져 글이 누락되던 문제 방지).
 export const dynamic = "force-dynamic";
 
-const tagSlug = (nameEn: string) => nameEn.toLowerCase().replace(/\s+/g, "-");
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [posts, projects, cats, series, tags] = await Promise.all([
+  const [posts, projects, cats, series] = await Promise.all([
     getPosts({ published: true }),
     getPortfolios(),
     getCategories(),
     getAllSeries(),
-    getTags(),
   ]);
 
+  // 태그(/tag/*) 페이지는 thin/중복 콘텐츠라 사이트맵에서 제외(페이지 자체도 noindex).
   const paths = [
     "",
     "/posts",
@@ -29,7 +26,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...projects.map((p) => `/projects/${p.slug}`),
     ...cats.map((c) => `/category/${c.slug}`),
     ...series.map((s) => `/series/${s.slug}`),
-    ...tags.map((t) => `/tag/${tagSlug(t.nameEn)}`),
   ];
 
   return paths.flatMap((path) =>
