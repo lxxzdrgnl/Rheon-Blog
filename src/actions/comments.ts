@@ -4,18 +4,12 @@ import { db } from "@/db";
 import { comments, posts } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { verifyAccessToken } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-context";
 import { getSetting } from "@/actions/settings";
 import { SITE_URL } from "@/lib/locale";
 import { notifyNewComment } from "@/lib/notify";
-
-async function requireAdmin() {
-  const token = (await cookies()).get("access_token")?.value;
-  if (!token || !(await verifyAccessToken(token))) throw new Error("Unauthorized");
-}
 
 export async function getComments(postId: number) {
   return db

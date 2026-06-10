@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { safeFetch } from "@/lib/ssrf";
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
@@ -6,7 +7,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const origin = new URL(url).origin;
-    const res = await fetch(origin, {
+    const res = await safeFetch(origin, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; bot)" },
       signal: AbortSignal.timeout(5000),
     });
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 3) fallback: /favicon.ico
-    const fallback = await fetch(origin + "/favicon.ico", {
+    const fallback = await safeFetch(origin + "/favicon.ico", {
       method: "HEAD",
       signal: AbortSignal.timeout(3000),
     });

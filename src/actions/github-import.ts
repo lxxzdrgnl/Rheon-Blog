@@ -1,6 +1,7 @@
 "use server";
 
 import OpenAI from "openai";
+import { requireAdmin } from "@/lib/admin-context";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -15,6 +16,7 @@ interface GitHubImportResult {
 }
 
 export async function importFromGitHub(repoUrl: string): Promise<GitHubImportResult> {
+  await requireAdmin();
   // URL에서 owner/repo 추출
   const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
   if (!match) throw new Error("올바른 GitHub URL이 아닙니다.");

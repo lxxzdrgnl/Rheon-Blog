@@ -5,6 +5,7 @@ import { settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { rewriteImageUrl } from "@/lib/minio";
+import { requireAdmin } from "@/lib/admin-context";
 
 const IMAGE_SETTINGS = ["profile_image", "og_image"];
 
@@ -26,6 +27,7 @@ export async function getSettings(): Promise<Record<string, unknown>> {
 }
 
 export async function updateSetting(formData: FormData) {
+  await requireAdmin();
   const key = formData.get("key") as string;
   const value = formData.get("value") as string;
 
@@ -39,6 +41,7 @@ export async function updateSetting(formData: FormData) {
 }
 
 export async function updateSettings(data: Record<string, unknown>) {
+  await requireAdmin();
   for (const [key, value] of Object.entries(data)) {
     db.insert(settings)
       .values({ key, value: JSON.stringify(value) })

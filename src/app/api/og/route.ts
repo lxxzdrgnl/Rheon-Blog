@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { safeFetch } from "@/lib/ssrf";
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; bot)" },
       signal: AbortSignal.timeout(5000),
     });

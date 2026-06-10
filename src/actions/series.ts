@@ -6,6 +6,7 @@ import { eq, asc, and, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { rewriteImageUrl } from "@/lib/minio";
+import { requireAdmin } from "@/lib/admin-context";
 
 export async function getAllSeries() {
   return db.select().from(series).orderBy(asc(series.createdAt)).all();
@@ -38,6 +39,7 @@ export async function createSeries(data: {
   title: string; titleEn?: string; description?: string; descriptionEn?: string;
   thumbnailTextLength?: number; thumbnailTextLengthEn?: number;
 }) {
+  await requireAdmin();
   const slug = generateSlug(data.titleEn || data.title);
   const result = db.insert(series).values({ ...data, slug }).returning().get();
   revalidatePath("/my/series");
@@ -48,12 +50,14 @@ export async function updateSeries(id: number, data: {
   title: string; titleEn?: string; description?: string; descriptionEn?: string;
   thumbnailTextLength?: number; thumbnailTextLengthEn?: number;
 }) {
+  await requireAdmin();
   db.update(series).set(data).where(eq(series.id, id)).run();
   revalidatePath("/my/series");
   revalidatePath("/");
 }
 
 export async function deleteSeries(id: number) {
+  await requireAdmin();
   db.update(posts).set({ seriesId: null, seriesOrder: null }).where(eq(posts.seriesId, id)).run();
   db.delete(series).where(eq(series.id, id)).run();
   revalidatePath("/my/series");
@@ -61,6 +65,7 @@ export async function deleteSeries(id: number) {
 }
 
 export async function reorderSeriesPosts(seriesId: number, orderedPostIds: number[]) {
+  await requireAdmin();
   for (let i = 0; i < orderedPostIds.length; i++) {
     db.update(posts)
       .set({ seriesOrder: i })

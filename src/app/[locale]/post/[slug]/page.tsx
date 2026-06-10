@@ -7,6 +7,7 @@ import { getSeriesById, getSeriesPosts } from "@/actions/series";
 import { getProjectsForPost } from "@/actions/portfolios";
 import { pageMetadata, articleJsonLd } from "@/lib/seo";
 import { excerptFromMarkdown } from "@/lib/markdown";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { PostDetailClient } from "./client";
 
 interface Props { params: Promise<{ locale: string; slug: string }>; }
@@ -79,7 +80,7 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={jsonLd} />
       <PostDetailClient
         post={post}
         postTags={postTags}

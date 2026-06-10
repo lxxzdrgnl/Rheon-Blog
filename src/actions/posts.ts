@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { extractImageUrls, getOrphanedImages } from "@/lib/markdown";
 import { deleteImages, rewriteImageUrl, rewriteContentUrls } from "@/lib/minio";
+import { requireAdmin } from "@/lib/admin-context";
 
 export async function getPosts(options?: {
   published?: boolean;
@@ -105,6 +106,7 @@ export async function getAllPostTags(): Promise<Record<number, { name: string; n
 }
 
 export async function savePost(formData: FormData) {
+  await requireAdmin();
   const id = formData.get("id") ? Number(formData.get("id")) : null;
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
@@ -230,6 +232,7 @@ export async function updatePublishSettings(
     isPrivate: boolean;
   },
 ) {
+  await requireAdmin();
   const existing = db.select().from(posts).where(eq(posts.id, id)).get();
   if (!existing) return;
   db.update(posts)
@@ -250,6 +253,7 @@ export async function updatePublishSettings(
 }
 
 export async function updateTranslation(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const titleEn = formData.get("titleEn") as string;
   const contentEn = formData.get("contentEn") as string;
@@ -265,6 +269,7 @@ export async function updateTranslation(formData: FormData) {
 }
 
 export async function deletePost(id: number) {
+  await requireAdmin();
   const post = db.select().from(posts).where(eq(posts.id, id)).get();
   if (post) {
     const imageUrls = extractImageUrls(post.content);

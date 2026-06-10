@@ -6,6 +6,7 @@ import { eq, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { rewriteImageUrl, rewriteContentUrls } from "@/lib/minio";
+import { requireAdmin } from "@/lib/admin-context";
 
 function rewritePortfolio<T extends { thumbnail: string | null; content: string | null; contentEn: string | null }>(p: T): T {
   return { ...p, thumbnail: rewriteImageUrl(p.thumbnail), content: rewriteContentUrls(p.content), contentEn: rewriteContentUrls(p.contentEn) };
@@ -50,6 +51,7 @@ export async function getProjectsForPost(postId: number) {
 
 // 포스트의 프로젝트 연결 갱신
 export async function updatePostProjects(postId: number, projectIds: number[]) {
+  await requireAdmin();
   db.delete(portfolioPosts).where(eq(portfolioPosts.postId, postId)).run();
   if (projectIds.length > 0) {
     db.insert(portfolioPosts).values(projectIds.map((projectId) => ({ portfolioId: projectId, postId }))).onConflictDoNothing().run();
@@ -77,6 +79,7 @@ export async function getPortfolioPosts(portfolioId: number) {
 }
 
 export async function createPortfolio(formData: FormData) {
+  await requireAdmin();
   const title = formData.get("title") as string;
   const titleEn = (formData.get("titleEn") as string) || null;
   const description = formData.get("description") as string;
@@ -111,6 +114,7 @@ export async function createPortfolio(formData: FormData) {
 }
 
 export async function updatePortfolio(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const title = formData.get("title") as string;
   const titleEn = (formData.get("titleEn") as string) || null;
@@ -145,6 +149,7 @@ export async function updatePortfolio(formData: FormData) {
 }
 
 export async function deletePortfolio(id: number) {
+  await requireAdmin();
   db.delete(portfolioPosts).where(eq(portfolioPosts.portfolioId, id)).run();
   db.delete(portfolios).where(eq(portfolios.id, id)).run();
   revalidatePath("/");
@@ -152,6 +157,7 @@ export async function deletePortfolio(id: number) {
 }
 
 export async function reorderPortfolios(orderedIds: number[]) {
+  await requireAdmin();
   for (let i = 0; i < orderedIds.length; i++) {
     db.update(portfolios)
       .set({ sortOrder: i })

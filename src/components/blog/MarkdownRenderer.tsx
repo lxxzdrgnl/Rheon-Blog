@@ -2,13 +2,17 @@
 
 import ReactMarkdown, { Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import { CodeBlock } from "./CodeBlock";
 import { Mermaid } from "./Mermaid";
 
+// rehypeRaw로 본문의 원시 HTML을 파싱한 뒤, rehypeSanitize(기본 GitHub 스키마)로 정화한다.
+// 순서 중요: raw 파싱 → sanitize. <script>·on*·javascript: 등 XSS 벡터를 제거하면서
+// language-* 코드펜스(mermaid·하이라이트)·이미지(alt/width)·테이블 등은 그대로 보존된다.
 export const markdownPlugins = {
   remarkPlugins: [remarkGfm] as const,
-  rehypePlugins: [rehypeRaw] as const,
+  rehypePlugins: [rehypeRaw, rehypeSanitize] as const,
 };
 
 function isBadgeImg(src?: string) {
@@ -71,7 +75,7 @@ export function MarkdownRenderer({ content, components }: MarkdownRendererProps)
     <div className="prose prose-neutral dark:prose-invert max-w-none">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
+        rehypePlugins={[rehypeRaw, rehypeSanitize]}
         components={{ ...markdownComponents, ...components }}
       >
         {content}

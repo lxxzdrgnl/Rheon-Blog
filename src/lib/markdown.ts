@@ -2,14 +2,39 @@ function isBadgeUrl(url: string): boolean {
   return url.includes("img.shields.io");
 }
 
-/** 의존성 없는 경량 마크다운→HTML 변환(RSS content:encoded용). 원본 HTML(img 등)은 그대로 통과. */
+// HTML 속성 컨텍스트용 이스케이프(따옴표 탈출 방지).
+const escAttr = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// 위험 프로토콜(javascript:/vbscript:/data:) URL은 "#"으로 무력화.
+const safeUrl = (u: string) => (/^\s*(?:javascript|vbscript|data):/i.test(u) ? "#" : u.trim());
+
+/**
+ * 생성된/원본 HTML에서 활성 콘텐츠를 제거하는 경량 정화기(RSS content:encoded용).
+ * 본문이 운영자 작성이라 위험도는 낮지만, 피드 리더에서 실행되는 것을 막는 방어심층.
+ * 정규식 기반이라 완전하진 않으나 script/이벤트핸들러/위험 프로토콜은 차단한다.
+ */
+function sanitizeFeedHtml(html: string): string {
+  return html
+    // 위험 태그 블록(여는~닫는) 제거
+    .replace(/<(script|style|iframe|object|embed|noscript)\b[\s\S]*?<\/\1\s*>/gi, "")
+    // 잔여 위험 태그(짝 안 맞거나 자기닫힘) 제거
+    .replace(/<\/?(?:script|style|iframe|object|embed|noscript|link|meta|base|form)\b[^>]*>/gi, "")
+    // on* 이벤트 핸들러 속성 제거
+    .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    // href/src 내 위험 프로토콜 무력화
+    .replace(/((?:href|src)\s*=\s*")\s*(?:javascript|vbscript|data):[^"]*(")/gi, "$1#$2")
+    .replace(/((?:href|src)\s*=\s*')\s*(?:javascript|vbscript|data):[^']*(')/gi, "$1#$2");
+}
+
+/** 의존성 없는 경량 마크다운→HTML 변환(RSS content:encoded용). 출력은 sanitizeFeedHtml로 정화. */
 export function markdownToHtml(md: string | null): string {
   if (!md) return "";
   const escCode = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const inline = (s: string) =>
     s
-      .replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, (_m, a, u) => `<img src="${u}" alt="${a}" />`)
-      .replace(/\[([^\]]+)\]\(([^)\s]+)[^)]*\)/g, (_m, t, u) => `<a href="${u}">${t}</a>`)
+      .replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, (_m, a, u) => `<img src="${escAttr(safeUrl(u))}" alt="${escAttr(a)}" />`)
+      .replace(/\[([^\]]+)\]\(([^)\s]+)[^)]*\)/g, (_m, t, u) => `<a href="${escAttr(safeUrl(u))}">${t}</a>`)
       .replace(/`([^`]+)`/g, (_m, c) => `<code>${escCode(c)}</code>`)
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
       .replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
@@ -71,7 +96,7 @@ export function markdownToHtml(md: string | null): string {
     while (i < lines.length && lines[i].trim() !== "" && !isBlockStart(lines[i])) { buf.push(lines[i]); i++; }
     if (buf.length) out.push(`<p>${inline(buf.join(" "))}</p>`);
   }
-  return out.join("\n");
+  return sanitizeFeedHtml(out.join("\n"));
 }
 
 /** 마크다운에서 서식을 걷어내고 본문 앞부분을 발췌(미리보기)로 만든다. */

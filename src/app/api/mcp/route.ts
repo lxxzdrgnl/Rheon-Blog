@@ -3,6 +3,7 @@ import { verifyBearer } from "@/lib/mcp/auth";
 import { dispatch } from "@/lib/mcp/dispatch";
 import { TOOLS } from "@/lib/mcp/tools";
 import { rpcError, JSONRPC_ERROR, type JsonRpcRequest } from "@/lib/mcp/jsonrpc";
+import { runAsAdmin } from "@/lib/admin-context";
 
 export const dynamic = "force-dynamic";
 
@@ -25,13 +26,17 @@ export async function POST(req: NextRequest) {
     return Response.json(rpcError(null, JSONRPC_ERROR.ParseError, "JSON 파싱 실패"), { status: 400 });
   }
 
-  // 배치(array) / 단일 모두 지원
+  // 배치(array) / 단일 모두 지원.
+  // Bearer 검증을 마쳤으므로, 가드된 서버 액션(requireAdmin)이 통과하도록 admin 컨텍스트에서 실행한다.
   const requests = Array.isArray(body) ? body : [body];
-  const responses = [];
-  for (const r of requests) {
-    const res = await dispatch(r as JsonRpcRequest, TOOLS);
-    if (res !== null) responses.push(res); // notification은 응답 생략
-  }
+  const responses = await runAsAdmin(async () => {
+    const acc = [];
+    for (const r of requests) {
+      const res = await dispatch(r as JsonRpcRequest, TOOLS);
+      if (res !== null) acc.push(res); // notification은 응답 생략
+    }
+    return acc;
+  });
 
   // 모두 notification이면 202
   if (responses.length === 0) return new Response(null, { status: 202 });

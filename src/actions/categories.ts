@@ -6,6 +6,7 @@ import { eq, sql, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { buildTree as buildTreeUtil, getAncestorPath } from "@/lib/tree";
+import { requireAdmin } from "@/lib/admin-context";
 
 export async function getCategories() {
   return db.select().from(categories).all();
@@ -44,6 +45,7 @@ export async function getCategoriesWithCount(): Promise<CategoryWithCount[]> {
 }
 
 export async function updateCategory(id: number, data: { name: string; nameEn: string }) {
+  await requireAdmin();
   // 슬러그는 URL 안정성을 위해 변경하지 않고 이름만 수정한다.
   db.update(categories).set({ name: data.name, nameEn: data.nameEn }).where(eq(categories.id, id)).run();
   revalidatePath("/my/settings");
@@ -62,6 +64,7 @@ export async function getCategoryPath(categoryId: number): Promise<string[]> {
 }
 
 export async function createCategory(formData: FormData) {
+  await requireAdmin();
   const name = formData.get("name") as string;
   const nameEn = formData.get("nameEn") as string;
   const parentId = formData.get("parentId") ? Number(formData.get("parentId")) : null;
@@ -73,6 +76,7 @@ export async function createCategory(formData: FormData) {
 }
 
 export async function deleteCategory(id: number) {
+  await requireAdmin();
   // Check posts
   const postCount = db
     .select({ count: sql<number>`COUNT(*)` })
