@@ -1,5 +1,6 @@
 import { getPortfolios } from "@/actions/portfolios";
-import { ProjectCard } from "@/components/blog/ProjectCard";
+import { getSkills } from "@/actions/resume";
+import { ProjectsExplorer } from "@/components/blog/ProjectsExplorer";
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 
@@ -16,17 +17,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProjectsListPage({ params }: Props) {
   const { locale } = await params;
   const en = locale === "en";
-  const allProjects = await getPortfolios();
+  const [allProjects, skillsList] = await Promise.all([getPortfolios(), getSkills()]);
 
   return (
-    <div className="page-container py-4 md:py-10">
-      <h1 className="text-2xl font-bold tracking-tight mb-10 animate-fade-in">Projects</h1>
+    <div className="page-container py-4 md:py-6 space-y-5 md:space-y-6">
+      <h1 className="text-2xl md:text-3xl font-bold tracking-tight animate-fade-in">
+        {en ? "Projects" : "프로젝트"}
+      </h1>
       {allProjects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in animate-delay-1">
-          {allProjects.map((item) => (
-            <ProjectCard key={item.id} project={item} locale={locale} />
-          ))}
-        </div>
+        <ProjectsExplorer
+          projects={allProjects}
+          skills={skillsList.map((s) => ({ name: s.name, category: s.category, categoryEn: s.categoryEn }))}
+          locale={locale}
+        />
       ) : (
         <p className="text-sm text-text-tertiary text-center py-16">{en ? "No projects yet." : "등록된 프로젝트가 없습니다."}</p>
       )}
