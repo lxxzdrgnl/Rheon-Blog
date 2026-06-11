@@ -28,6 +28,7 @@ export const posts = sqliteTable("posts", {
   seriesOrder: integer("series_order"),
   thumbnailTextLength: integer("thumbnail_text_length"),
   thumbnailTextLengthEn: integer("thumbnail_text_length_en"),
+  showTitleOnThumbnail: integer("show_title_on_thumbnail", { mode: "boolean" }).notNull().default(false),
 });
 
 export const tags = sqliteTable("tags", {

@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
-import { PostThumbnail } from "@/components/blog/PostThumbnail";
-import { uploadImage } from "@/lib/upload";
+import { ThumbnailPicker, type ThumbnailValue } from "@/components/admin/ThumbnailPicker";
 import { updatePublishSettings } from "@/actions/posts";
 import { updatePostProjects } from "@/actions/portfolios";
 
@@ -11,9 +10,11 @@ export interface PublishablePost {
   id: number;
   title: string;
   titleEn: string | null;
+  content: string;
   thumbnail: string | null;
   thumbnailTextLength: number | null;
   thumbnailTextLengthEn: number | null;
+  showTitleOnThumbnail: boolean;
   isPublished: boolean;
   isPrivate: boolean;
 }
@@ -27,21 +28,23 @@ interface Props {
 }
 
 export function PublishSettingsModal({ post, projects, initialProjectIds, onClose, onSaved }: Props) {
-  const [thumbnail, setThumbnail] = useState<string | null>(post.thumbnail);
-  const [textLen, setTextLen] = useState<number>(post.thumbnailTextLength ?? 8);
-  const [textLenEn, setTextLenEn] = useState<number>(post.thumbnailTextLengthEn ?? 8);
+  const [thumb, setThumb] = useState<ThumbnailValue>({
+    thumbnail: post.thumbnail,
+    textLength: post.thumbnailTextLength ?? 8,
+    textLengthEn: post.thumbnailTextLengthEn ?? 8,
+    showTitleOnThumbnail: post.showTitleOnThumbnail ?? false,
+  });
   const [isPrivate, setIsPrivate] = useState<boolean>(post.isPrivate);
-  const [previewLang, setPreviewLang] = useState<"ko" | "en">("ko");
   const [projectIds, setProjectIds] = useState<number[]>(initialProjectIds);
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
     await updatePublishSettings(post.id, {
-      thumbnail,
-      thumbnailTextLength: thumbnail ? null : textLen,
-      thumbnailTextLengthEn: thumbnail ? null : textLenEn,
+      thumbnail: thumb.thumbnail,
+      thumbnailTextLength: thumb.thumbnail ? null : thumb.textLength,
+      thumbnailTextLengthEn: thumb.thumbnail ? null : thumb.textLengthEn,
+      showTitleOnThumbnail: thumb.showTitleOnThumbnail,
       isPublished: true,
       isPrivate,
     });
@@ -61,53 +64,8 @@ export function PublishSettingsModal({ post, projects, initialProjectIds, onClos
       onClose={onClose}
       onConfirm={handleSave}
     >
-      {/* 대표 이미지 */}
-      <section className="space-y-3">
-        <h3 className="text-xs text-text-tertiary uppercase tracking-wider font-medium">대표 이미지</h3>
-        <div className="max-w-xs">
-          <PostThumbnail
-            thumbnail={thumbnail}
-            title={previewLang === "en" ? (post.titleEn || post.title) : post.title}
-            textLength={thumbnail ? undefined : previewLang === "en" ? textLenEn : textLen}
-          />
-        </div>
-        {!thumbnail && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <label className="text-xs text-text-tertiary whitespace-nowrap w-16">한글 글자 수</label>
-              <input type="range" min={1} max={Math.max(post.title.length, 1)} value={textLen} onChange={(e) => { setTextLen(Number(e.target.value)); setPreviewLang("ko"); }} className="flex-1 accent-accent" />
-              <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{textLen}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <label className="text-xs text-text-tertiary whitespace-nowrap w-16">영문 글자 수</label>
-              <input type="range" min={1} max={Math.max((post.titleEn || post.title).length, 1)} value={textLenEn} onChange={(e) => { setTextLenEn(Number(e.target.value)); setPreviewLang("en"); }} className="flex-1 accent-accent" />
-              <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{textLenEn}</span>
-            </div>
-          </div>
-        )}
-        <div className="flex gap-2">
-          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-border rounded-lg cursor-pointer hover:bg-bg-elevated transition-colors text-text-secondary">
-            {uploading ? "업로드 중..." : "이미지 업로드"}
-            <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              setUploading(true);
-              try {
-                const url = await uploadImage(file);
-                if (url) setThumbnail(url);
-              } finally {
-                setUploading(false);
-                e.target.value = "";
-              }
-            }} />
-          </label>
-          {thumbnail && (
-            <button type="button" onClick={() => setThumbnail(null)} className="px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-bg-elevated transition-colors text-text-secondary">
-              제목으로 표시
-            </button>
-          )}
-        </div>
-      </section>
+      {/* 대표 이미지 — 글쓰기 페이지와 공용 컴포넌트 */}
+      <ThumbnailPicker title={post.title} titleEn={post.titleEn} content={post.content} value={thumb} onChange={setThumb} />
 
       {/* 공개 설정 */}
       <section className="space-y-3">

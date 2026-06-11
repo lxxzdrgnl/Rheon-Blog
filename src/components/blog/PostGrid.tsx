@@ -11,6 +11,8 @@ interface Post {
   categoryNameEn: string;
   tags?: { name: string; nameEn: string }[];
   thumbnailTextLength?: number | null;
+  thumbnailTextLengthEn?: number | null;
+  showTitleOnThumbnail?: boolean | null;
 }
 
 export function PostGrid({ posts }: { posts: Post[] }) {

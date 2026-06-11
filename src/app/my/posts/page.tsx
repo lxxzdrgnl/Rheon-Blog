@@ -22,9 +22,11 @@ interface Post {
   viewCount: number;
   createdAt: string;
   categoryId: number;
+  content: string;
   thumbnail: string | null;
   thumbnailTextLength: number | null;
   thumbnailTextLengthEn: number | null;
+  showTitleOnThumbnail: boolean;
 }
 
 interface Category {

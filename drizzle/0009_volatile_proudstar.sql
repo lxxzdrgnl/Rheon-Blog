@@ -1,0 +1,1 @@
+ALTER TABLE `posts` ADD `show_title_on_thumbnail` integer DEFAULT false NOT NULL;

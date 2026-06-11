@@ -118,6 +118,7 @@ export async function savePost(formData: FormData) {
   const seriesOrder = formData.get("seriesOrder") ? Number(formData.get("seriesOrder")) : null;
   const thumbnailTextLength = formData.get("thumbnailTextLength") ? Number(formData.get("thumbnailTextLength")) : null;
   const thumbnailTextLengthEn = formData.get("thumbnailTextLengthEn") ? Number(formData.get("thumbnailTextLengthEn")) : null;
+  const showTitleOnThumbnail = formData.get("showTitleOnThumbnail") === "true";
   const publish = formData.get("publish") === "true";
   const isPrivate = formData.get("isPrivate") === "true";
 
@@ -149,7 +150,7 @@ export async function savePost(formData: FormData) {
     db.update(posts)
       .set({
         title, content, categoryId, thumbnail, slug,
-        seriesId, seriesOrder, thumbnailTextLength, thumbnailTextLengthEn,
+        seriesId, seriesOrder, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail,
         isPublished: publish ? true : undefined,
         isPrivate: publish ? isPrivate : undefined,
         publishedAt: publish && !existing?.publishedAt ? sql`datetime('now')` : undefined,
@@ -163,7 +164,7 @@ export async function savePost(formData: FormData) {
       .insert(posts)
       .values({
         title, content, categoryId, thumbnail, slug,
-        seriesId, seriesOrder, thumbnailTextLength, thumbnailTextLengthEn,
+        seriesId, seriesOrder, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail,
         isPublished: publish,
         isPrivate: publish ? isPrivate : false,
         publishedAt: publish ? sql`datetime('now')` : undefined,
@@ -228,6 +229,7 @@ export async function updatePublishSettings(
     thumbnail: string | null;
     thumbnailTextLength: number | null;
     thumbnailTextLengthEn: number | null;
+    showTitleOnThumbnail: boolean;
     isPublished: boolean;
     isPrivate: boolean;
   },
@@ -240,6 +242,7 @@ export async function updatePublishSettings(
       thumbnail: data.thumbnail,
       thumbnailTextLength: data.thumbnailTextLength,
       thumbnailTextLengthEn: data.thumbnailTextLengthEn,
+      showTitleOnThumbnail: data.showTitleOnThumbnail,
       isPublished: data.isPublished,
       isPrivate: data.isPrivate,
       publishedAt: data.isPublished && !existing.publishedAt ? sql`datetime('now')` : undefined,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, useMemo, useRef } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PostEditor, PostEditorHandle } from "@/components/admin/PostEditor";
 import { CategorySelect } from "@/components/admin/CategorySelect";
@@ -12,7 +12,7 @@ import { getCategories } from "@/actions/categories";
 import { getPostById, getPostTags, savePost } from "@/actions/posts";
 import { getPortfolios, getProjectsForPost, updatePostProjects } from "@/actions/portfolios";
 import { getAllSeries } from "@/actions/series";
-import { extractImageUrls } from "@/lib/markdown";
+import { ThumbnailPicker, type ThumbnailValue } from "@/components/admin/ThumbnailPicker";
 import { uploadImage } from "@/lib/upload";
 import { streamTranslate } from "@/lib/translate-client";
 
@@ -41,11 +41,9 @@ function WritePageContent() {
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [categories, setCategories] = useState<{ id: number; parentId?: number | null; name: string; nameEn: string; slug: string }[]>([]);
   const [saving, setSaving] = useState(false);
-  const [thumbUploading, setThumbUploading] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [allProjects, setAllProjects] = useState<{ id: number; title: string; slug: string }[]>([]);
   const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);
-  const [uploadedThumbnails, setUploadedThumbnails] = useState<string[]>([]);
   const [lang, setLang] = useState<"ko" | "en">("ko");
   const [publishIsPrivate, setPublishIsPrivate] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -54,7 +52,7 @@ function WritePageContent() {
   const [seriesOrder, setSeriesOrder] = useState<string>("");
   const [thumbnailTextLength, setThumbnailTextLength] = useState<number>(8);
   const [thumbnailTextLengthEn, setThumbnailTextLengthEn] = useState<number>(8);
-  const [previewLang, setPreviewLang] = useState<"ko" | "en">("ko");
+  const [showTitleOnThumbnail, setShowTitleOnThumbnail] = useState(false);
   const editorRef = useRef<PostEditorHandle>(null);
   const originalRef = useRef({ title: "", content: "" });
 
@@ -77,6 +75,7 @@ function WritePageContent() {
           setThumbnail(post.thumbnail || "");
           if (post.thumbnailTextLength) setThumbnailTextLength(post.thumbnailTextLength);
           if (post.thumbnailTextLengthEn) setThumbnailTextLengthEn(post.thumbnailTextLengthEn);
+          setShowTitleOnThumbnail(!!post.showTitleOnThumbnail);
           originalRef.current = { title: post.title, content: post.content };
           if (post.seriesId) setSeriesId(post.seriesId);
           if (post.seriesOrder != null) setSeriesOrder(String(post.seriesOrder));
@@ -156,6 +155,7 @@ function WritePageContent() {
     fd.set("thumbnail", thumbnail || "");
     fd.set("thumbnailTextLength", String(!thumbnail ? thumbnailTextLength : 0));
     fd.set("thumbnailTextLengthEn", String(!thumbnail ? thumbnailTextLengthEn : 0));
+    fd.set("showTitleOnThumbnail", String(showTitleOnThumbnail));
     fd.set("tagIds", JSON.stringify(selectedTags.map((t) => t.id)));
     fd.set("publish", "false"); fd.set("isPrivate", "false");
     if (titleEn) fd.set("titleEn", titleEn);
@@ -187,6 +187,7 @@ function WritePageContent() {
     fd.set("thumbnail", thumbnail || "");
     fd.set("thumbnailTextLength", String(!thumbnail ? thumbnailTextLength : 0));
     fd.set("thumbnailTextLengthEn", String(!thumbnail ? thumbnailTextLengthEn : 0));
+    fd.set("showTitleOnThumbnail", String(showTitleOnThumbnail));
     fd.set("tagIds", JSON.stringify(selectedTags.map((t) => t.id)));
     fd.set("publish", "true"); fd.set("isPrivate", String(publishIsPrivate));
     if (titleEn) fd.set("titleEn", titleEn);
@@ -205,11 +206,13 @@ function WritePageContent() {
     }
   };
 
-  const images = useMemo(() => {
-    const fromContent = extractImageUrls(content);
-    const all = [...fromContent, ...uploadedThumbnails.filter((u) => !fromContent.includes(u))];
-    return all;
-  }, [content, uploadedThumbnails]);
+  const thumbValue: ThumbnailValue = { thumbnail, textLength: thumbnailTextLength, textLengthEn: thumbnailTextLengthEn, showTitleOnThumbnail };
+  const onThumbChange = (next: ThumbnailValue) => {
+    setThumbnail(next.thumbnail);
+    setThumbnailTextLength(next.textLength);
+    setThumbnailTextLengthEn(next.textLengthEn);
+    setShowTitleOnThumbnail(next.showTitleOnThumbnail);
+  };
 
   const currentTitle = lang === "en" ? titleEn : title;
   const setCurrentTitle = lang === "en" ? setTitleEn : setTitle;
@@ -275,112 +278,8 @@ function WritePageContent() {
         onClose={() => setShowPublishModal(false)}
         onConfirm={handlePublish}
       >
-        {/* Thumbnail */}
-        <section className="space-y-3">
-          <h3 className="text-xs text-text-tertiary uppercase tracking-wider font-medium">대표 이미지</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setThumbnail(null)}
-              className={`relative aspect-[4/3] rounded-xl border-2 flex flex-col items-center justify-center transition-all ${
-                !thumbnail ? "border-accent bg-accent/5" : "border-border hover:border-text-tertiary"
-              }`}
-            >
-              <span className="text-2xl font-bold text-text-primary break-keep text-center px-2">
-                {(previewLang === "en" ? (titleEn || title).slice(0, thumbnailTextLengthEn) : title.slice(0, thumbnailTextLength)) || "제목"}
-              </span>
-              <span className="text-xs text-text-tertiary mt-2">제목으로 표시</span>
-            </button>
-            {images.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setThumbnail(images[0])}
-                className={`relative aspect-[4/3] rounded-xl border-2 overflow-hidden transition-all ${
-                  thumbnail ? "border-accent" : "border-border hover:border-text-tertiary"
-                }`}
-              >
-                <img src={images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                <span className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-0.5 rounded">이미지</span>
-              </button>
-            )}
-          </div>
-          {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {images.map((url) => (
-                <button
-                  key={url}
-                  onClick={() => setThumbnail(url)}
-                  className={`relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all ${
-                    thumbnail === url ? "border-accent" : "border-transparent hover:border-border"
-                  }`}
-                >
-                  <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-          {!thumbnail && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <label className="text-xs text-text-tertiary whitespace-nowrap w-16">한글 글자 수</label>
-                <input
-                  type="range"
-                  min={1}
-                  max={Math.max(title.length, 1)}
-                  value={thumbnailTextLength}
-                  onChange={(e) => { setThumbnailTextLength(Number(e.target.value)); setPreviewLang("ko"); }}
-                  className="flex-1 accent-accent"
-                />
-                <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{thumbnailTextLength}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="text-xs text-text-tertiary whitespace-nowrap w-16">영문 글자 수</label>
-                <input
-                  type="range"
-                  min={1}
-                  max={Math.max((titleEn || title).length, 1)}
-                  value={thumbnailTextLengthEn}
-                  onChange={(e) => { setThumbnailTextLengthEn(Number(e.target.value)); setPreviewLang("en"); }}
-                  className="flex-1 accent-accent"
-                />
-                <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{thumbnailTextLengthEn}</span>
-              </div>
-            </div>
-          )}
-          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-border rounded-lg cursor-pointer hover:bg-bg-elevated transition-colors text-text-secondary">
-            {thumbUploading ? (
-              <>
-                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                업로드 중...
-              </>
-            ) : (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
-                이미지 업로드
-              </>
-            )}
-            <input type="file" accept="image/*" className="hidden" disabled={thumbUploading} onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              setThumbUploading(true);
-              try {
-                const url = await handleImageUpload(file);
-                if (url) {
-                  setUploadedThumbnails((prev) => [...prev, url]);
-                  setThumbnail(url);
-                }
-              } finally {
-                setThumbUploading(false);
-              }
-              e.target.value = "";
-            }} />
-          </label>
-        </section>
+        {/* Thumbnail — 출간 설정 모달과 공용 컴포넌트 */}
+        <ThumbnailPicker title={title} titleEn={titleEn} content={content} value={thumbValue} onChange={onThumbChange} />
 
         {/* Visibility */}
         <section className="space-y-3">

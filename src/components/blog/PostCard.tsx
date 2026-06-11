@@ -15,9 +15,10 @@ interface PostCardProps {
   tags?: { name: string; nameEn: string }[];
   thumbnailTextLength?: number | null;
   thumbnailTextLengthEn?: number | null;
+  showTitleOnThumbnail?: boolean | null;
 }
 
-export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryName, categoryNameEn, tags, thumbnailTextLength, thumbnailTextLengthEn }: PostCardProps) {
+export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryName, categoryNameEn, tags, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail }: PostCardProps) {
   const localized = useLocalized();
   const displayTitle = localized(title, titleEn);
   const displayCategory = localized(categoryName, categoryNameEn);
@@ -26,13 +27,16 @@ export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryN
     <Link href={`/post/${slug}`} className="group block">
       <article>
         {/* ── Visual ── */}
-        <LocalizedThumbnail title={title} titleEn={titleEn} thumbnail={thumbnail} textLength={thumbnailTextLength} textLengthEn={thumbnailTextLengthEn} />
+        <LocalizedThumbnail title={title} titleEn={titleEn} thumbnail={thumbnail} textLength={thumbnailTextLength} textLengthEn={thumbnailTextLengthEn} showTitle={showTitleOnThumbnail} />
 
         {/* ── Meta ── */}
         <div className="mt-3 px-0.5">
-          <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">
-            {displayTitle}
-          </h3>
+          {/* 썸네일 위에 제목을 얹는 경우 카드 아래 중복 제목은 숨긴다 */}
+          {!(showTitleOnThumbnail && thumbnail) && (
+            <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">
+              {displayTitle}
+            </h3>
+          )}
 
           <div className="flex items-center gap-1.5 mt-1.5 text-xs text-text-tertiary">
             {displayCategory && (
