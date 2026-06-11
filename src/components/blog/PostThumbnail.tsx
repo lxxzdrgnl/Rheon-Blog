@@ -167,9 +167,8 @@ export function PostThumbnail({ thumbnail, title, textLength, coverFont = "sans"
         />
         {titleOverlay && title ? (
           <>
-            {/* 가독성용 어두운 막 + 위아래 비네팅 */}
-            <div className="absolute inset-0 bg-black/35" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+            {/* 가독성용 옅은 막 — 글자 그림자가 주 가독성, 막은 보조라 과하지 않게 */}
+            <div className="absolute inset-0 bg-black/20" />
             <CenteredTitle title={title} textLength={textLength} wrap={wrap} coverFont={coverFont} shadow />
           </>
         ) : (
