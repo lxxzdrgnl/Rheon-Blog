@@ -40,6 +40,7 @@ const postBody = {
   projectIds: z.array(z.number().int()).optional(),
   titleEn: z.string().optional(),
   contentEn: z.string().optional(),
+  showTitleOnThumbnail: z.boolean().optional(),
 };
 const portfolioBody = {
   title: z.string(),
@@ -80,6 +81,7 @@ async function createPostFromInput(input: z.infer<z.ZodObject<typeof postBody>>)
     title: input.title, content: input.content, categoryId: input.categoryId,
     slug: input.slug, thumbnail: input.thumbnail, publish: input.publish, isPrivate: input.isPrivate,
     tagIds, seriesId, seriesOrder: input.seriesOrder, titleEn: input.titleEn, contentEn: input.contentEn,
+    showTitleOnThumbnail: input.showTitleOnThumbnail,
   });
   const { postId, slug } = await savePost(fd);
   if (input.projectIds) await updatePostProjects(postId, input.projectIds);
@@ -122,6 +124,7 @@ async function updatePostFromInput(input: PostUpdateInput) {
     seriesOrder: input.seriesOrder ?? current.seriesOrder ?? undefined,
     thumbnailTextLength: current.thumbnailTextLength ?? undefined,
     thumbnailTextLengthEn: current.thumbnailTextLengthEn ?? undefined,
+    showTitleOnThumbnail: input.showTitleOnThumbnail ?? current.showTitleOnThumbnail,
     publish: input.publish ?? current.isPublished,
     isPrivate: input.isPrivate ?? current.isPrivate,
     titleEn: input.titleEn ?? current.titleEn ?? undefined,

@@ -10,6 +10,7 @@ export interface PostInput {
   seriesOrder?: number;
   thumbnailTextLength?: number;
   thumbnailTextLengthEn?: number;
+  showTitleOnThumbnail?: boolean;
   publish?: boolean;
   isPrivate?: boolean;
   titleEn?: string;
@@ -48,6 +49,7 @@ export function buildPostFormData(input: PostInput): FormData {
   setIf(fd, "seriesOrder", input.seriesOrder);
   setIf(fd, "thumbnailTextLength", input.thumbnailTextLength);
   setIf(fd, "thumbnailTextLengthEn", input.thumbnailTextLengthEn);
+  fd.set("showTitleOnThumbnail", input.showTitleOnThumbnail ? "true" : "false");
   fd.set("publish", input.publish ? "true" : "false");
   fd.set("isPrivate", input.isPrivate ? "true" : "false");
   setIf(fd, "titleEn", input.titleEn);
