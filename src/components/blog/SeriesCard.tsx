@@ -3,6 +3,7 @@
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { LocalizedThumbnail } from "./LocalizedThumbnail";
+import { Highlight } from "@/components/ui/Highlight";
 
 interface SeriesCardProps {
   title: string;
@@ -14,9 +15,11 @@ interface SeriesCardProps {
   thumbnailTextLength: number | null;
   thumbnailTextLengthEn: number | null;
   showTitleOnThumbnail?: boolean | null;
+  /** 검색 결과에서 일치 구간 강조 */
+  highlight?: string;
 }
 
-export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpdated, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail }: SeriesCardProps) {
+export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpdated, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail, highlight }: SeriesCardProps) {
   const { t, locale } = useI18n();
   const localized = useLocalized();
   const displayTitle = localized(title, titleEn);
@@ -44,7 +47,7 @@ export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpd
 
         <div className="mt-3 px-0.5">
           <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">
-            {displayTitle}
+            <Highlight text={displayTitle} query={highlight} />
           </h3>
           <div className="flex items-center gap-1.5 mt-1.5 text-xs text-text-tertiary">
             <span className="text-text-secondary">{countLabel}</span>

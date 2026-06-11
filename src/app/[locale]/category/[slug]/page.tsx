@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import { PostGrid } from "@/components/blog/PostGrid";
 import { FilterBar } from "@/components/blog/FilterBar";
 import { getPosts } from "@/actions/posts";
-import { getCategories } from "@/actions/categories";
+import { getCategories, getPublishedCategoryCounts } from "@/actions/categories";
 import { getTags } from "@/actions/tags";
+import { excerptAfterFirstHeading } from "@/lib/markdown";
 import type { Metadata } from "next";
 import { pageMetadata, collectionPageJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -27,7 +28,11 @@ export default async function CategoryPage({ params }: Props) {
   const { locale, slug } = await params;
   const isEn = locale === "en";
   const loc = isEn ? "en" : "ko";
-  const [allCategories, allTags] = await Promise.all([getCategories(), getTags()]);
+  const [allCategories, allTags, counts] = await Promise.all([
+    getCategories(),
+    getTags(),
+    getPublishedCategoryCounts(),
+  ]);
   const category = allCategories.find((c) => c.slug === slug);
   if (!category) notFound();
 
@@ -36,6 +41,7 @@ export default async function CategoryPage({ params }: Props) {
     ...post,
     categoryName: category.name,
     categoryNameEn: category.nameEn,
+    snippet: excerptAfterFirstHeading(isEn ? post.contentEn || post.content : post.content),
   }));
 
   const catName = isEn && category.nameEn ? category.nameEn : category.name;
@@ -52,8 +58,8 @@ export default async function CategoryPage({ params }: Props) {
   return (
     <div className="page-container py-10 space-y-8">
       <JsonLd data={jsonLd} />
-      <h1 className="text-2xl font-bold">{category.name}</h1>
-      <FilterBar categories={allCategories} tags={allTags} />
+      <h1 className="text-2xl font-bold tracking-tight">{catName}</h1>
+      <FilterBar categories={allCategories} tags={allTags} counts={counts} />
       <PostGrid posts={postsWithCategory} />
     </div>
   );

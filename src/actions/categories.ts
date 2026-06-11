@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { categories, posts } from "@/db/schema";
-import { eq, sql, isNull } from "drizzle-orm";
+import { and, eq, sql, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { buildTree as buildTreeUtil, getAncestorPath } from "@/lib/tree";
@@ -19,6 +19,19 @@ export interface CategoryWithCount {
   nameEn: string;
   slug: string;
   postCount: number;
+}
+
+/** 공개(발행·비공개 아님) 글 기준 카테고리별 직접 글 수. 공개 페이지 필터용. */
+export async function getPublishedCategoryCounts(): Promise<Record<number, number>> {
+  const rows = db
+    .select({ categoryId: posts.categoryId, count: sql<number>`COUNT(*)` })
+    .from(posts)
+    .where(and(eq(posts.isPublished, true), eq(posts.isPrivate, false)))
+    .groupBy(posts.categoryId)
+    .all();
+  const map: Record<number, number> = {};
+  for (const r of rows) if (r.categoryId != null) map[r.categoryId] = Number(r.count);
+  return map;
 }
 
 export async function getCategoriesWithCount(): Promise<CategoryWithCount[]> {

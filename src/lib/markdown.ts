@@ -100,9 +100,10 @@ export function markdownToHtml(md: string | null): string {
 }
 
 /** 마크다운에서 서식을 걷어내고 본문 앞부분을 발췌(미리보기)로 만든다. */
-export function excerptFromMarkdown(markdown: string | null, maxLen = 150): string {
+/** 마크다운 → 평문(공백 정규화). 발췌·스니펫·검색 표시 공용. */
+export function stripMarkdown(markdown: string | null): string {
   if (!markdown) return "";
-  const text = markdown
+  return markdown
     .replace(/```[\s\S]*?```/g, " ")        // 코드블록
     .replace(/`[^`]*`/g, " ")               // 인라인 코드
     .replace(/!\[.*?\]\(.*?\)/g, " ")       // 이미지
@@ -113,8 +114,76 @@ export function excerptFromMarkdown(markdown: string | null, maxLen = 150): stri
     .replace(/[*_~#>|]/g, " ")              // 잔여 기호
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function excerptFromMarkdown(markdown: string | null, maxLen = 150): string {
+  const text = stripMarkdown(markdown);
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen).trimEnd() + "…";
+}
+
+/**
+ * 본문이 헤딩으로 시작하면 그 첫 헤딩 다음의 본문부터 발췌한다 (목록 카드 미리보기용).
+ * 헤딩으로 시작하지 않으면 처음부터. 헤딩 뒤 본문이 비면 전체에서 폴백.
+ */
+export function excerptAfterFirstHeading(markdown: string | null, maxLen = 160): string {
+  if (!markdown) return "";
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+  let i = 0;
+  while (i < lines.length && lines[i].trim() === "") i++; // 선행 빈 줄
+  const startLine = i < lines.length && /^#{1,6}\s+/.test(lines[i].trim()) ? i + 1 : 0;
+  const text = stripMarkdown(lines.slice(startLine).join("\n"));
+  if (!text) return excerptFromMarkdown(markdown, maxLen);
+  if (text.length <= maxLen) return text;
+  return text.slice(0, maxLen).trimEnd() + "…";
+}
+
+/**
+ * 스니펫용 strip — `stripMarkdown`과 달리 코드블록/인라인 코드의 **텍스트는 보존**한다.
+ * 검색(searchPosts)은 원본 마크다운을 LIKE 매칭하므로, 코드 안에 있는 검색어도
+ * 스니펫에서 찾아 보여줄 수 있어야 "왜 매칭됐는지"가 드러난다.
+ */
+function stripMarkdownKeepCode(markdown: string | null): string {
+  if (!markdown) return "";
+  return markdown
+    .replace(/```[a-zA-Z0-9_-]*\n?/g, " ") // 코드펜스 라인만 제거, 코드 본문은 유지
+    .replace(/`([^`]*)`/g, "$1")            // 인라인 코드 → 텍스트 유지
+    .replace(/!\[.*?\]\(.*?\)/g, " ")
+    .replace(/\[([^\]]*)\]\(.*?\)/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/^#{1,6}\s+/gm, " ")
+    .replace(/^\s*[>\-*+]\s+/gm, " ")
+    .replace(/[*_~#>|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * 검색어가 본문에 처음 등장하는 위치 주변을 잘라 평문 스니펫으로 반환 (구글 설명줄처럼).
+ * 본문에 검색어가 없으면 null. 대소문자 무시.
+ */
+export function snippetFromMarkdown(markdown: string | null, query: string): string | null {
+  const text = stripMarkdownKeepCode(markdown);
+  if (!text || !query) return null;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return null;
+
+  // 매칭어를 스니펫 "앞쪽"에 둔다 — line-clamp(2줄)에 잘려 강조가 안 보이는 걸 방지.
+  // 앞 컨텍스트는 짧게, 뒤를 길게.
+  const LEAD = 24;
+  const TRAIL = 150;
+  let start = Math.max(0, idx - LEAD);
+  let end = Math.min(text.length, idx + query.length + TRAIL);
+  // 단어 중간에서 잘리지 않게 가까운 공백으로 살짝 당김
+  if (start > 0) {
+    const sp = text.indexOf(" ", start);
+    if (sp !== -1 && sp < idx) start = sp + 1;
+  }
+  if (end < text.length) {
+    const sp = text.lastIndexOf(" ", end);
+    if (sp > idx + query.length) end = sp;
+  }
+  return (start > 0 ? "… " : "") + text.slice(start, end).trim() + (end < text.length ? " …" : "");
 }
 
 export function extractImageUrls(markdown: string): string[] {

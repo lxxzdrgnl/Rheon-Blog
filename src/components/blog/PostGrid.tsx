@@ -13,6 +13,7 @@ interface Post {
   thumbnailTextLength?: number | null;
   thumbnailTextLengthEn?: number | null;
   showTitleOnThumbnail?: boolean | null;
+  snippet?: string | null;
 }
 
 export function PostGrid({ posts }: { posts: Post[] }) {

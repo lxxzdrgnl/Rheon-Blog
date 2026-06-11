@@ -3,6 +3,7 @@
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { useLocalized } from "@/i18n/provider";
 import { LocalizedThumbnail } from "./LocalizedThumbnail";
+import { Highlight } from "@/components/ui/Highlight";
 
 interface PostCardProps {
   title: string;
@@ -16,9 +17,13 @@ interface PostCardProps {
   thumbnailTextLength?: number | null;
   thumbnailTextLengthEn?: number | null;
   showTitleOnThumbnail?: boolean | null;
+  /** 검색 결과에서 일치 구간 강조 */
+  highlight?: string;
+  /** 검색 결과 설명줄 (본문 발췌/스니펫) */
+  snippet?: string | null;
 }
 
-export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryName, categoryNameEn, tags, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail }: PostCardProps) {
+export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryName, categoryNameEn, tags, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail, highlight, snippet }: PostCardProps) {
   const localized = useLocalized();
   const displayTitle = localized(title, titleEn);
   const displayCategory = localized(categoryName, categoryNameEn);
@@ -32,13 +37,19 @@ export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryN
         {/* ── Meta ── */}
         <div className="mt-3 px-0.5">
           <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">
-            {displayTitle}
+            <Highlight text={displayTitle} query={highlight} />
           </h3>
+
+          {snippet && (
+            <p className="mt-1.5 text-[13px] text-text-secondary leading-relaxed line-clamp-2">
+              <Highlight text={snippet} query={highlight} />
+            </p>
+          )}
 
           <div className="flex items-center gap-1.5 mt-1.5 text-xs text-text-tertiary">
             {displayCategory && (
               <>
-                <span className="text-text-secondary">{displayCategory}</span>
+                <span className="text-accent font-medium">{displayCategory}</span>
                 <span className="text-border">·</span>
               </>
             )}
@@ -49,7 +60,7 @@ export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryN
             <div className="flex flex-wrap gap-x-2 gap-y-1 mt-2">
               {tags.slice(0, 3).map((tag) => (
                 <span key={tag.name} className="text-[11px] text-accent/70 font-medium">
-                  #{localized(tag.name, tag.nameEn)}
+                  #<Highlight text={localized(tag.name, tag.nameEn)} query={highlight} />
                 </span>
               ))}
               {tags.length > 3 && (

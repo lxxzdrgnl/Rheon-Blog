@@ -113,7 +113,8 @@ function CenteredTitle({ title, textLength, wrap, coverFont, shadow }: { title: 
   const { lines, viewBox, vbW, lineH, FS } = layoutTitle(coverText, wrap);
   const padClass = wrap ? "p-[6%]" : "p-[10%]";
   return (
-    <div className={`absolute inset-0 flex items-center justify-center ${padClass}`}>
+    // 평소엔 글씨를 살짝(3%) 줄였다가 카드 hover 시 커지게 — 이미지 zoom과 함께 자연스럽게 움직이도록
+    <div className={`absolute inset-0 flex items-center justify-center scale-[0.97] transition-transform duration-500 ease-out group-hover:scale-[1.02] ${padClass}`}>
       <svg
         viewBox={viewBox}
         preserveAspectRatio="xMidYMid meet"
