@@ -15,8 +15,8 @@ export function MobileMenu({ onClose }: MobileMenuProps) {
   const { t } = useI18n();
 
   return (
-    <div className="md:hidden border-t border-border bg-bg-primary px-6 py-4 space-y-4">
-      <SearchBar />
+    <div className="md:hidden absolute top-full inset-x-0 z-50 border-t border-border bg-bg-primary shadow-lg px-6 py-4 space-y-4 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
+      <SearchBar onSubmit={onClose} />
       <nav className="flex flex-col gap-3 text-sm">
         {NAV_LINKS.map((link) => (
           <Link key={link.href} href={link.href} onClick={onClose} className="text-text-secondary hover:text-accent transition-colors">

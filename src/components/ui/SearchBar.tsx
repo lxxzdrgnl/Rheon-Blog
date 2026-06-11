@@ -11,9 +11,11 @@ interface SearchBarProps {
   /** "sm": 헤더용(기본), "lg": 검색 결과 페이지 히어로용 */
   size?: "sm" | "lg";
   autoFocus?: boolean;
+  /** 검색 후(이동 후) 호출 — 모바일 메뉴 닫기 등 */
+  onSubmit?: () => void;
 }
 
-export function SearchBar({ defaultValue = "", size = "sm", autoFocus = false }: SearchBarProps) {
+export function SearchBar({ defaultValue = "", size = "sm", autoFocus = false, onSubmit }: SearchBarProps) {
   const [query, setQuery] = useState(defaultValue);
   const router = useRouter();
   const { t, locale } = useI18n();
@@ -22,6 +24,7 @@ export function SearchBar({ defaultValue = "", size = "sm", autoFocus = false }:
     e.preventDefault();
     if (query.trim()) {
       router.push(localizeHref(`/search?q=${encodeURIComponent(query.trim())}`, locale));
+      onSubmit?.();
     }
   };
 

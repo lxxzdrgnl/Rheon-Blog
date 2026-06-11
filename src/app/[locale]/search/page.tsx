@@ -54,7 +54,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const total = postResults.length + projectResults.length + seriesResults.length;
 
   return (
-    <div className="page-container py-10">
+    <div className="page-container py-4 md:py-10">
       {/* ── Header ── */}
       <header className="animate-fade-in">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight break-words">
@@ -91,7 +91,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
         (total > 0 ? (
           <div className="mt-7 space-y-9">
             {postCards.length > 0 && (
-              <ResultSection label={en ? "Posts" : "글"} count={postCards.length} delay="animate-delay-2">
+              <ResultSection label={en ? "Posts" : "포스트"} count={postCards.length} delay="animate-delay-2">
                 {postCards.map((post) => (
                   <PostCard key={post.id} {...post} highlight={query} />
                 ))}
@@ -152,7 +152,7 @@ function ResultSection({
 }) {
   return (
     <section className={`animate-fade-in ${delay ?? ""}`}>
-      <div className="flex items-baseline gap-2 mb-4 pb-2 border-b border-border">
+      <div className="flex items-baseline gap-2 mb-4">
         <h2 className="text-base font-bold tracking-tight text-text-primary">{label}</h2>
         <span className="text-sm font-semibold text-accent tabular-nums">{count}</span>
       </div>

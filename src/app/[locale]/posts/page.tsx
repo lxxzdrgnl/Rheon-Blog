@@ -28,7 +28,7 @@ export default async function PostsPage({ params, searchParams }: Props) {
   const isSeries = tab === "series";
 
   return (
-    <div className="page-container py-10 space-y-8">
+    <div className="page-container py-4 md:py-10 space-y-4 md:space-y-8">
       <h1 className="sr-only">Posts</h1>
       <div className="animate-fade-in">
         <PostsTabs active={isSeries ? "series" : "posts"} />

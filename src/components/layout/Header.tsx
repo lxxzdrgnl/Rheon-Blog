@@ -34,7 +34,7 @@ export function Header({ blogTitle }: HeaderProps) {
 
   return (
     <header
-      className={`sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-xl transition-transform duration-300 ${
+      className={`sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-xl transition-transform duration-300 relative ${
         hidden && !mobileMenuOpen ? "-translate-y-full" : "translate-y-0"
       }`}
     >

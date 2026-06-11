@@ -19,7 +19,7 @@ export default async function ProjectsListPage({ params }: Props) {
   const allProjects = await getPortfolios();
 
   return (
-    <div className="page-container py-10">
+    <div className="page-container py-4 md:py-10">
       <h1 className="text-2xl font-bold tracking-tight mb-10 animate-fade-in">Projects</h1>
       {allProjects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in animate-delay-1">

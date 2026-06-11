@@ -45,14 +45,14 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
   const catName = category ? localized(category.name, category.nameEn) : null;
 
   return (
-    <div className="page-container py-10 relative">
+    <div className="page-container py-6 md:py-10 relative">
       <div className="max-w-prose mx-auto">
         {/* Header */}
         <header className="mb-6 animate-fade-in">
           <h1 className="text-2xl md:text-4xl font-bold leading-[1.15] tracking-tight">
             {title}
           </h1>
-          <div className="flex items-center gap-3 mt-6 text-sm text-text-secondary">
+          <div className="flex items-center gap-3 mt-4 text-sm text-text-secondary">
             {category && (
               <Link href={`/category/${category.slug}`} className="hover:text-accent transition-colors">
                 {catName}
@@ -72,15 +72,22 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
             )}
           </div>
           {postTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {postTags.map((tag) => (
-                <span key={tag.id} className="text-xs text-text-tertiary">
-                  #{localized(tag.name, tag.nameEn)}
-                </span>
-              ))}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {postTags.map((tag) => {
+                const name = localized(tag.name, tag.nameEn);
+                return (
+                  <Link
+                    key={tag.id}
+                    href={`/search?q=${encodeURIComponent(name)}`}
+                    className="text-[13px] font-medium text-accent/80 hover:text-accent transition-colors"
+                  >
+                    #{name}
+                  </Link>
+                );
+              })}
             </div>
           )}
-          <div className="mt-8 h-px bg-border" />
+          <div className="mt-5 h-px bg-border" />
         </header>
 
         {/* Related Project(s) */}

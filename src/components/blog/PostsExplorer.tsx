@@ -87,8 +87,8 @@ export function PostsExplorer({
     : { latest: "최신순", oldest: "오래된순", views: "조회수순", title: "제목순" };
 
   return (
-    <div className="space-y-7">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4 md:space-y-7">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <FilterBar
           categories={categories}
           tags={[]}
