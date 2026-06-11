@@ -16,7 +16,7 @@ interface SeriesNavigationProps {
 }
 
 const cardCls =
-  "flex-1 min-w-0 group flex items-center gap-3 p-4 rounded-xl border border-border bg-bg-card/40 hover:border-accent/40 hover:bg-accent-soft/30 transition-colors";
+  "flex-1 min-w-0 group flex items-center gap-3 p-4 rounded-xl border border-border bg-bg-primary hover:border-accent/40 transition-colors";
 const circleCls =
   "shrink-0 flex items-center justify-center w-9 h-9 rounded-full border border-accent/40 text-accent group-hover:bg-accent group-hover:text-bg-primary group-hover:border-accent transition-colors";
 

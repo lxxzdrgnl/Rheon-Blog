@@ -35,6 +35,7 @@ interface PostWithCategory {
   thumbnail: string | null;
   thumbnailTextLength?: number | null;
   thumbnailTextLengthEn?: number | null;
+  showTitleOnThumbnail?: boolean | null;
   createdAt: string;
   categoryName: string;
   categoryNameEn: string;
@@ -128,10 +129,11 @@ export function ProjectDetailClient({
   const techs: string[] = JSON.parse(project.techStack || "[]");
   const links = parseLinks(project.link);
 
+  const en = locale === "en";
   const sections = [
-    { key: "repo", title: "Repository", items: links.filter((l) => classify(l) === "repo") },
-    { key: "demo", title: "Demo / Live", items: links.filter((l) => classify(l) === "demo") },
-    { key: "other", title: "Links", items: links.filter((l) => classify(l) === "other") },
+    { key: "repo", title: en ? "Repository" : "레포지토리", items: links.filter((l) => classify(l) === "repo") },
+    { key: "demo", title: en ? "Demo / Live" : "데모", items: links.filter((l) => classify(l) === "demo") },
+    { key: "other", title: en ? "Links" : "링크", items: links.filter((l) => classify(l) === "other") },
   ].filter((s) => s.items.length > 0);
 
   return (
@@ -140,7 +142,7 @@ export function ProjectDetailClient({
       <CategorySidebar tree={categoryTree} counts={categoryCounts} recentPosts={recentPosts} viewStats={viewStats} />
       {/* ── Hero thumbnail ── */}
       {project.thumbnail && (
-        <div className="max-w-prose mx-auto mb-10 animate-fade-in">
+        <div className="max-w-prose mx-auto mb-10 px-1 sm:px-0 animate-fade-in">
           <div className="relative rounded-2xl overflow-hidden bg-bg-card">
             <img
               src={project.thumbnail}
@@ -152,7 +154,7 @@ export function ProjectDetailClient({
         </div>
       )}
 
-      <div className="max-w-prose mx-auto">
+      <div className="max-w-prose mx-auto px-1 sm:px-0">
         {/* ── Header ── */}
         <header className="animate-fade-in">
           <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
@@ -182,7 +184,7 @@ export function ProjectDetailClient({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {sections.map((section) => (
                 <div key={section.key} className={sections.length === 1 ? "sm:col-span-2" : ""}>
-                  <span className="text-[11px] text-text-tertiary uppercase tracking-widest font-semibold ml-0.5 mb-2 block">
+                  <span className="text-[13px] text-text-tertiary uppercase tracking-wide font-bold ml-0.5 mb-2 block">
                     {section.title}
                   </span>
                   <div className="space-y-1.5">
@@ -192,7 +194,7 @@ export function ProjectDetailClient({
                         href={l.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex items-center gap-3 pl-3 pr-3.5 py-3 rounded-xl bg-bg-card border border-border/40 hover:border-accent/40 hover:shadow-[0_2px_12px_-3px_rgba(42,157,110,0.15)] dark:hover:shadow-[0_2px_12px_-3px_rgba(94,186,151,0.1)] transition-all duration-250"
+                        className="group flex items-center gap-3 pl-3 pr-3.5 py-3 rounded-xl bg-bg-card border border-border/40 hover:border-accent/40 hover:shadow-[0_2px_12px_-3px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_2px_12px_-3px_rgba(0,0,0,0.4)] transition-all duration-250"
                       >
                         <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-bg-elevated group-hover:bg-accent/10 transition-colors duration-250">
                           <span className="text-text-tertiary group-hover:text-accent transition-colors duration-250">
@@ -219,9 +221,9 @@ export function ProjectDetailClient({
 
         {/* ── Related Posts ── */}
         {relatedPosts.length > 0 && (
-          <div className="mt-14 animate-fade-in animate-delay-2">
+          <div className="mt-8 animate-fade-in animate-delay-2">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-[11px] font-bold tracking-widest uppercase text-text-tertiary whitespace-nowrap">
+              <h2 className="text-[13px] font-bold tracking-wide uppercase text-text-tertiary whitespace-nowrap">
                 {locale === "en" ? "Related Posts" : "관련 포스트"}
               </h2>
               <div className="flex-1 h-px bg-border/60" />
@@ -233,10 +235,10 @@ export function ProjectDetailClient({
         {/* ── Content ── */}
         {content && (
           <>
-            <div className="mt-14 flex items-center gap-3">
+            <div className="mt-6 flex items-center gap-3">
               <div className="flex-1 h-px bg-border/60" />
             </div>
-            <article className="mt-10 animate-fade-in animate-delay-2">
+            <article className="mt-6 animate-fade-in animate-delay-2">
               <MarkdownRenderer content={content} />
             </article>
           </>

@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
-import { PostThumbnail } from "@/components/blog/PostThumbnail";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { CommentSection } from "@/components/blog/CommentSection";
 import { SeriesTableOfContents } from "@/components/blog/SeriesTableOfContents";
@@ -37,7 +36,7 @@ interface PostDetailClientProps {
   } | null;
   projects: {
     id: number; title: string; titleEn: string | null; slug: string;
-    description: string; descriptionEn: string | null; techStack: string;
+    description: string; descriptionEn: string | null; techStack: string; thumbnail: string | null;
   }[];
   categoryTree: CatNode[];
   categoryCounts: Record<number, number>;
@@ -64,7 +63,7 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
 
   return (
     <div className="page-container py-6 md:py-10 relative">
-      <div className="max-w-prose mx-auto">
+      <div className="max-w-prose mx-auto px-1 sm:px-0">
         {/* Header */}
         <header className="mb-6 animate-fade-in">
           <h1 className="text-2xl md:text-4xl font-bold leading-[1.15] tracking-tight">
@@ -109,8 +108,18 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
         </header>
 
         {/* Related Project(s) */}
+        {seriesData && (
+          <SeriesTableOfContents
+            seriesTitle={seriesData.title}
+            seriesTitleEn={seriesData.titleEn}
+            posts={seriesData.posts}
+            currentPostId={post.id}
+          />
+        )}
+
+        {/* Related Project(s) — 시리즈 아래 */}
         {projects.length > 0 && (
-          <div className="mb-5 space-y-2 animate-fade-in" style={{ fontFamily: "var(--font-family-sans)" }}>
+          <div className="mt-5 mb-6 space-y-2 animate-fade-in" style={{ fontFamily: "var(--font-family-sans)" }}>
             {projects.map((p) => {
               const pTitle = localized(p.title, p.titleEn);
               const pDesc = localized(p.description, p.descriptionEn);
@@ -121,17 +130,21 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
                 <Link
                   key={p.id}
                   href={`/projects/${p.slug}`}
-                  className="group flex items-center gap-4 rounded-xl border border-border/60 bg-bg-card p-2.5 hover:border-accent/50 hover:bg-accent-soft/30 transition-all duration-250"
+                  className="group flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-border bg-bg-primary p-3 hover:border-accent/40 transition-colors duration-200"
                 >
-                  <div className="w-24 sm:w-28 shrink-0">
-                    <PostThumbnail thumbnail={null} title={pTitle} textLength={10} coverFont="sans" wrap={false} />
+                  <div className="w-full sm:w-56 shrink-0 aspect-[16/10] rounded-xl border border-text-tertiary/30 overflow-hidden bg-bg-elevated flex items-center justify-center">
+                    {p.thumbnail ? (
+                      <img src={p.thumbnail} alt={pTitle} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl font-black text-text-tertiary/30 select-none">{pTitle.charAt(0)}</span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 text-accent mb-0.5">
-                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                    <div className="flex items-center gap-1.5 text-accent mb-1">
+                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                       </svg>
-                      <span className="text-[10px] font-bold uppercase tracking-widest">
+                      <span className="text-[13px] font-bold uppercase tracking-wide">
                         {locale === "en" ? "Project" : "관련 프로젝트"}
                       </span>
                     </div>
@@ -143,12 +156,13 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                       </svg>
                     </div>
-                    {pDesc && <p className="text-sm text-text-secondary mt-0.5 line-clamp-1">{pDesc}</p>}
+                    {pDesc && <p className="text-sm text-text-secondary mt-1 line-clamp-3 leading-relaxed">{pDesc}</p>}
                     {techs.length > 0 && (
-                      <div className="flex flex-wrap gap-x-2 gap-y-1 mt-1">
-                        {techs.slice(0, 5).map((t) => (
+                      <div className="flex flex-wrap gap-x-2 gap-y-1 mt-2">
+                        {techs.slice(0, 8).map((t) => (
                           <span key={t} className="text-[11px] text-accent/80 font-medium">{t}</span>
                         ))}
+                        {techs.length > 8 && <span className="text-[11px] text-text-tertiary">+{techs.length - 8}</span>}
                       </div>
                     )}
                   </div>
@@ -156,15 +170,6 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
               );
             })}
           </div>
-        )}
-
-        {seriesData && (
-          <SeriesTableOfContents
-            seriesTitle={seriesData.title}
-            seriesTitleEn={seriesData.titleEn}
-            posts={seriesData.posts}
-            currentPostId={post.id}
-          />
         )}
 
         {/* Content */}

@@ -42,11 +42,13 @@ export async function getProjectsForPost(postId: number) {
       description: portfolios.description,
       descriptionEn: portfolios.descriptionEn,
       techStack: portfolios.techStack,
+      thumbnail: portfolios.thumbnail,
     })
     .from(portfolioPosts)
     .innerJoin(portfolios, eq(portfolioPosts.portfolioId, portfolios.id))
     .where(eq(portfolioPosts.postId, postId))
-    .all();
+    .all()
+    .map((p) => ({ ...p, thumbnail: rewriteImageUrl(p.thumbnail) }));
 }
 
 // 포스트의 프로젝트 연결 갱신
@@ -69,13 +71,15 @@ export async function getPortfolioPosts(portfolioId: number) {
       thumbnail: posts.thumbnail,
       thumbnailTextLength: posts.thumbnailTextLength,
       thumbnailTextLengthEn: posts.thumbnailTextLengthEn,
+      showTitleOnThumbnail: posts.showTitleOnThumbnail,
       createdAt: posts.createdAt,
       categoryId: posts.categoryId,
     })
     .from(portfolioPosts)
     .innerJoin(posts, eq(portfolioPosts.postId, posts.id))
     .where(eq(portfolioPosts.portfolioId, portfolioId))
-    .all();
+    .all()
+    .map((p) => ({ ...p, thumbnail: rewriteImageUrl(p.thumbnail) }));
 }
 
 export async function createPortfolio(formData: FormData) {

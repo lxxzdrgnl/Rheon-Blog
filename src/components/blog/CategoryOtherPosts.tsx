@@ -40,7 +40,7 @@ export function CategoryOtherPosts({
   const moreHref = latest || !categorySlug ? "/posts" : `/posts?cat=${categorySlug}`;
 
   return (
-    <div className="rounded-xl border border-border/60 bg-bg-card/40 px-5 py-4">
+    <div className="rounded-xl border border-border bg-bg-primary px-5 py-4">
       <div className="flex items-baseline justify-between gap-3 mb-1">
         <h3 className="text-sm font-bold">
           {latest || !catName ? (

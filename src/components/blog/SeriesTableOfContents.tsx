@@ -24,13 +24,13 @@ export function SeriesTableOfContents({ seriesTitle, seriesTitleEn, posts, curre
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <div className="mb-6 rounded-xl border border-border/60 bg-bg-elevated/50 overflow-hidden animate-fade-in">
+    <div className="mb-3 rounded-xl border border-border bg-bg-primary overflow-hidden animate-fade-in">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-bg-elevated transition-colors"
       >
         <div>
-          <span className="text-xs text-accent font-medium uppercase tracking-wider">{t("series.title")}</span>
+          <span className="text-[13px] text-accent font-bold uppercase tracking-wide">{t("series.title")}</span>
           <h3 className="font-semibold text-text-primary mt-0.5">{localized(seriesTitle, seriesTitleEn)}</h3>
         </div>
         <svg
