@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { FilterBar } from "./FilterBar";
 import { PostGrid } from "./PostGrid";
 import { useI18n, useLocalized } from "@/i18n/provider";
@@ -36,16 +37,29 @@ export function PostsExplorer({
   posts,
   categories,
   counts,
+  initialCategorySlug,
 }: {
   posts: ExplorerPost[];
   categories: Category[];
   counts?: Record<number, number>;
+  /** URL ?cat=slug 로 들어온 초기 선택 카테고리 */
+  initialCategorySlug?: string;
 }) {
   const { locale } = useI18n();
   const localized = useLocalized();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [selectedId, setSelectedId] = useState<number | null>(
+    () => (initialCategorySlug ? categories.find((c) => c.slug === initialCategorySlug)?.id ?? null : null),
+  );
   const [sort, setSort] = useState<SortKey>("latest");
   const en = locale === "en";
+
+  // 카테고리 선택 → 인플레이스 필터 + URL ?cat= 동기화(공유·뒤로가기 가능)
+  const handleSelect = (cat: { id: number; slug: string } | null) => {
+    setSelectedId(cat?.id ?? null);
+    router.replace(cat ? `${pathname}?cat=${cat.slug}` : pathname, { scroll: false });
+  };
 
   // 선택 카테고리 + 모든 하위 카테고리 id 집합
   const allowedIds = useMemo(() => {
@@ -94,7 +108,7 @@ export function PostsExplorer({
           tags={[]}
           counts={counts}
           selectedId={selectedId}
-          onSelect={(cat) => setSelectedId(cat?.id ?? null)}
+          onSelect={handleSelect}
         />
 
         <div className="relative ml-auto shrink-0">

@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { getPortfolioBySlug, getPortfolioPosts } from "@/actions/portfolios";
-import { getCategories } from "@/actions/categories";
-import { getAllPostTags } from "@/actions/posts";
+import { getCategories, getCategoryTree, getPublishedCategoryCounts } from "@/actions/categories";
+import { getAllPostTags, getRecentPostsWithComments } from "@/actions/posts";
+import { getSiteViewStats } from "@/actions/stats";
 import { Metadata } from "next";
 import { pageMetadata, creativeWorkJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -36,10 +37,14 @@ export default async function ProjectDetailPage({ params }: Props) {
   const project = await getPortfolioBySlug(slug);
   if (!project) notFound();
 
-  const [relatedPosts, allCategories, postTagsMap] = await Promise.all([
+  const [relatedPosts, allCategories, postTagsMap, categoryTree, categoryCounts, recentPosts, viewStats] = await Promise.all([
     getPortfolioPosts(project.id),
     getCategories(),
     getAllPostTags(),
+    getCategoryTree(),
+    getPublishedCategoryCounts(),
+    getRecentPostsWithComments(-1, 5),
+    getSiteViewStats(),
   ]);
 
   const postsWithCategory = relatedPosts.map((post) => {
@@ -80,6 +85,10 @@ export default async function ProjectDetailPage({ params }: Props) {
       <ProjectDetailClient
         project={project}
         relatedPosts={postsWithCategory}
+        categoryTree={categoryTree}
+        categoryCounts={categoryCounts}
+        recentPosts={recentPosts}
+        viewStats={viewStats}
       />
     </>
   );

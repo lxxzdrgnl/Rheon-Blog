@@ -138,6 +138,12 @@ export const socialLinks = sqliteTable("social_links", {
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
+// 사이트 일별 방문(조회) 집계 — 전체/오늘 조회수 표시용. 날짜(KST, YYYY-MM-DD)별 카운트.
+export const siteViews = sqliteTable("site_views", {
+  date: text("date").primaryKey(),
+  count: integer("count").notNull().default(0),
+});
+
 export const series = sqliteTable("series", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),

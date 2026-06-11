@@ -8,7 +8,16 @@ import { TableOfContents } from "@/components/blog/TableOfContents";
 import { CommentSection } from "@/components/blog/CommentSection";
 import { SeriesTableOfContents } from "@/components/blog/SeriesTableOfContents";
 import { SeriesNavigation } from "@/components/blog/SeriesNavigation";
+import { CategorySidebar } from "@/components/blog/CategorySidebar";
+import { CategoryOtherPosts } from "@/components/blog/CategoryOtherPosts";
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
+
+interface CatNode { id: number; parentId: number | null; name: string; nameEn: string; slug: string; postCount?: number; children: CatNode[] }
+interface OtherPost { id: number; title: string; titleEn: string | null; slug: string; createdAt: string; commentCount: number }
+interface RecentPost { id: number; title: string; titleEn: string | null; slug: string; createdAt: string }
+
+// 이 세션에서 이미 조회 집계를 보낸 글 — strict mode 이중 발화/중복 호출 방지
+const viewSent = new Set<string>();
 
 interface PostDetailClientProps {
   post: {
@@ -30,13 +39,22 @@ interface PostDetailClientProps {
     id: number; title: string; titleEn: string | null; slug: string;
     description: string; descriptionEn: string | null; techStack: string;
   }[];
+  categoryTree: CatNode[];
+  categoryCounts: Record<number, number>;
+  recentPosts: RecentPost[];
+  viewStats: { total: number; today: number };
+  otherPosts: OtherPost[];
+  otherIsLatest: boolean;
 }
 
-export function PostDetailClient({ post, postTags, category, showViewCount, seriesData, projects }: PostDetailClientProps) {
+export function PostDetailClient({ post, postTags, category, showViewCount, seriesData, projects, categoryTree, categoryCounts, recentPosts, viewStats, otherPosts, otherIsLatest }: PostDetailClientProps) {
   const { locale, t } = useI18n();
   const localized = useLocalized();
 
   useEffect(() => {
+    // 모듈 레벨 가드 — strict mode 이중 발화/경합으로 조회수가 두 번 오르는 것 방지
+    if (viewSent.has(post.slug)) return;
+    viewSent.add(post.slug);
     fetch(`/api/view/${post.slug}`, { method: "POST" }).catch(() => {});
   }, [post.slug]);
 
@@ -54,7 +72,7 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
           </h1>
           <div className="flex items-center gap-3 mt-4 text-sm text-text-secondary">
             {category && (
-              <Link href={`/category/${category.slug}`} className="hover:text-accent transition-colors">
+              <Link href={`/posts?cat=${category.slug}`} className="hover:text-accent transition-colors">
                 {catName}
               </Link>
             )}
@@ -154,20 +172,32 @@ export function PostDetailClient({ post, postTags, category, showViewCount, seri
           <MarkdownRenderer content={content} />
         </article>
 
-        {/* Comments */}
-        <div className="mt-20">
-          <div className="h-px bg-border mb-12" />
-          {seriesData && (
-            <SeriesNavigation
-              prevPost={seriesData.prevPost}
-              nextPost={seriesData.nextPost}
+        {/* 글 끝 — 구분선 */}
+        <div className="h-px bg-border my-8" />
+
+        {seriesData && <SeriesNavigation prevPost={seriesData.prevPost} nextPost={seriesData.nextPost} />}
+
+        {/* 이 카테고리의 다른 글 (없으면 최신글) */}
+        {otherPosts.length > 0 && (
+          <div className="mt-8">
+            <CategoryOtherPosts
+              categoryName={category?.name}
+              categoryNameEn={category?.nameEn}
+              categorySlug={category?.slug}
+              posts={otherPosts}
+              latest={otherIsLatest}
             />
-          )}
+          </div>
+        )}
+
+        {/* Comments */}
+        <div className="mt-8">
           <CommentSection postId={post.id} slug={post.slug} />
         </div>
       </div>
 
-      {/* TOC - absolute positioned to the right */}
+      {/* 왼쪽 분류 트리 · 오른쪽 TOC (xl 이상) */}
+      <CategorySidebar tree={categoryTree} counts={categoryCounts} recentPosts={recentPosts} viewStats={viewStats} activeSlug={category?.slug} />
       <TableOfContents />
     </div>
   );

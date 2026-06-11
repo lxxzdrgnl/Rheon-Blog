@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { posts, postTags, tags } from "@/db/schema";
-import { eq, desc, and, sql, like } from "drizzle-orm";
+import { posts, postTags, tags, comments, siteViews } from "@/db/schema";
+import { eq, ne, desc, and, sql, like, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { generateSlug } from "@/lib/slug";
 import { extractImageUrls, getOrphanedImages } from "@/lib/markdown";
@@ -88,6 +88,56 @@ export async function getPostTags(postId: number) {
     .innerJoin(tags, eq(postTags.tagId, tags.id))
     .where(eq(postTags.postId, postId))
     .all();
+}
+
+type OtherPostRow = { id: number; title: string; titleEn: string | null; slug: string; createdAt: string };
+
+function attachCommentCounts(rows: OtherPostRow[]) {
+  if (rows.length === 0) return [];
+  const ids = rows.map((r) => r.id);
+  const countRows = db
+    .select({ postId: comments.postId, c: sql<number>`COUNT(*)` })
+    .from(comments)
+    .where(and(inArray(comments.postId, ids), eq(comments.isDeleted, false)))
+    .groupBy(comments.postId)
+    .all();
+  const cmap = new Map(countRows.map((r) => [r.postId, Number(r.c)]));
+  return rows.map((r) => ({ ...r, commentCount: cmap.get(r.id) ?? 0 }));
+}
+
+const otherPostCols = {
+  id: posts.id, title: posts.title, titleEn: posts.titleEn, slug: posts.slug, createdAt: posts.createdAt,
+};
+
+/** 같은 카테고리의 다른 공개 글 (제목·날짜·댓글수). 포스트 상세 "이 카테고리의 다른 글"용. */
+export async function getOtherPostsInCategory(categoryId: number, excludePostId: number, limit = 5) {
+  const rows = db
+    .select(otherPostCols)
+    .from(posts)
+    .where(
+      and(
+        eq(posts.categoryId, categoryId),
+        eq(posts.isPublished, true),
+        eq(posts.isPrivate, false),
+        ne(posts.id, excludePostId),
+      ),
+    )
+    .orderBy(desc(posts.createdAt))
+    .limit(limit)
+    .all();
+  return attachCommentCounts(rows);
+}
+
+/** 최신 공개 글 (제목·날짜·댓글수). 카테고리에 다른 글이 없을 때 폴백 추천용. */
+export async function getRecentPostsWithComments(excludePostId: number, limit = 5) {
+  const rows = db
+    .select(otherPostCols)
+    .from(posts)
+    .where(and(eq(posts.isPublished, true), eq(posts.isPrivate, false), ne(posts.id, excludePostId)))
+    .orderBy(desc(posts.createdAt))
+    .limit(limit)
+    .all();
+  return attachCommentCounts(rows);
 }
 
 export async function getAllPostTags(): Promise<Record<number, { name: string; nameEn: string }[]>> {
@@ -292,4 +342,15 @@ export async function incrementViewCount(slug: string) {
     .set({ viewCount: sql`view_count + 1` })
     .where(eq(posts.slug, slug))
     .run();
+
+  // 네이버식 일별 조회수 총합 — /api/view의 글별 24h dedup을 통과한 조회만 카운트(관리자 포함).
+  try {
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
+    db.insert(siteViews)
+      .values({ date: today, count: 1 })
+      .onConflictDoUpdate({ target: siteViews.date, set: { count: sql`count + 1` } })
+      .run();
+  } catch {
+    /* site_views 마이그레이션 전 — 무시 */
+  }
 }

@@ -3,28 +3,25 @@ import { SITE_URL } from "@/lib/locale";
 import { locales } from "@/i18n/config";
 import { getPosts } from "@/actions/posts";
 import { getPortfolios } from "@/actions/portfolios";
-import { getCategories } from "@/actions/categories";
 import { getAllSeries } from "@/actions/series";
 
 // 런타임 DB를 읽도록 동적 생성(빌드 시점 빈 DB로 구워져 글이 누락되던 문제 방지).
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [posts, projects, cats, series] = await Promise.all([
+  const [posts, projects, series] = await Promise.all([
     getPosts({ published: true }),
     getPortfolios(),
-    getCategories(),
     getAllSeries(),
   ]);
 
-  // 태그(/tag/*) 페이지는 thin/중복 콘텐츠라 사이트맵에서 제외(페이지 자체도 noindex).
+  // 태그(/tag/*)·카테고리(/category/*) 페이지는 제거됨(카테고리는 /posts?cat= 쿼리로 대체).
   const paths = [
     "",
     "/posts",
     "/projects",
     ...posts.map((p) => `/post/${p.slug}`),
     ...projects.map((p) => `/projects/${p.slug}`),
-    ...cats.map((c) => `/category/${c.slug}`),
     ...series.map((s) => `/series/${s.slug}`),
   ];
 

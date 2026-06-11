@@ -4,6 +4,10 @@ import { useI18n, useLocalized } from "@/i18n/provider";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostGrid } from "@/components/blog/PostGrid";
 import { TableOfContents } from "@/components/blog/TableOfContents";
+import { CategorySidebar } from "@/components/blog/CategorySidebar";
+
+interface CatNode { id: number; parentId: number | null; name: string; nameEn: string; slug: string; postCount?: number; children: CatNode[] }
+interface RecentPost { id: number; title: string; titleEn: string | null; slug: string; createdAt: string }
 
 interface ProjectLink {
   badge?: string;
@@ -100,7 +104,21 @@ function classify(l: ProjectLink) {
   return "other";
 }
 
-export function ProjectDetailClient({ project, relatedPosts }: { project: Project; relatedPosts: PostWithCategory[] }) {
+export function ProjectDetailClient({
+  project,
+  relatedPosts,
+  categoryTree,
+  categoryCounts,
+  recentPosts,
+  viewStats,
+}: {
+  project: Project;
+  relatedPosts: PostWithCategory[];
+  categoryTree: CatNode[];
+  categoryCounts: Record<number, number>;
+  recentPosts: RecentPost[];
+  viewStats: { total: number; today: number };
+}) {
   const { locale } = useI18n();
   const localized = useLocalized();
 
@@ -117,7 +135,9 @@ export function ProjectDetailClient({ project, relatedPosts }: { project: Projec
   ].filter((s) => s.items.length > 0);
 
   return (
-    <div className="page-container py-10 md:py-16">
+    <div className="page-container py-10 md:py-16 relative">
+      {/* 왼쪽 분류 트리 + 최신글 (xl 이상) */}
+      <CategorySidebar tree={categoryTree} counts={categoryCounts} recentPosts={recentPosts} viewStats={viewStats} />
       {/* ── Hero thumbnail ── */}
       {project.thumbnail && (
         <div className="max-w-prose mx-auto mb-10 animate-fade-in">

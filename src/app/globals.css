@@ -74,6 +74,11 @@ body {
   font-feature-settings: "ss01", "ss02";
 }
 
+/* PC(데스크톱)에서 기본 110% 비율 — 브라우저 줌 110%와 동일하게 균일 확대. 모바일은 제외. */
+@media (min-width: 1024px) {
+  html { zoom: 1.1; }
+}
+
 /* ─── Page container utility ─── */
 .page-container {
   max-width: var(--max-width-content);

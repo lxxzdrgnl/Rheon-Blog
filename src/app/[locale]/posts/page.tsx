@@ -11,7 +11,7 @@ import { pageMetadata } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; cat?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PostsPage({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { tab } = await searchParams;
+  const { tab, cat } = await searchParams;
   const isSeries = tab === "series";
 
   return (
@@ -34,13 +34,13 @@ export default async function PostsPage({ params, searchParams }: Props) {
         <PostsTabs active={isSeries ? "series" : "posts"} />
       </div>
       <div key={isSeries ? "series" : "posts"} className="animate-fade-in animate-delay-1">
-        {isSeries ? <SeriesView /> : <PostsView locale={locale} />}
+        {isSeries ? <SeriesView /> : <PostsView locale={locale} initialCategorySlug={cat} />}
       </div>
     </div>
   );
 }
 
-async function PostsView({ locale }: { locale: string }) {
+async function PostsView({ locale, initialCategorySlug }: { locale: string; initialCategorySlug?: string }) {
   const en = locale === "en";
   const [allPosts, allCategories, postTagsMap, counts] = await Promise.all([
     getPosts({ published: true }),
@@ -73,7 +73,14 @@ async function PostsView({ locale }: { locale: string }) {
     };
   });
 
-  return <PostsExplorer posts={postsForClient} categories={allCategories} counts={counts} />;
+  return (
+    <PostsExplorer
+      posts={postsForClient}
+      categories={allCategories}
+      counts={counts}
+      initialCategorySlug={initialCategorySlug}
+    />
+  );
 }
 
 async function SeriesView() {

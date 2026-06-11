@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getPostBySlug, getPostTags } from "@/actions/posts";
-import { getCategories } from "@/actions/categories";
+import { getPostBySlug, getPostTags, getOtherPostsInCategory, getRecentPostsWithComments } from "@/actions/posts";
+import { getCategories, getCategoryTree, getPublishedCategoryCounts } from "@/actions/categories";
+import { getSiteViewStats } from "@/actions/stats";
 import { getSetting } from "@/actions/settings";
 import { getSeriesById, getSeriesPosts } from "@/actions/series";
 import { getProjectsForPost } from "@/actions/portfolios";
@@ -38,15 +39,26 @@ export default async function PostPage({ params }: Props) {
   const post = await getPostBySlug(slug);
   if (!post || !post.isPublished || post.isPrivate) notFound();
 
-  const [postTags, categories, showViewCount, projects, authorName] = await Promise.all([
+  const [postTags, categories, showViewCount, projects, authorName, categoryTree, categoryCounts, recentPosts, viewStats] = await Promise.all([
     getPostTags(post.id),
     getCategories(),
     getSetting("show_view_count"),
     getProjectsForPost(post.id),
     getSetting(isEn ? "resume_name_en" : "resume_name"),
+    getCategoryTree(),
+    getPublishedCategoryCounts(),
+    getRecentPostsWithComments(post.id, 5),
+    getSiteViewStats(),
   ]);
 
   const category = categories.find((c) => c.id === post.categoryId);
+  // 같은 카테고리의 다른 글, 없으면(또는 카테고리 없음) 최신글로 폴백
+  let otherPosts = category ? await getOtherPostsInCategory(category.id, post.id) : [];
+  let otherIsLatest = false;
+  if (otherPosts.length === 0) {
+    otherPosts = await getRecentPostsWithComments(post.id);
+    otherIsLatest = true;
+  }
 
   const jsonLd = articleJsonLd({
     locale: isEn ? "en" : "ko",
@@ -88,6 +100,12 @@ export default async function PostPage({ params }: Props) {
         showViewCount={!!showViewCount}
         seriesData={seriesData}
         projects={projects}
+        categoryTree={categoryTree}
+        categoryCounts={categoryCounts}
+        recentPosts={recentPosts}
+        viewStats={viewStats}
+        otherPosts={otherPosts}
+        otherIsLatest={otherIsLatest}
       />
     </>
   );
