@@ -2,6 +2,7 @@
 
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { useI18n, useLocalized } from "@/i18n/provider";
+import { EYEBROW } from "@/lib/styles";
 
 interface SeriesPost {
   id: number;
@@ -36,7 +37,7 @@ export function SeriesNavigation({ prevPost, nextPost }: SeriesNavigationProps) 
             </svg>
           </span>
           <span className="min-w-0">
-            <span className="block text-xs font-semibold uppercase tracking-wide text-accent">{t("series.prev")}</span>
+            <span className={`block ${EYEBROW} text-accent`}>{t("series.prev")}</span>
             <span className="block text-[15px] font-semibold text-text-primary mt-1 truncate group-hover:text-accent transition-colors">
               {localized(prevPost.title, prevPost.titleEn)}
             </span>
@@ -48,7 +49,7 @@ export function SeriesNavigation({ prevPost, nextPost }: SeriesNavigationProps) 
       {nextPost ? (
         <Link href={`/post/${nextPost.slug}`} className={`${cardCls} text-right`}>
           <span className="min-w-0 flex-1">
-            <span className="block text-xs font-semibold uppercase tracking-wide text-accent">{t("series.next")}</span>
+            <span className={`block ${EYEBROW} text-accent`}>{t("series.next")}</span>
             <span className="block text-[15px] font-semibold text-text-primary mt-1 truncate group-hover:text-accent transition-colors">
               {localized(nextPost.title, nextPost.titleEn)}
             </span>

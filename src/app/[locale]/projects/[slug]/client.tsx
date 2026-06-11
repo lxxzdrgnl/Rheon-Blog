@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n, useLocalized } from "@/i18n/provider";
+import { EYEBROW } from "@/lib/styles";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostGrid } from "@/components/blog/PostGrid";
 import { TableOfContents } from "@/components/blog/TableOfContents";
@@ -130,6 +131,7 @@ export function ProjectDetailClient({
   const links = parseLinks(project.link);
 
   const en = locale === "en";
+  const labelCls = `${EYEBROW} text-text-tertiary`;
   const sections = [
     { key: "repo", title: en ? "Repository" : "레포지토리", items: links.filter((l) => classify(l) === "repo") },
     { key: "demo", title: en ? "Demo / Live" : "데모", items: links.filter((l) => classify(l) === "demo") },
@@ -184,7 +186,7 @@ export function ProjectDetailClient({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {sections.map((section) => (
                 <div key={section.key} className={sections.length === 1 ? "sm:col-span-2" : ""}>
-                  <span className="text-[13px] text-text-tertiary uppercase tracking-wide font-bold ml-0.5 mb-2 block">
+                  <span className={`${labelCls} ml-0.5 mb-2 block`}>
                     {section.title}
                   </span>
                   <div className="space-y-1.5">
@@ -223,7 +225,7 @@ export function ProjectDetailClient({
         {relatedPosts.length > 0 && (
           <div className="mt-8 animate-fade-in animate-delay-2">
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-[13px] font-bold tracking-wide uppercase text-text-tertiary whitespace-nowrap">
+              <h2 className={`${labelCls} whitespace-nowrap`}>
                 {locale === "en" ? "Related Posts" : "관련 포스트"}
               </h2>
               <div className="flex-1 h-px bg-border/60" />

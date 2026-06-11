@@ -4,6 +4,7 @@ import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { useLocalized } from "@/i18n/provider";
 import { LocalizedThumbnail } from "./LocalizedThumbnail";
 import { Highlight } from "@/components/ui/Highlight";
+import { CARD_TITLE, CARD_SNIPPET } from "@/lib/styles";
 
 interface PostCardProps {
   title: string;
@@ -36,12 +37,12 @@ export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryN
 
         {/* ── Meta ── */}
         <div className="mt-3 px-0.5">
-          <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">
+          <h3 className={CARD_TITLE}>
             <Highlight text={displayTitle} query={highlight} />
           </h3>
 
           {snippet && (
-            <p className="mt-1.5 text-[13px] text-text-secondary leading-relaxed line-clamp-2">
+            <p className={`mt-1.5 ${CARD_SNIPPET}`}>
               <Highlight text={snippet} query={highlight} />
             </p>
           )}

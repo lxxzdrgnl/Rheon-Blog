@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useI18n, useLocalized } from "@/i18n/provider";
+import { EYEBROW } from "@/lib/styles";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostCard } from "./PostCard";
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
@@ -56,7 +57,7 @@ function ProjectIcon({ dbIcon, demoUrl, fallbackChar }: { dbIcon: string | null;
     return <img src={icon} alt="" className="w-5 h-5 rounded shrink-0 object-contain" onError={() => setFailed(true)} />;
   }
   return (
-    <span className="w-5 h-5 rounded shrink-0 flex items-center justify-center text-[10px] font-bold bg-accent/10 dark:bg-accent/15 text-accent">
+    <span className="w-5 h-5 rounded shrink-0 flex items-center justify-center text-[11px] font-bold bg-accent/10 dark:bg-accent/15 text-accent">
       {fallbackChar}
     </span>
   );
@@ -64,7 +65,7 @@ function ProjectIcon({ dbIcon, demoUrl, fallbackChar }: { dbIcon: string | null;
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-text-tertiary pt-0.5">
+    <div className={`${EYEBROW} text-text-tertiary pt-0.5`}>
       {children}
     </div>
   );
@@ -97,7 +98,7 @@ function LinkPreview({ link }: { link: ExperienceLink }) {
           </svg>
         </div>
       </div>
-      <p className="text-[10px] text-text-tertiary mt-1 line-clamp-1 group-hover:text-accent transition-colors leading-tight">{link.label}</p>
+      <p className="text-[11px] text-text-tertiary mt-1 line-clamp-1 group-hover:text-accent transition-colors leading-tight">{link.label}</p>
     </a>
   );
 }
@@ -384,7 +385,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                         {techs.slice(0, 3).map((tech) => (
                           <span
                             key={tech}
-                            className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                            className={`px-1.5 py-0.5 text-[11px] font-medium rounded ${
                               selectedTechs.has(tech)
                                 ? "bg-accent text-white"
                                 : "bg-accent/8 dark:bg-accent/15 text-accent"
@@ -393,7 +394,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                             {tech}
                           </span>
                         ))}
-                        {techs.length > 3 && <span className="text-[10px] text-text-tertiary">+{techs.length - 3}</span>}
+                        {techs.length > 3 && <span className="text-[11px] text-text-tertiary">+{techs.length - 3}</span>}
                       </div>
                     </div>
                   </motion.div>
@@ -501,7 +502,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
       {posts.length > 0 && (
         <section className="mt-12">
           <div className="flex items-baseline justify-between mb-6">
-            <h2 className="text-[11px] font-bold tracking-[0.2em] uppercase text-text-tertiary">{t("resume.recentPosts")}</h2>
+            <h2 className={`${EYEBROW} text-text-tertiary`}>{t("resume.recentPosts")}</h2>
             <Link href="/posts" className="text-[11px] font-medium text-text-tertiary hover:text-accent transition-colors tracking-wide uppercase">
               {t("hero.allPosts")} →
             </Link>
