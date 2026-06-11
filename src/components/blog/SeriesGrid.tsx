@@ -5,6 +5,8 @@ interface SeriesItem {
   title: string;
   titleEn: string | null;
   slug: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   thumbnail: string | null;
   postCount: number;
   lastUpdated: string;

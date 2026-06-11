@@ -96,6 +96,8 @@ export async function getSeriesForListing() {
         title: s.title,
         titleEn: s.titleEn,
         slug: s.slug,
+        description: s.description,
+        descriptionEn: s.descriptionEn,
         postCount: sp.length,
         lastUpdated: latest.publishedAt || latest.createdAt,
         // 시리즈 자체 이미지가 있으면 우선, 없으면 최신 글 썸네일을 빌려온다

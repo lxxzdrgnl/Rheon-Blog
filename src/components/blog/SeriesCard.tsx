@@ -9,6 +9,8 @@ interface SeriesCardProps {
   title: string;
   titleEn: string | null;
   slug: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   thumbnail: string | null;
   postCount: number;
   lastUpdated: string;
@@ -19,10 +21,11 @@ interface SeriesCardProps {
   highlight?: string;
 }
 
-export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpdated, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail, highlight }: SeriesCardProps) {
+export function SeriesCard({ title, titleEn, slug, description, descriptionEn, thumbnail, postCount, lastUpdated, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail, highlight }: SeriesCardProps) {
   const { t, locale } = useI18n();
   const localized = useLocalized();
   const displayTitle = localized(title, titleEn);
+  const displayDescription = localized(description || "", descriptionEn || "");
   const countLabel = localized(
     `${postCount}${t("series.postsCount")}`,
     `${postCount} ${postCount === 1 ? "post" : "posts"}`,
@@ -49,6 +52,11 @@ export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpd
           <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">
             <Highlight text={displayTitle} query={highlight} />
           </h3>
+          {displayDescription && (
+            <p className="mt-1.5 text-[13px] text-text-secondary leading-relaxed line-clamp-2">
+              <Highlight text={displayDescription} query={highlight} />
+            </p>
+          )}
           <div className="flex items-center gap-1.5 mt-1.5 text-xs text-text-tertiary">
             <span className="text-text-secondary">{countLabel}</span>
             <span className="text-border">·</span>
