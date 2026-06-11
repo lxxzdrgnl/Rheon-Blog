@@ -49,7 +49,7 @@ export function CommentItem({ comment, slug, onReply, onDeleted, isReply }: Comm
       </div>
       {showDeleteForm && (
         <div className="flex gap-2 mt-2">
-          <input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} placeholder={t("comment.confirmDelete")} className="px-3 py-1.5 text-sm border border-border rounded-lg bg-bg-primary" />
+          <input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} placeholder={t("comment.confirmDelete")} className="px-3 py-1.5 text-sm border border-border rounded-lg bg-bg-elevated" />
           <button onClick={handleDelete} className="px-3 py-1.5 text-sm text-red-500 border border-red-500 rounded-lg hover:bg-red-50">{t("comment.delete")}</button>
           {error && <span className="text-xs text-red-500 self-center">{error}</span>}
         </div>

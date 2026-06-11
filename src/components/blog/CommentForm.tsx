@@ -62,10 +62,10 @@ export function CommentForm({
         </div>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder={t("comment.nickname")} className="min-w-0 px-4 py-2 rounded-lg border border-border bg-bg-primary text-sm" required />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("comment.password")} className="min-w-0 px-4 py-2 rounded-lg border border-border bg-bg-primary text-sm" required />
+        <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder={t("comment.nickname")} className="min-w-0 px-4 py-2 rounded-lg border border-border bg-bg-elevated text-sm" required />
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("comment.password")} className="min-w-0 px-4 py-2 rounded-lg border border-border bg-bg-elevated text-sm" required />
       </div>
-      <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder={t("comment.content")} rows={compact ? 3 : 4} className="w-full px-4 py-2 rounded-lg border border-border bg-bg-primary text-sm resize-none" required />
+      <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder={t("comment.content")} rows={compact ? 3 : 4} className="w-full px-4 py-2 rounded-lg border border-border bg-bg-elevated text-sm resize-none" required />
       <Button type="submit" disabled={submitting}>{submitting ? "..." : t("comment.submit")}</Button>
     </form>
   );

@@ -122,6 +122,18 @@ body {
   color: #ffffff;
 }
 
+/* 브라우저 자동완성(autofill)의 파란/노란 배경 제거 — 테마 색(연한 회색)으로 통일 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-elevated) inset;
+  box-shadow: 0 0 0 1000px var(--bg-elevated) inset;
+  -webkit-text-fill-color: var(--text-primary);
+  caret-color: var(--text-primary);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* Scroll bar */
 ::-webkit-scrollbar {
   width: 6px;
