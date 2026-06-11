@@ -10,6 +10,7 @@ interface SeriesItem {
   lastUpdated: string;
   thumbnailTextLength: number | null;
   thumbnailTextLengthEn: number | null;
+  showTitleOnThumbnail?: boolean | null;
 }
 
 export function SeriesGrid({ series }: { series: SeriesItem[] }) {

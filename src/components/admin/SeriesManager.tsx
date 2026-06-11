@@ -5,13 +5,15 @@ import {
   getSeriesWithPostCount, createSeries, updateSeries, deleteSeries,
   getSeriesPosts, reorderSeriesPosts,
 } from "@/actions/series";
-import { PostThumbnail } from "@/components/blog/PostThumbnail";
+import { ThumbnailPicker } from "@/components/admin/ThumbnailPicker";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 type SeriesItem = {
   id: number; title: string; titleEn: string | null; slug: string;
   description: string | null; descriptionEn: string | null;
+  thumbnail: string | null;
   thumbnailTextLength: number | null; thumbnailTextLengthEn: number | null;
+  showTitleOnThumbnail: boolean;
   createdAt: string; postCount: number;
 };
 type SeriesPost = { id: number; title: string; titleEn: string | null; slug: string; seriesOrder: number | null };
@@ -22,7 +24,6 @@ const labelClass = "block text-xs text-text-tertiary uppercase tracking-wider fo
 export function SeriesManager() {
   const [seriesList, setSeriesList] = useState<SeriesItem[]>([]);
   const [editing, setEditing] = useState<Partial<SeriesItem> | null>(null);
-  const [previewLang, setPreviewLang] = useState<"ko" | "en">("ko");
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [posts, setPosts] = useState<SeriesPost[]>([]);
@@ -43,8 +44,10 @@ export function SeriesManager() {
       titleEn: editing.titleEn || undefined,
       description: editing.description || undefined,
       descriptionEn: editing.descriptionEn || undefined,
+      thumbnail: editing.thumbnail ?? null,
       thumbnailTextLength: editing.thumbnailTextLength ?? undefined,
       thumbnailTextLengthEn: editing.thumbnailTextLengthEn ?? undefined,
+      showTitleOnThumbnail: editing.showTitleOnThumbnail ?? false,
     };
     if (editing.id) await updateSeries(editing.id, data);
     else await createSeries(data);
@@ -177,30 +180,18 @@ export function SeriesManager() {
             <div><label className={labelClass}>Description (EN)</label><textarea className={inputClass + " h-24 resize-none"} value={editing.descriptionEn || ""} onChange={(e) => setEditing({ ...editing, descriptionEn: e.target.value })} /></div>
           </div>
 
-          <div>
-            <label className={labelClass}>커버 글자 수 <span className="normal-case text-text-tertiary/70">(썸네일 없을 때)</span></label>
-            <div className="flex items-center gap-4">
-              <div className="flex-1 space-y-2.5 min-w-0">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-text-tertiary whitespace-nowrap w-8">한글</span>
-                  <input type="range" min={1} max={Math.max((editing.title || "").length, 1)} value={editing.thumbnailTextLength ?? 8} onChange={(e) => { setEditing({ ...editing, thumbnailTextLength: Number(e.target.value) }); setPreviewLang("ko"); }} className="flex-1 accent-accent" />
-                  <span className="text-xs text-text-secondary tabular-nums w-5 text-center">{editing.thumbnailTextLength ?? 8}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-text-tertiary whitespace-nowrap w-8">영문</span>
-                  <input type="range" min={1} max={Math.max((editing.titleEn || editing.title || "").length, 1)} value={editing.thumbnailTextLengthEn ?? 8} onChange={(e) => { setEditing({ ...editing, thumbnailTextLengthEn: Number(e.target.value) }); setPreviewLang("en"); }} className="flex-1 accent-accent" />
-                  <span className="text-xs text-text-secondary tabular-nums w-5 text-center">{editing.thumbnailTextLengthEn ?? 8}</span>
-                </div>
-              </div>
-              <div className="w-36 shrink-0">
-                <PostThumbnail
-                  thumbnail={null}
-                  title={previewLang === "en" ? (editing.titleEn || editing.title || "Title") : (editing.title || "제목")}
-                  textLength={previewLang === "en" ? (editing.thumbnailTextLengthEn ?? 8) : (editing.thumbnailTextLength ?? 8)}
-                />
-              </div>
-            </div>
-          </div>
+          <ThumbnailPicker
+            title={editing.title || ""}
+            titleEn={editing.titleEn || null}
+            content=""
+            value={{
+              thumbnail: editing.thumbnail ?? null,
+              textLength: editing.thumbnailTextLength ?? 8,
+              textLengthEn: editing.thumbnailTextLengthEn ?? 8,
+              showTitleOnThumbnail: editing.showTitleOnThumbnail ?? false,
+            }}
+            onChange={(v) => setEditing({ ...editing, thumbnail: v.thumbnail, thumbnailTextLength: v.textLength, thumbnailTextLengthEn: v.textLengthEn, showTitleOnThumbnail: v.showTitleOnThumbnail })}
+          />
         </ConfirmModal>
       )}
     </div>

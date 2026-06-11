@@ -37,7 +37,8 @@ export async function getSeriesPosts(seriesId: number) {
 
 export async function createSeries(data: {
   title: string; titleEn?: string; description?: string; descriptionEn?: string;
-  thumbnailTextLength?: number; thumbnailTextLengthEn?: number;
+  thumbnail?: string | null; thumbnailTextLength?: number; thumbnailTextLengthEn?: number;
+  showTitleOnThumbnail?: boolean;
 }) {
   await requireAdmin();
   const slug = generateSlug(data.titleEn || data.title);
@@ -48,7 +49,8 @@ export async function createSeries(data: {
 
 export async function updateSeries(id: number, data: {
   title: string; titleEn?: string; description?: string; descriptionEn?: string;
-  thumbnailTextLength?: number; thumbnailTextLengthEn?: number;
+  thumbnail?: string | null; thumbnailTextLength?: number; thumbnailTextLengthEn?: number;
+  showTitleOnThumbnail?: boolean;
 }) {
   await requireAdmin();
   db.update(series).set(data).where(eq(series.id, id)).run();
@@ -96,9 +98,11 @@ export async function getSeriesForListing() {
         slug: s.slug,
         postCount: sp.length,
         lastUpdated: latest.publishedAt || latest.createdAt,
-        thumbnail: rewriteImageUrl(latest.thumbnail),
+        // 시리즈 자체 이미지가 있으면 우선, 없으면 최신 글 썸네일을 빌려온다
+        thumbnail: rewriteImageUrl(s.thumbnail || latest.thumbnail),
         thumbnailTextLength: s.thumbnailTextLength,
         thumbnailTextLengthEn: s.thumbnailTextLengthEn,
+        showTitleOnThumbnail: s.showTitleOnThumbnail,
       };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)
@@ -114,7 +118,7 @@ export async function getSeriesWithPostCount() {
         .from(posts)
         .where(eq(posts.seriesId, s.id))
         .get();
-      return { ...s, postCount: postCount?.count || 0 };
+      return { ...s, thumbnail: rewriteImageUrl(s.thumbnail), postCount: postCount?.count || 0 };
     })
   );
 }

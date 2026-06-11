@@ -13,9 +13,10 @@ interface SeriesCardProps {
   lastUpdated: string;
   thumbnailTextLength: number | null;
   thumbnailTextLengthEn: number | null;
+  showTitleOnThumbnail?: boolean | null;
 }
 
-export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpdated, thumbnailTextLength, thumbnailTextLengthEn }: SeriesCardProps) {
+export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpdated, thumbnailTextLength, thumbnailTextLengthEn, showTitleOnThumbnail }: SeriesCardProps) {
   const { t, locale } = useI18n();
   const localized = useLocalized();
   const displayTitle = localized(title, titleEn);
@@ -38,6 +39,7 @@ export function SeriesCard({ title, titleEn, slug, thumbnail, postCount, lastUpd
           thumbnail={thumbnail}
           textLength={thumbnailTextLength}
           textLengthEn={thumbnailTextLengthEn}
+          showTitle={showTitleOnThumbnail}
         />
 
         <div className="mt-3 px-0.5">
