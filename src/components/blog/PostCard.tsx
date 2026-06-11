@@ -31,12 +31,9 @@ export function PostCard({ title, titleEn, slug, thumbnail, createdAt, categoryN
 
         {/* ── Meta ── */}
         <div className="mt-3 px-0.5">
-          {/* 썸네일 위에 제목을 얹는 경우 카드 아래 중복 제목은 숨긴다 */}
-          {!(showTitleOnThumbnail && thumbnail) && (
-            <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">
-              {displayTitle}
-            </h3>
-          )}
+          <h3 className="font-semibold text-[15px] text-text-primary leading-snug line-clamp-2 group-hover:text-accent transition-colors duration-200">
+            {displayTitle}
+          </h3>
 
           <div className="flex items-center gap-1.5 mt-1.5 text-xs text-text-tertiary">
             {displayCategory && (
