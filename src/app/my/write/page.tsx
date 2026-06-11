@@ -153,8 +153,8 @@ function WritePageContent() {
     fd.set("title", title); fd.set("content", content); fd.set("slug", slug);
     fd.set("categoryId", String(categoryId || 0));
     fd.set("thumbnail", thumbnail || "");
-    fd.set("thumbnailTextLength", String(!thumbnail ? thumbnailTextLength : 0));
-    fd.set("thumbnailTextLengthEn", String(!thumbnail ? thumbnailTextLengthEn : 0));
+    fd.set("thumbnailTextLength", String((!thumbnail || showTitleOnThumbnail) ? thumbnailTextLength : 0));
+    fd.set("thumbnailTextLengthEn", String((!thumbnail || showTitleOnThumbnail) ? thumbnailTextLengthEn : 0));
     fd.set("showTitleOnThumbnail", String(showTitleOnThumbnail));
     fd.set("tagIds", JSON.stringify(selectedTags.map((t) => t.id)));
     fd.set("publish", "false"); fd.set("isPrivate", "false");
@@ -185,8 +185,8 @@ function WritePageContent() {
     fd.set("title", title); fd.set("content", content); fd.set("slug", slug);
     fd.set("categoryId", String(categoryId || 0));
     fd.set("thumbnail", thumbnail || "");
-    fd.set("thumbnailTextLength", String(!thumbnail ? thumbnailTextLength : 0));
-    fd.set("thumbnailTextLengthEn", String(!thumbnail ? thumbnailTextLengthEn : 0));
+    fd.set("thumbnailTextLength", String((!thumbnail || showTitleOnThumbnail) ? thumbnailTextLength : 0));
+    fd.set("thumbnailTextLengthEn", String((!thumbnail || showTitleOnThumbnail) ? thumbnailTextLengthEn : 0));
     fd.set("showTitleOnThumbnail", String(showTitleOnThumbnail));
     fd.set("tagIds", JSON.stringify(selectedTags.map((t) => t.id)));
     fd.set("publish", "true"); fd.set("isPrivate", String(publishIsPrivate));

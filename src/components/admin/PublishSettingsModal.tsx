@@ -42,8 +42,8 @@ export function PublishSettingsModal({ post, projects, initialProjectIds, onClos
     setSaving(true);
     await updatePublishSettings(post.id, {
       thumbnail: thumb.thumbnail,
-      thumbnailTextLength: thumb.thumbnail ? null : thumb.textLength,
-      thumbnailTextLengthEn: thumb.thumbnail ? null : thumb.textLengthEn,
+      thumbnailTextLength: (thumb.thumbnail && !thumb.showTitleOnThumbnail) ? null : thumb.textLength,
+      thumbnailTextLengthEn: (thumb.thumbnail && !thumb.showTitleOnThumbnail) ? null : thumb.textLengthEn,
       showTitleOnThumbnail: thumb.showTitleOnThumbnail,
       isPublished: true,
       isPrivate,

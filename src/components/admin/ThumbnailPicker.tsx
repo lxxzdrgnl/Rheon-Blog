@@ -54,7 +54,7 @@ export function ThumbnailPicker({ title, titleEn, content, value, onChange }: Pr
         <PostThumbnail
           thumbnail={thumbnail}
           title={previewTitle}
-          textLength={thumbnail ? undefined : previewLen}
+          textLength={(!thumbnail || showTitleOnThumbnail) ? previewLen : undefined}
           titleOverlay={!!thumbnail && showTitleOnThumbnail}
         />
       </div>
@@ -86,8 +86,24 @@ export function ThumbnailPicker({ title, titleEn, content, value, onChange }: Pr
         </div>
       )}
 
-      {/* 폴백 커버 글자 수 */}
-      {!thumbnail && (
+      {/* 이미지일 때 — 제목 오버레이 토글 */}
+      {thumbnail && (
+        <label className="flex items-center justify-between gap-3 px-1 cursor-pointer">
+          <span className="text-xs text-text-secondary">썸네일 위에 제목 표시 <span className="text-text-tertiary">(가운데, 그림자)</span></span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={showTitleOnThumbnail}
+            onClick={() => set({ showTitleOnThumbnail: !showTitleOnThumbnail })}
+            className={`relative w-9 h-5 rounded-full transition-colors ${showTitleOnThumbnail ? "bg-accent" : "bg-border"}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${showTitleOnThumbnail ? "translate-x-4" : ""}`} />
+          </button>
+        </label>
+      )}
+
+      {/* 글자 수 — 폴백 커버이거나 이미지 오버레이일 때 (제목 길이 조절) */}
+      {(!thumbnail || showTitleOnThumbnail) && (
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <label className="text-xs text-text-tertiary whitespace-nowrap w-16">한글 글자 수</label>
@@ -104,22 +120,6 @@ export function ThumbnailPicker({ title, titleEn, content, value, onChange }: Pr
             <span className="text-xs text-text-secondary tabular-nums w-6 text-center">{textLengthEn}</span>
           </div>
         </div>
-      )}
-
-      {/* 이미지일 때 — 제목 오버레이 토글 */}
-      {thumbnail && (
-        <label className="flex items-center justify-between gap-3 px-1 cursor-pointer">
-          <span className="text-xs text-text-secondary">썸네일 위에 제목 표시 <span className="text-text-tertiary">(글자에 그림자)</span></span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={showTitleOnThumbnail}
-            onClick={() => set({ showTitleOnThumbnail: !showTitleOnThumbnail })}
-            className={`relative w-9 h-5 rounded-full transition-colors ${showTitleOnThumbnail ? "bg-accent" : "bg-border"}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${showTitleOnThumbnail ? "translate-x-4" : ""}`} />
-          </button>
-        </label>
       )}
 
       {/* 업로드 */}
