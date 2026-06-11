@@ -41,7 +41,7 @@ export function Header({ blogTitle }: HeaderProps) {
       <div className="page-container">
         <div className="h-14 flex items-center justify-between border-b border-border/50">
           <div className="flex items-center gap-10">
-            <Link href="/" className="text-base font-bold tracking-tight text-text-primary hover:text-accent transition-colors">
+            <Link href="/" className="text-lg md:text-base font-bold tracking-tight text-text-primary hover:text-accent transition-colors">
               {blogTitle}
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm text-text-secondary">
@@ -61,7 +61,7 @@ export function Header({ blogTitle }: HeaderProps) {
             <ThemeToggle />
           </div>
 
-          <div className="flex md:hidden items-center gap-1">
+          <div className="flex md:hidden items-center gap-1 [&_button]:text-[15px] [&_svg]:w-6 [&_svg]:h-6">
             <LanguageToggle />
             <ThemeToggle />
             <button
