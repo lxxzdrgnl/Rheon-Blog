@@ -98,20 +98,30 @@ export default function ResumePage() {
 
   const handleUploadPdf = async (locale: "ko" | "en", file: File) => {
     setPdfBusy(locale);
-    const url = await uploadResumePdfFile(file, locale);
-    setPdfBusy(null);
-    if (!url) return;
-    (locale === "ko" ? setPdfKo : setPdfEn)(url);
-    showToast("이력서가 업로드되었습니다");
+    try {
+      const url = await uploadResumePdfFile(file, locale);
+      if (!url) return;
+      (locale === "ko" ? setPdfKo : setPdfEn)(url);
+      showToast("이력서가 업로드되었습니다");
+    } catch {
+      alert("이력서 업로드에 실패했습니다.");
+    } finally {
+      setPdfBusy(null);
+    }
   };
 
   const handleDeletePdf = async (locale: "ko" | "en") => {
     if (!confirm("이력서 PDF를 삭제하시겠습니까?")) return;
     setPdfBusy(locale);
-    await deleteResumePdf(locale);
-    setPdfBusy(null);
-    (locale === "ko" ? setPdfKo : setPdfEn)("");
-    showToast("삭제되었습니다");
+    try {
+      await deleteResumePdf(locale);
+      (locale === "ko" ? setPdfKo : setPdfEn)("");
+      showToast("삭제되었습니다");
+    } catch {
+      alert("이력서 삭제에 실패했습니다.");
+    } finally {
+      setPdfBusy(null);
+    }
   };
 
   const handleSaveExperience = async () => {
