@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { EYEBROW } from "@/lib/styles";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
@@ -268,27 +268,23 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                   })}
                 </div>
               ))}
-              <AnimatePresence initial={false}>
-                {selectedTechs.size > 0 && (
-                  <motion.div
-                    key="clear-filters"
-                    initial={{ height: 0 }}
-                    animate={{ height: "auto" }}
-                    exit={{ height: 0 }}
-                    transition={reduceMotion ? { duration: 0 } : { duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                    style={{ overflow: "hidden" }}
-                    className="!mt-0"
+              {/* height 애니메이션 대신 grid-template-rows 0fr↔1fr로 아코디언 구현 (컴포지터 친화, 연타 시 자연스러운 중단·역전) */}
+              <div
+                className={`grid ${reduceMotion ? "" : "transition-[grid-template-rows] duration-300 ease-out"} ${
+                  selectedTechs.size > 0 ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                }`}
+              >
+                <div className="overflow-hidden !mt-0" aria-hidden={selectedTechs.size === 0}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTechs(new Set())}
+                    tabIndex={selectedTechs.size > 0 ? 0 : -1}
+                    className="pt-3 text-xs text-accent hover:text-accent/70 transition-colors"
                   >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedTechs(new Set())}
-                      className="pt-3 text-xs text-accent hover:text-accent/70 transition-colors"
-                    >
-                      {localized("필터 초기화", "Clear filters")} · {filteredPortfolios.length}{localized("개", "")}
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    {localized("필터 초기화", "Clear filters")} · {filteredPortfolios.length}{localized("개", "")}
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
         )}
