@@ -101,7 +101,8 @@ export function FilterBar({
 
             {/* Dropdown for children */}
             {children.length > 0 && (
-              <div className="absolute top-full left-0 mt-1 py-1 bg-bg-primary border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 min-w-[160px]">
+              // 트리거 기준 좌상단에서 스케일되며 열림. 터치 폭에서는 숨기고 부모 링크로 이동
+              <div className="absolute top-full left-0 mt-1 py-1 bg-bg-primary border border-border rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top-left transition-[opacity,transform,visibility] duration-150 ease-out group-hover:opacity-100 group-hover:visible group-hover:scale-100 z-20 min-w-[160px] max-[1024px]:hidden">
                 {children.map((child) => {
                   const grandChildren = categories.filter((c) => c.parentId === child.id);
                   const childActive = filterMode ? isAncestorOrSelf(child.id) : pathname === `/category/${child.slug}`;
@@ -134,7 +135,8 @@ export function FilterBar({
                       )}
                       {/* Sub-dropdown */}
                       {grandChildren.length > 0 && (
-                        <div className="absolute left-full top-0 ml-1 py-1 bg-bg-primary border border-border rounded-lg shadow-lg opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all z-30 min-w-[140px]">
+                        // 트리거 기준 좌상단에서 스케일되며 열림. 터치 폭에서는 숨기고 부모 링크로 이동
+                        <div className="absolute left-full top-0 ml-1 py-1 bg-bg-primary border border-border rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top-left transition-[opacity,transform,visibility] duration-150 ease-out group-hover/sub:opacity-100 group-hover/sub:visible group-hover/sub:scale-100 z-30 min-w-[140px] max-[1024px]:hidden">
                           {grandChildren.map((gc) => {
                             const gcActive = filterMode ? selectedId === gc.id : pathname === `/category/${gc.slug}`;
                             const gcCls = `px-3 py-1.5 text-xs transition-colors flex items-center gap-1 w-full text-left ${
