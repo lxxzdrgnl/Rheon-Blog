@@ -43,6 +43,7 @@ export async function getProjectsForPost(postId: number) {
       descriptionEn: portfolios.descriptionEn,
       techStack: portfolios.techStack,
       thumbnail: portfolios.thumbnail,
+      inProgress: portfolios.inProgress,
     })
     .from(portfolioPosts)
     .innerJoin(portfolios, eq(portfolioPosts.portfolioId, portfolios.id))
@@ -94,6 +95,9 @@ export async function createPortfolio(formData: FormData) {
   const link = (formData.get("link") as string) || null;
   const icon = (formData.get("icon") as string) || null;
   const thumbnail = (formData.get("thumbnail") as string) || null;
+  const inProgress = formData.get("inProgress") === "true";
+  const isTeam = formData.get("isTeam") === "true";
+  const members = isTeam ? (formData.get("members") as string) || null : null;
   const postIds = JSON.parse((formData.get("postIds") as string) || "[]") as number[];
 
   const all = await getPortfolios();
@@ -104,7 +108,9 @@ export async function createPortfolio(formData: FormData) {
       title, titleEn, slug, description, descriptionEn,
       content, contentEn,
       techStack: JSON.stringify(techStack.split(",").map((s) => s.trim()).filter(Boolean)),
-      link, icon, thumbnail, sortOrder: all.length,
+      link, icon, thumbnail,
+      inProgress, isTeam, members,
+      sortOrder: all.length,
     })
     .returning()
     .get();
@@ -130,6 +136,9 @@ export async function updatePortfolio(formData: FormData) {
   const link = (formData.get("link") as string) || null;
   const icon = (formData.get("icon") as string) || null;
   const thumbnail = (formData.get("thumbnail") as string) || null;
+  const inProgress = formData.get("inProgress") === "true";
+  const isTeam = formData.get("isTeam") === "true";
+  const members = isTeam ? (formData.get("members") as string) || null : null;
   const postIds = JSON.parse((formData.get("postIds") as string) || "[]") as number[];
 
   db.update(portfolios)
@@ -138,6 +147,7 @@ export async function updatePortfolio(formData: FormData) {
       content, contentEn,
       techStack: JSON.stringify(techStack.split(",").map((s) => s.trim()).filter(Boolean)),
       link, icon, thumbnail,
+      inProgress, isTeam, members,
     })
     .where(eq(portfolios.id, id))
     .run();
