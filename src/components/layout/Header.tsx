@@ -18,8 +18,26 @@ export function Header({ blogTitle }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const lastYRef = useRef(0);
+  const headerRef = useRef<HTMLElement>(null);
   const { t } = useI18n();
   const reduceMotion = useReducedMotion();
+
+  // 모바일 메뉴: 바깥 탭·Escape로 닫기. 없으면 햄버거를 다시 찾아 누르는 수밖에 없다.
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (!headerRef.current?.contains(e.target as Node)) setMobileMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     lastYRef.current = window.scrollY;
@@ -36,6 +54,7 @@ export function Header({ blogTitle }: HeaderProps) {
 
   return (
     <header
+      ref={headerRef}
       // reduced-motion: 헤더를 숨기지 않고 항상 보이게 — 큰 요소의 반복 이동은 전정기관을 자극한다
       className={`sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-xl relative ${
         reduceMotion ? "" : "transition-transform duration-300"
