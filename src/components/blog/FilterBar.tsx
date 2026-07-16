@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { usePathname } from "next/navigation";
 import { useLocalized } from "@/i18n/provider";
@@ -30,6 +31,28 @@ export function FilterBar({
   const localized = useLocalized();
   const filterMode = typeof onSelect === "function";
 
+  /** 터치로 연 드롭다운의 카테고리 id. hover는 CSS가 담당하고 이건 탭 전용. */
+  const [openId, setOpenId] = useState<number | null>(null);
+  const [openSubId, setOpenSubId] = useState<number | null>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  // 바깥 탭·Escape로 닫기
+  useEffect(() => {
+    if (openId == null) return;
+    const onDown = (e: PointerEvent) => {
+      if (!barRef.current?.contains(e.target as Node)) { setOpenId(null); setOpenSubId(null); }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setOpenId(null); setOpenSubId(null); }
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [openId]);
+
   const topLevel = categories.filter((c) => !c.parentId);
 
   // 카테고리 + 모든 하위 카테고리 글 수 합산
@@ -55,7 +78,7 @@ export function FilterBar({
   const off = "text-text-secondary hover:text-accent hover:bg-bg-elevated";
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div ref={barRef} className="flex flex-wrap items-center gap-1.5">
       {/* All */}
       {filterMode ? (
         <button type="button" onClick={() => onSelect!(null)} className={`${base} ${selectedId == null ? on : off}`}>
@@ -79,30 +102,49 @@ export function FilterBar({
           <>
             {localized(cat.name, cat.nameEn)}
             {counts && <CountBadge n={countFor(cat.id)} />}
-            {children.length > 0 && (
-              <svg className="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            )}
           </>
         );
 
         return (
           <div key={cat.id} className="relative group">
-            {filterMode ? (
-              <button type="button" onClick={() => onSelect!({ id: cat.id, slug: cat.slug })} className={`${base} ${active ? on : off}`}>
-                {label}
-              </button>
-            ) : (
-              <Link href={`/category/${cat.slug}`} className={`${base} ${active ? on : off}`}>
-                {label}
-              </Link>
-            )}
+            <div className="inline-flex items-center">
+              {filterMode ? (
+                <button type="button" onClick={() => onSelect!({ id: cat.id, slug: cat.slug })} className={`${base} ${active ? on : off}`}>
+                  {label}
+                </button>
+              ) : (
+                <Link href={`/category/${cat.slug}`} className={`${base} ${active ? on : off}`}>
+                  {label}
+                </Link>
+              )}
+              {children.length > 0 && (
+                <button
+                  type="button"
+                  aria-label={localized(`${cat.name} 하위 분류 펼치기`, `Show ${cat.nameEn} subcategories`)}
+                  aria-expanded={openId === cat.id}
+                  onClick={() => { setOpenId(openId === cat.id ? null : cat.id); setOpenSubId(null); }}
+                  className={`-ml-1 px-2.5 py-2 md:px-1.5 md:py-1 rounded-md transition-colors ${active ? "text-bg-primary" : "text-text-secondary hover:text-accent"}`}
+                >
+                  <svg
+                    className={`w-4 h-4 opacity-100 md:w-3 md:h-3 md:opacity-50 transition-transform duration-150 ${openId === cat.id ? "rotate-180" : ""}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              )}
+            </div>
 
             {/* Dropdown for children */}
             {children.length > 0 && (
-              // 트리거 기준 좌상단에서 스케일되며 열림. 터치 폭에서는 숨기고 부모 링크로 이동
-              <div className="absolute top-full left-0 mt-1 py-1 bg-bg-primary border border-border rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top-left transition-[opacity,transform,visibility] duration-150 ease-out group-hover:opacity-100 group-hover:visible group-hover:scale-100 z-20 min-w-[160px] max-[1024px]:hidden">
+              // 트리거 기준 좌상단에서 스케일되며 열림. hover(데스크톱) 또는 openId 상태(터치)로 열림
+              <div
+                className={`absolute top-full left-0 mt-1 py-1 bg-bg-primary border border-border rounded-lg shadow-lg origin-top-left transition-[opacity,transform,visibility] duration-150 ease-out z-20 min-w-[160px] ${
+                  openId === cat.id
+                    ? "opacity-100 visible scale-100"
+                    : "opacity-0 invisible scale-95 md:group-hover:opacity-100 md:group-hover:visible md:group-hover:scale-100"
+                }`}
+              >
                 {children.map((child) => {
                   const grandChildren = categories.filter((c) => c.parentId === child.id);
                   const childActive = filterMode ? isAncestorOrSelf(child.id) : pathname === `/category/${child.slug}`;
@@ -115,28 +157,47 @@ export function FilterBar({
                         {localized(child.name, child.nameEn)}
                         {counts && <CountBadge n={countFor(child.id)} />}
                       </span>
-                      {grandChildren.length > 0 && (
-                        <svg className="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      )}
                     </>
                   );
                   return (
                     <div key={child.id} className="relative group/sub">
-                      {filterMode ? (
-                        <button type="button" onClick={() => onSelect!({ id: child.id, slug: child.slug })} className={childCls}>
-                          {childLabel}
-                        </button>
-                      ) : (
-                        <Link href={`/category/${child.slug}`} className={childCls}>
-                          {childLabel}
-                        </Link>
-                      )}
+                      <div className="inline-flex items-center w-full">
+                        {filterMode ? (
+                          <button type="button" onClick={() => onSelect!({ id: child.id, slug: child.slug })} className={childCls}>
+                            {childLabel}
+                          </button>
+                        ) : (
+                          <Link href={`/category/${child.slug}`} className={childCls}>
+                            {childLabel}
+                          </Link>
+                        )}
+                        {grandChildren.length > 0 && (
+                          <button
+                            type="button"
+                            aria-label={localized(`${child.name} 하위 분류 펼치기`, `Show ${child.nameEn} subcategories`)}
+                            aria-expanded={openSubId === child.id}
+                            onClick={() => setOpenSubId(openSubId === child.id ? null : child.id)}
+                            className="px-3 py-2.5 md:px-2 md:py-1.5 text-text-tertiary hover:text-accent transition-colors shrink-0"
+                          >
+                            <svg
+                              className={`w-4 h-4 opacity-100 md:w-3 md:h-3 md:opacity-50 transition-transform duration-150 ${openSubId === child.id ? "rotate-90" : ""}`}
+                              fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                       {/* Sub-dropdown */}
                       {grandChildren.length > 0 && (
-                        // 트리거 기준 좌상단에서 스케일되며 열림. 터치 폭에서는 숨기고 부모 링크로 이동
-                        <div className="absolute left-full top-0 ml-1 py-1 bg-bg-primary border border-border rounded-lg shadow-lg opacity-0 invisible scale-95 origin-top-left transition-[opacity,transform,visibility] duration-150 ease-out group-hover/sub:opacity-100 group-hover/sub:visible group-hover/sub:scale-100 z-30 min-w-[140px] max-[1024px]:hidden">
+                        // 트리거 기준 좌상단에서 스케일되며 열림(데스크톱). 좁은 화면에서는 아래로 펼침
+                        <div
+                          className={`absolute left-0 top-full ml-0 mt-1 md:left-full md:top-0 md:ml-1 md:mt-0 py-1 bg-bg-primary border border-border rounded-lg shadow-lg origin-top-left transition-[opacity,transform,visibility] duration-150 ease-out z-30 min-w-[140px] ${
+                            openSubId === child.id
+                              ? "opacity-100 visible scale-100"
+                              : "opacity-0 invisible scale-95 md:group-hover/sub:opacity-100 md:group-hover/sub:visible md:group-hover/sub:scale-100"
+                          }`}
+                        >
                           {grandChildren.map((gc) => {
                             const gcActive = filterMode ? selectedId === gc.id : pathname === `/category/${gc.slug}`;
                             const gcCls = `px-3 py-1.5 text-xs transition-colors flex items-center gap-1 w-full text-left ${
