@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveResumePdf } from "@/actions/resume";
-import type { ResumeLocale } from "@/lib/resume-pdf";
 
 export async function POST(request: NextRequest) {
+  let formData;
   try {
-    const formData = await request.formData();
+    formData = await request.formData();
+  } catch (error) {
+    console.error("Failed to parse form data:", error);
+    return NextResponse.json({ error: "요청 형식이 잘못되었습니다." }, { status: 400 });
+  }
+
+  try {
     const file = formData.get("file") as File | null;
     const locale = formData.get("locale");
 
@@ -16,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { url } = await saveResumePdf(locale as ResumeLocale, buffer, file.name, file.type);
+    const { url } = await saveResumePdf(locale, buffer, file.name, file.type);
 
     return NextResponse.json({ url });
   } catch (error) {
