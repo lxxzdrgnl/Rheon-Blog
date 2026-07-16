@@ -4,6 +4,7 @@ import { useI18n, useLocalized } from "@/i18n/provider";
 import { EYEBROW } from "@/lib/styles";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostGrid } from "@/components/blog/PostGrid";
+import { CategoryOtherPosts } from "@/components/blog/CategoryOtherPosts";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { CategorySidebar } from "@/components/blog/CategorySidebar";
 import { InProgressBadge } from "@/components/blog/InProgressBadge";
@@ -380,6 +381,17 @@ export function ProjectDetailClient({
               <MarkdownRenderer content={content} />
             </article>
           </>
+        )}
+
+        {/* ── 본문 다 읽고 나서 다시 짚어주는 관련 포스트 (위 그리드와 같은 글, 한 줄 목록) ── */}
+        {relatedPosts.length > 0 && (
+          <div className="mt-10 animate-fade-in animate-delay-2">
+            <CategoryOtherPosts
+              posts={relatedPosts}
+              heading={en ? "Related Posts" : "관련 포스트"}
+              showMore={false}
+            />
+          </div>
         )}
       </div>
 
