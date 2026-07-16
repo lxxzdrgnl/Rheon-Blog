@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { useI18n, useLocalized } from "@/i18n/provider";
-import { EYEBROW } from "@/lib/styles";
+import { EYEBROW, EASE_OUT, DURATION_BASE, DURATION_SLOW } from "@/lib/styles";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostCard } from "./PostCard";
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
@@ -295,7 +295,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
             <SectionLabel>{t("resume.projects")}</SectionLabel>
             <motion.div
               layout={!reduceMotion}
-              transition={{ layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }}
+              transition={{ layout: { duration: DURATION_SLOW, ease: EASE_OUT } }}
               className="space-y-1.5"
             >
               {filteredPortfolios.length === 0 && (
@@ -303,7 +303,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                   layout
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ opacity: { duration: 0.3 } }}
+                  transition={{ opacity: { duration: DURATION_SLOW, ease: EASE_OUT } }}
                   className="text-sm text-text-tertiary py-2"
                 >
                   {localized("선택한 기술의 프로젝트가 없어요.", "No projects match the selected tech.")}
@@ -334,8 +334,8 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{
-                      layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
-                      opacity: { duration: 0.18, ease: "easeOut", delay: 0.1 },
+                      layout: { duration: DURATION_SLOW, ease: EASE_OUT },
+                      opacity: { duration: DURATION_BASE, ease: EASE_OUT, delay: 0.1 },
                     }}
                     className="group flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-bg-card/60 transition-colors"
                   >

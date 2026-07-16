@@ -22,3 +22,13 @@ export const CARD_TITLE =
 
 /** 포스트·시리즈 카드 스니펫/설명(2줄). 위치 마진(mt-*)은 사용처에서. */
 export const CARD_SNIPPET = "text-[13px] text-text-secondary leading-relaxed line-clamp-2";
+
+/**
+ * 모션 값 — globals.css의 @theme 모션 토큰과 같은 숫자를 가리킨다.
+ * Framer Motion의 ease는 CSS 변수를 못 읽어서 JS 상수로 따로 둔다.
+ * 값을 바꿀 때 globals.css의 --ease-* / --duration-* 도 같이 바꿀 것.
+ */
+export const EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1];
+export const DURATION_FAST = 0.15;
+export const DURATION_BASE = 0.2;
+export const DURATION_SLOW = 0.3;
