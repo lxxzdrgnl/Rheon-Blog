@@ -60,7 +60,8 @@ export function ProjectCard({
             </div>
           )}
           {project.inProgress && (
-            <InProgressBadge locale={locale} className="absolute top-2.5 left-2.5" />
+            {/* 썸네일 이미지 위 — soft는 사진에 묻히므로 solid로 */}
+            <InProgressBadge locale={locale} variant="solid" className="absolute top-2.5 left-2.5" />
           )}
         </div>
 
