@@ -35,11 +35,11 @@ export function ConfirmModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm modal-backdrop"
       onClick={() => !saving && onClose()}
     >
       <div
-        className={containerClass}
+        className={`${containerClass} modal-panel`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-border/50 shrink-0 flex items-center justify-between">

@@ -291,6 +291,32 @@ a, button {
 .animate-delay-2 { animation-delay: 0.2s; opacity: 0; }
 .animate-delay-3 { animation-delay: 0.3s; opacity: 0; }
 
+/* ─── Entry transitions ─── */
+.modal-backdrop {
+  opacity: 1;
+  transition: opacity 200ms ease-out;
+  @starting-style { opacity: 0; }
+}
+.modal-panel {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+  /* 중앙 정렬 모달이므로 기점은 center가 맞다 — 트리거에 앵커되지 않는다 */
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.mobile-menu-panel {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* 움직임만 제거하고 페이드는 남긴다. animation을 끄면 위 opacity:0이 영구 고착되므로 절대 none으로 두지 말 것 */
   .animate-fade-in {
@@ -305,4 +331,11 @@ a, button {
   @media (hover: hover) and (pointer: fine) {
     .card-hover:hover { transform: none; }
   }
+
+  /* reduced-motion에서는 이동·스케일 제거, 페이드만 */
+  .modal-panel, .mobile-menu-panel {
+    transition: opacity 200ms ease;
+  }
+  .modal-panel { @starting-style { transform: none; } }
+  .mobile-menu-panel { @starting-style { transform: none; } }
 }
