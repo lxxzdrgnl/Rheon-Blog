@@ -8,6 +8,7 @@ import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostCard } from "./PostCard";
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { SOCIAL_ICONS } from "@/lib/socialIcons";
+import { InProgressBadge } from "@/components/blog/InProgressBadge";
 
 // ── Types ──
 
@@ -16,7 +17,7 @@ interface Experience { id: number; company: string; companyEn: string | null; ro
 interface Activity { id: number; title: string; titleEn: string | null; organization: string; organizationEn: string | null; date: string; description: string | null; descriptionEn: string | null; link: string | null }
 interface Education { id: number; school: string; schoolEn: string | null; degree: string | null; degreeEn: string | null; field: string | null; fieldEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null }
 interface Skill { id: number; name: string; category: string; categoryEn: string | null }
-interface Portfolio { id: number; title: string; titleEn: string | null; slug: string; description: string; descriptionEn: string | null; techStack: string; link: string | null; icon: string | null; thumbnail: string | null }
+interface Portfolio { id: number; title: string; titleEn: string | null; slug: string; description: string; descriptionEn: string | null; techStack: string; link: string | null; icon: string | null; thumbnail: string | null; inProgress?: boolean }
 interface Post { id: number; title: string; titleEn: string | null; slug: string; thumbnail: string | null; createdAt: string; categoryName: string; categoryNameEn: string; tags?: { name: string; nameEn: string }[] }
 interface ExperienceLink { label: string; url: string }
 
@@ -117,7 +118,7 @@ interface ResumeLayoutProps {
 }
 
 export function ResumeLayout({ settings, socialLinks, experiences, activities, education, skills, portfolios, posts }: ResumeLayoutProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const localized = useLocalized();
 
   const s = (key: string) => (settings[key] as string) || "";
@@ -344,9 +345,12 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                     <Link href={`/projects/${item.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
                       <ProjectIcon dbIcon={item.icon} demoUrl={demoLink?.url ?? null} fallbackChar={title.charAt(0).toUpperCase()} />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm text-text-primary group-hover:text-accent transition-colors leading-snug truncate">
-                          {title}
-                        </h3>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h3 className="min-w-0 font-semibold text-sm text-text-primary group-hover:text-accent transition-colors leading-snug truncate">
+                            {title}
+                          </h3>
+                          {item.inProgress && <InProgressBadge locale={locale} />}
+                        </div>
                         <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">{localized(item.description, item.descriptionEn)}</p>
                       </div>
                     </Link>
