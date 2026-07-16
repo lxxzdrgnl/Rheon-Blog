@@ -4,7 +4,7 @@ export const MAX_RESUME_PDF_BYTES = 10 * 1024 * 1024;
 
 /** 클라이언트가 보낸 mimeType은 위조 가능하므로 실제 바이트로 판별한다. */
 export function isPdfBuffer(buf: Buffer): boolean {
-  return buf.length >= 4 && buf.subarray(0, 4).toString("ascii") === "%PDF";
+  return buf.length >= 4 && buf.subarray(0, 4).equals(Buffer.from("%PDF", "ascii"));
 }
 
 export function resumePdfSettingKey(locale: ResumeLocale): string {

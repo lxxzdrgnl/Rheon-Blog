@@ -23,6 +23,10 @@ describe("isPdfBuffer", () => {
   it("4바이트 미만이면 false", () => {
     expect(isPdfBuffer(Buffer.from("%PD", "ascii"))).toBe(false);
   });
+  it("최상위 비트를 세운 위조 헤더(0xA5 0xD0 0xC4 0xC6)는 거부한다", () => {
+    const forged = Buffer.from([0xa5, 0xd0, 0xc4, 0xc6, 0x00]);
+    expect(isPdfBuffer(forged)).toBe(false);
+  });
 });
 
 describe("resumePdfSettingKey", () => {
@@ -65,5 +69,10 @@ describe("validateResumePdf", () => {
   it("빈 버퍼면 거부", () => {
     const r = validateResumePdf(Buffer.alloc(0), "application/pdf");
     expect(r.ok).toBe(false);
+  });
+
+  it("최상위 비트를 세운 위조 헤더(0xA5 0xD0 0xC4 0xC6)는 거부한다", () => {
+    const forged = Buffer.from([0xa5, 0xd0, 0xc4, 0xc6, 0x00]);
+    expect(validateResumePdf(forged, "application/pdf").ok).toBe(false);
   });
 });
