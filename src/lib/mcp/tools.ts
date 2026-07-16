@@ -11,6 +11,7 @@ import {
   getSkills, createSkill, updateSkill, deleteSkill,
   getActivities, createActivity, updateActivity, deleteActivity,
   getSocialLinks, createSocialLink, updateSocialLink, deleteSocialLink,
+  saveResumePdf, deleteResumePdf,
 } from "@/actions/resume";
 import { getTags, createTag } from "@/actions/tags";
 import { getAllSeries, createSeries } from "@/actions/series";
@@ -282,6 +283,21 @@ export const TOOLS: ToolDef[] = [
       const buffer = Buffer.from(dataBase64, "base64");
       const url = await uploadImage(buffer, filename, mimeType);
       return { url };
+    } },
+
+  { name: "resume_pdf_upload", description: "이력서 PDF를 업로드하고 프로필의 다운로드 버튼에 연결한다. locale별로 파일 1개만 유지되며, 새로 올리면 기존 파일은 삭제된다. dataBase64는 데이터URI 접두어 없는 순수 base64. PDF만 허용(최대 10MB).",
+    schema: z.object({ locale: z.enum(["ko", "en"]), filename: z.string(), dataBase64: z.string() }),
+    handler: async (a) => {
+      const { locale, filename, dataBase64 } = a as { locale: "ko" | "en"; filename: string; dataBase64: string };
+      const buffer = Buffer.from(dataBase64, "base64");
+      return saveResumePdf(locale, buffer, filename, "application/pdf");
+    } },
+
+  { name: "resume_pdf_delete", description: "해당 locale의 이력서 PDF를 삭제한다. 파일이 지워지고 프로필의 다운로드 버튼이 사라진다(양쪽 다 없을 때).",
+    schema: z.object({ locale: z.enum(["ko", "en"]) }),
+    handler: async (a) => {
+      const { locale } = a as { locale: "ko" | "en" };
+      return deleteResumePdf(locale);
     } },
 ];
 
