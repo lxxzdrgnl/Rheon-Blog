@@ -44,6 +44,7 @@ export async function saveResumePdf(
   }
 
   revalidatePath("/");
+  revalidatePath("/my/resume");
   return { url };
 }
 
@@ -64,6 +65,7 @@ export async function deleteResumePdf(locale: ResumeLocale): Promise<{ ok: true 
   }
 
   revalidatePath("/");
+  revalidatePath("/my/resume");
   return { ok: true };
 }
 
