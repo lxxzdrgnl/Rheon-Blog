@@ -25,7 +25,7 @@ export function InProgressBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 shrink-0 rounded-full py-0.5 pl-1.5 pr-2 text-[11px] font-semibold tracking-tight ${tone} ${className}`}
+      className={`inline-flex items-center gap-1.5 shrink-0 rounded-md py-0.5 pl-1.5 pr-2 text-[11px] font-semibold tracking-tight ${tone} ${className}`}
     >
       <span className={`w-1 h-1 rounded-full ${dot} animate-pulse motion-reduce:animate-none`} />
       {locale === "en" ? "In progress" : "진행중"}

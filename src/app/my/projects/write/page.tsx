@@ -23,6 +23,15 @@ const BADGE_OPTIONS = [
 
 type BadgeType = (typeof BADGE_OPTIONS)[number]["value"];
 
+/**
+ * 팀원 행 — md 이상은 4열 그리드(이름/GitHub/역할/삭제)로 행끼리 칸을 맞추고,
+ * 모바일은 테두리 카드로 묶어 "어디까지가 한 사람인지" 보이게 한다.
+ * 본인 행과 일반 행이 같은 상수를 써야 열이 어긋나지 않는다.
+ */
+const MEMBER_ROW =
+  "grid grid-cols-1 gap-2 rounded-xl border border-border p-3 " +
+  "md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)_minmax(0,1.4fr)_2rem] md:items-center md:rounded-none md:border-0 md:p-0";
+
 interface ProjectLink {
   badge: BadgeType;
   label: string;
@@ -432,8 +441,8 @@ function ProjectWritePageContent() {
               </h3>
               {members.map((m, i) =>
                 m.isMe ? (
-                  <div key={i} className="flex flex-col md:flex-row gap-2 md:items-center">
-                    <span className="shrink-0 inline-flex items-center rounded-lg border border-accent/20 bg-accent-soft px-3 py-2.5 text-[13px] font-semibold text-accent">
+                  <div key={i} className={MEMBER_ROW}>
+                    <span className="inline-flex items-center justify-center rounded-lg border border-accent/20 bg-accent-soft px-3 py-2.5 text-[13px] font-semibold text-accent">
                       {lang === "en" ? "Me" : "본인"}
                     </span>
                     <Input
@@ -446,34 +455,42 @@ function ProjectWritePageContent() {
                       value={(lang === "en" ? m.roleEn : m.role) || ""}
                       onChange={(e) => updateMember(i, lang === "en" ? "roleEn" : "role", e.target.value)}
                     />
-                    <span className="shrink-0 w-8 hidden md:block" />
+                    {/* 삭제 버튼 자리 — 열을 비워 아래 행들과 정렬을 맞춘다 */}
+                    <span className="hidden md:block w-8" />
                   </div>
                 ) : (
-                  <div key={i} className="flex flex-col md:flex-row gap-2 md:items-center">
+                  <div key={i} className={MEMBER_ROW}>
+                    {/* 모바일: 이름과 삭제를 한 줄에 — 쓰레기통이 홀로 떨어지지 않게.
+                        md 이상: contents로 래퍼를 지워 두 자식이 그대로 그리드 칸에 들어간다. */}
+                    <div className="flex items-center gap-2 md:contents">
+                      <Input
+                        placeholder={lang === "en" ? "Name" : "이름"}
+                        value={(lang === "en" ? m.nameEn : m.name) || ""}
+                        onChange={(e) => updateMember(i, lang === "en" ? "nameEn" : "name", e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        aria-label={lang === "en" ? "Remove member" : "팀원 삭제"}
+                        onClick={() => removeMember(i)}
+                        className="shrink-0 w-8 p-2 text-text-tertiary hover:text-red-500 transition-colors rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 md:col-start-4 md:row-start-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                     <Input
-                      placeholder={lang === "en" ? "Name" : "이름"}
-                      value={(lang === "en" ? m.nameEn : m.name) || ""}
-                      onChange={(e) => updateMember(i, lang === "en" ? "nameEn" : "name", e.target.value)}
-                    />
-                    <Input
+                      className="md:col-start-2 md:row-start-1"
                       placeholder="https://github.com/..."
                       value={m.github || ""}
                       onChange={(e) => updateMember(i, "github", e.target.value)}
                     />
                     <Input
+                      className="md:col-start-3 md:row-start-1"
                       placeholder={lang === "en" ? "Role" : "역할"}
                       value={(lang === "en" ? m.roleEn : m.role) || ""}
                       onChange={(e) => updateMember(i, lang === "en" ? "roleEn" : "role", e.target.value)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => removeMember(i)}
-                      className="shrink-0 p-2 text-text-tertiary hover:text-red-500 transition-colors rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 self-start md:self-auto"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
                   </div>
                 ),
               )}
