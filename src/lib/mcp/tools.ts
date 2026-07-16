@@ -53,6 +53,14 @@ const portfolioBody = {
   link: z.string().optional(),
   icon: z.string().optional(),
   thumbnail: z.string().optional(),
+  inProgress: z.boolean().optional().describe("아직 만들고 있는 프로젝트면 true — 목록·상세에 진행중 뱃지가 붙는다"),
+  isTeam: z.boolean().optional().describe("팀 프로젝트면 true. false면 members는 무시되고 비워진다"),
+  members: z
+    .string()
+    .optional()
+    .describe(
+      '팀원 JSON 배열 문자열. [{"name","nameEn?","github?","role","roleEn?","isMe?"}] — role은 자유 서술이고, 본인 행은 {"isMe":true,"name":"","role":"..."}처럼 이름·github를 비워 둔다(프로필에서 자동으로 채움)',
+    ),
   postIds: z.array(z.number().int()).optional(),
 };
 
@@ -160,6 +168,9 @@ async function updatePortfolioFromInput(input: PortfolioUpdateInput) {
     link: input.link ?? current.link ?? undefined,
     icon: input.icon ?? current.icon ?? undefined,
     thumbnail: input.thumbnail ?? current.thumbnail ?? undefined,
+    inProgress: input.inProgress ?? current.inProgress,
+    isTeam: input.isTeam ?? current.isTeam,
+    members: input.members ?? current.members ?? undefined,
     postIds,
   });
   await updatePortfolio(fd);

@@ -1,16 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import * as schema from "@/db/schema";
 import { eq } from "drizzle-orm";
-
-function createTestDb() {
-  const sqlite = new Database(":memory:");
-  const db = drizzle(sqlite, { schema });
-  migrate(db, { migrationsFolder: "./drizzle" });
-  return db;
-}
+import { createTestDb } from "../helpers/testDb";
 
 describe("schema", () => {
   let db: ReturnType<typeof createTestDb>;

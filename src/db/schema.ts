@@ -67,6 +67,9 @@ export const portfolios = sqliteTable("portfolios", {
   link: text("link"),
   icon: text("icon"), // favicon / site icon URL
   thumbnail: text("thumbnail"),
+  inProgress: integer("in_progress", { mode: "boolean" }).notNull().default(false),
+  isTeam: integer("is_team", { mode: "boolean" }).notNull().default(false),
+  members: text("members"), // JSON array of ProjectMember — isTeam false면 null
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });

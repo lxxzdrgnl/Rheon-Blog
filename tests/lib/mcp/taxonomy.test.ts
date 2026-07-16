@@ -10,16 +10,11 @@ vi.mock("@/lib/translate", () => ({
 // vi.mock 팩토리는 hoisting되지만 import처럼 트랜스파일되므로 동적 import나 require 사용.
 // 팩토리 내부에서 DB를 생성하고 모듈 캐시에 올린다.
 // 그 후 테스트에서 `import { db } from "@/db"`로 같은 인스턴스를 가져온다.
+// 테스트 DB는 drizzle/*.sql(적용되지 않는 낡은 생성 산출물)이 아니라
+// src/db/schema.ts에서 직접 유도한다 (tests/helpers/testDb.ts 참고).
 vi.mock("@/db", async () => {
-  const Database = (await import("better-sqlite3")).default;
-  const { drizzle } = await import("drizzle-orm/better-sqlite3");
-  const { migrate } = await import("drizzle-orm/better-sqlite3/migrator");
-  const schemaModule = await import("@/db/schema");
-
-  const sqlite = new Database(":memory:");
-  const db = drizzle(sqlite, { schema: schemaModule });
-  migrate(db, { migrationsFolder: "./drizzle" });
-  return { db };
+  const { createTestDb } = await import("../../helpers/testDb");
+  return { db: createTestDb() };
 });
 
 // 이 import는 vi.mock이 처리한 가짜 모듈에서 온다

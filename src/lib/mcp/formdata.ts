@@ -29,6 +29,10 @@ export interface PortfolioInput {
   link?: string;
   icon?: string;
   thumbnail?: string;
+  inProgress?: boolean;
+  isTeam?: boolean;
+  /** ProjectMember[] JSON 문자열. isTeam이 false면 액션이 무시하고 null로 저장 */
+  members?: string;
   postIds?: number[];
 }
 
@@ -70,6 +74,9 @@ export function buildPortfolioFormData(input: PortfolioInput): FormData {
   setIf(fd, "link", input.link);
   setIf(fd, "icon", input.icon);
   setIf(fd, "thumbnail", input.thumbnail);
+  fd.set("inProgress", input.inProgress ? "true" : "false");
+  fd.set("isTeam", input.isTeam ? "true" : "false");
+  setIf(fd, "members", input.members);
   fd.set("postIds", JSON.stringify(input.postIds ?? []));
   return fd;
 }

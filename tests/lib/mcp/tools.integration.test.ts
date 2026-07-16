@@ -11,19 +11,16 @@ vi.mock("@/lib/minio", () => ({
   rewriteImageUrl: (u: unknown) => u, rewriteContentUrls: (u: unknown) => u,
   deleteImages: vi.fn(async () => {}),
 }));
+// 테스트 DB는 drizzle/*.sql(적용되지 않는 낡은 생성 산출물)이 아니라
+// src/db/schema.ts에서 직접 유도한다 (tests/helpers/testDb.ts 참고).
 vi.mock("@/db", async () => {
-  const Database = (await import("better-sqlite3")).default;
-  const { drizzle } = await import("drizzle-orm/better-sqlite3");
-  const { migrate } = await import("drizzle-orm/better-sqlite3/migrator");
-  const schemaModule = await import("@/db/schema");
-  const sqlite = new Database(":memory:");
-  const db = drizzle(sqlite, { schema: schemaModule });
-  migrate(db, { migrationsFolder: "./drizzle" });
-  return { db };
+  const { createTestDb } = await import("../../helpers/testDb");
+  return { db: createTestDb() };
 });
 
 import { db } from "@/db";
 import { TOOL_MAP } from "@/lib/mcp/tools";
+import { runAsAdmin } from "@/lib/admin-context";
 
 const { posts, tags, postTags, categories } = schema;
 
@@ -34,9 +31,11 @@ beforeEach(() => {
 describe("create_post (integration)", () => {
   it("새 글을 만들고 태그를 find-or-create로 연결한다", async () => {
     const cat = db.insert(categories).values({ name: "개발", nameEn: "Dev", slug: "dev" }).returning().get();
-    const res = (await TOOL_MAP.get("create_post")!.handler({
-      title: "테스트 글", content: "본문", categoryId: cat.id, publish: true, tags: ["Next.js", "SSE"],
-    })) as { postId: number; slug: string };
+    const res = (await runAsAdmin(() =>
+      TOOL_MAP.get("create_post")!.handler({
+        title: "테스트 글", content: "본문", categoryId: cat.id, publish: true, tags: ["Next.js", "SSE"],
+      })
+    )) as { postId: number; slug: string };
     expect(res.postId).toBeGreaterThan(0);
     const saved = db.select().from(posts).all();
     expect(saved).toHaveLength(1);
@@ -50,14 +49,16 @@ describe("delete_post (integration)", () => {
   it("글을 삭제한다", async () => {
     const cat = db.insert(categories).values({ name: "개발", nameEn: "Dev", slug: "dev2" }).returning().get();
     const p = db.insert(posts).values({ title: "t", content: "c", slug: "s", categoryId: cat.id }).returning().get();
-    await TOOL_MAP.get("delete_post")!.handler({ id: p.id });
+    await runAsAdmin(() => TOOL_MAP.get("delete_post")!.handler({ id: p.id }));
     expect(db.select().from(posts).all()).toHaveLength(0);
   });
 });
 
 describe("taxonomy_create (integration)", () => {
   it("category는 name·nameEn으로 생성된다", async () => {
-    await TOOL_MAP.get("taxonomy_create")!.handler({ type: "category", data: { name: "알고리즘", nameEn: "Algorithms" } });
+    await runAsAdmin(() =>
+      TOOL_MAP.get("taxonomy_create")!.handler({ type: "category", data: { name: "알고리즘", nameEn: "Algorithms" } })
+    );
     const rows = db.select().from(categories).all();
     expect(rows).toHaveLength(1);
     expect(rows[0].name).toBe("알고리즘");

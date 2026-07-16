@@ -1,4 +1,5 @@
 import { Highlight } from "@/components/ui/Highlight";
+import { InProgressBadge } from "@/components/blog/InProgressBadge";
 
 interface ProjectCardItem {
   id: number;
@@ -9,6 +10,7 @@ interface ProjectCardItem {
   descriptionEn: string | null;
   thumbnail: string | null;
   techStack: string; // JSON array
+  inProgress?: boolean;
 }
 
 /**
@@ -45,17 +47,22 @@ export function ProjectCard({
     <a href={`/${locale}/projects/${project.slug}`} className="group block h-full">
       <article className="card-hover h-full flex flex-col rounded-lg border border-border bg-bg-primary overflow-hidden">
         {/* Cover */}
-        {project.thumbnail ? (
-          <div className="aspect-[16/10] overflow-hidden border-b border-border">
-            <img src={project.thumbnail} alt={title} className="w-full h-full object-cover" />
-          </div>
-        ) : (
-          <div className="aspect-[16/10] flex items-center justify-center border-b border-border bg-bg-elevated">
-            <span className="text-6xl font-black text-text-tertiary/25 select-none">
-              {title.charAt(0)}
-            </span>
-          </div>
-        )}
+        <div className="relative">
+          {project.thumbnail ? (
+            <div className="aspect-[16/10] overflow-hidden border-b border-border">
+              <img src={project.thumbnail} alt={title} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="aspect-[16/10] flex items-center justify-center border-b border-border bg-bg-elevated">
+              <span className="text-6xl font-black text-text-tertiary/25 select-none">
+                {title.charAt(0)}
+              </span>
+            </div>
+          )}
+          {project.inProgress && (
+            <InProgressBadge locale={locale} className="absolute top-2.5 left-2.5" />
+          )}
+        </div>
 
         {/* Body */}
         <div className="flex flex-col flex-1 p-5">
