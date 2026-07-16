@@ -32,6 +32,13 @@
   --font-size-2xl: 1.65rem;
   --font-size-3xl: 2.0625rem;
   --font-size-4xl: 2.475rem;
+
+  /* ─── Motion ─── */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
 }
 
 :root {
@@ -249,19 +256,22 @@ textarea:-webkit-autofill {
 
 /* ─── Transitions ─── */
 a, button {
-  transition: all 0.15s ease;
+  transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease,
+              border-color var(--duration-fast) ease, opacity var(--duration-fast) ease;
 }
 
 /* ─── Card hover lift ─── */
 .card-hover {
   transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
-.card-hover:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px -8px rgba(0,0,0,0.1), 0 4px 8px -4px rgba(0,0,0,0.04);
-}
-.dark .card-hover:hover {
-  box-shadow: 0 12px 32px -8px rgba(0,0,0,0.6), 0 0 0 1px var(--border-color);
+@media (hover: hover) and (pointer: fine) {
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px -8px rgba(0,0,0,0.1), 0 4px 8px -4px rgba(0,0,0,0.04);
+  }
+  .dark .card-hover:hover {
+    box-shadow: 0 12px 32px -8px rgba(0,0,0,0.6), 0 0 0 1px var(--border-color);
+  }
 }
 
 /* ─── Fade-in animation ─── */
@@ -269,9 +279,30 @@ a, button {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* reduced-motion용 — 위치 이동 없이 페이드만 */
+@keyframes fadeInOnly {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 .animate-fade-in {
-  animation: fadeInUp 0.5s ease forwards;
+  animation: fadeInUp var(--duration-slow) var(--ease-out) forwards;
 }
 .animate-delay-1 { animation-delay: 0.1s; opacity: 0; }
 .animate-delay-2 { animation-delay: 0.2s; opacity: 0; }
 .animate-delay-3 { animation-delay: 0.3s; opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* 움직임만 제거하고 페이드는 남긴다. animation을 끄면 위 opacity:0이 영구 고착되므로 절대 none으로 두지 말 것 */
+  .animate-fade-in {
+    animation: fadeInOnly var(--duration-base) ease forwards;
+  }
+  .animate-delay-1, .animate-delay-2, .animate-delay-3 {
+    animation-delay: 0s;
+  }
+  .card-hover {
+    transition: box-shadow 0.3s ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .card-hover:hover { transform: none; }
+  }
+}
