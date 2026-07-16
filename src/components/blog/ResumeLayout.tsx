@@ -149,6 +149,11 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
   const displayAbout = localized(s("resume_about"), s("resume_about_en"));
   const profileImage = s("resume_profile_image") || null;
 
+  // 현재 언어 PDF 우선, 없으면 반대 언어로 폴백. 둘 다 없으면 버튼을 숨긴다.
+  const pdfKo = s("resume_pdf_ko");
+  const pdfEn = s("resume_pdf_en");
+  const resumePdfUrl = (locale === "en" ? pdfEn || pdfKo : pdfKo || pdfEn) || null;
+
   // 프로필 사진을 오른쪽 텍스트 칸 높이에 맞춘 정사각형으로(겹침 없이). 측정 후 px 지정.
   const textColRef = useRef<HTMLDivElement>(null);
   const [photoSize, setPhotoSize] = useState<number | null>(null);
@@ -216,7 +221,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
               <p className="text-sm md:text-base text-text-secondary mt-1.5">{displayTitle}</p>
             )}
             {/* Social links inline */}
-            {socialLinks.length > 0 && (
+            {(socialLinks.length > 0 || resumePdfUrl) && (
               <div className="mt-3 space-y-2">
                 {/* 아이콘 링크 (이메일 제외) — 한 줄 */}
                 {socialLinks.some((l) => l.platform.toLowerCase() !== "email") && (
@@ -245,6 +250,17 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                       {link.url}
                     </a>
                   ))}
+                {resumePdfUrl && (
+                  <a
+                    href={resumePdfUrl}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3 py-1.5 text-sm text-text-secondary hover:text-accent hover:border-accent/50 transition-colors"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                    </svg>
+                    {t("resume.downloadCv")}
+                  </a>
+                )}
               </div>
             )}
           </div>

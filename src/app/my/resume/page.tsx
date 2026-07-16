@@ -9,8 +9,9 @@ import {
   getSkills, createSkill, updateSkill, deleteSkill,
   getSocialLinks, createSocialLink, updateSocialLink, deleteSocialLink, reorderSocialLinks,
   translateResumeFields,
+  deleteResumePdf,
 } from "@/actions/resume";
-import { uploadImage } from "@/lib/upload";
+import { uploadImage, uploadResumePdfFile } from "@/lib/upload";
 import { SOCIAL_ICONS, SOCIAL_PRESETS } from "@/lib/socialIcons";
 
 type Experience = { id: number; company: string; companyEn: string | null; role: string; roleEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null; sortOrder: number };
@@ -36,6 +37,9 @@ export default function ResumePage() {
   const [tagline, setTagline] = useState("");
   const [taglineEn, setTaglineEn] = useState("");
   const [profileImage, setProfileImage] = useState("");
+  const [pdfKo, setPdfKo] = useState("");
+  const [pdfEn, setPdfEn] = useState("");
+  const [pdfBusy, setPdfBusy] = useState<"ko" | "en" | null>(null);
   const [about, setAbout] = useState("");
   const [aboutEn, setAboutEn] = useState("");
   const [savingIntro, setSavingIntro] = useState(false);
@@ -67,6 +71,8 @@ export default function ResumePage() {
       setTagline((s.resume_tagline as string) || "");
       setTaglineEn((s.resume_tagline_en as string) || "");
       setProfileImage((s.resume_profile_image as string) || "");
+      setPdfKo((s.resume_pdf_ko as string) || "");
+      setPdfEn((s.resume_pdf_en as string) || "");
       setAbout((s.resume_about as string) || "");
       setAboutEn((s.resume_about_en as string) || "");
     });
@@ -88,6 +94,34 @@ export default function ResumePage() {
     });
     setSavingIntro(false);
     showToast("저장되었습니다");
+  };
+
+  const handleUploadPdf = async (locale: "ko" | "en", file: File) => {
+    setPdfBusy(locale);
+    try {
+      const url = await uploadResumePdfFile(file, locale);
+      if (!url) return;
+      (locale === "ko" ? setPdfKo : setPdfEn)(url);
+      showToast("이력서가 업로드되었습니다");
+    } catch {
+      alert("이력서 업로드에 실패했습니다.");
+    } finally {
+      setPdfBusy(null);
+    }
+  };
+
+  const handleDeletePdf = async (locale: "ko" | "en") => {
+    if (!confirm("이력서 PDF를 삭제하시겠습니까?")) return;
+    setPdfBusy(locale);
+    try {
+      await deleteResumePdf(locale);
+      (locale === "ko" ? setPdfKo : setPdfEn)("");
+      showToast("삭제되었습니다");
+    } catch {
+      alert("이력서 삭제에 실패했습니다.");
+    } finally {
+      setPdfBusy(null);
+    }
   };
 
   const handleSaveExperience = async () => {
@@ -503,6 +537,34 @@ export default function ResumePage() {
                 }} />
               </label>
               {profileImage && <button onClick={() => setProfileImage("")} className="text-xs text-red-500">제거</button>}
+            </div>
+          </div>
+          <div>
+            <label className={labelClass}>이력서 PDF <span className="text-xs text-text-tertiary font-normal">— 업로드·삭제는 즉시 반영됩니다 (아래 저장 버튼과 무관)</span></label>
+            <div className="space-y-2">
+              {([["ko", "한국어", pdfKo], ["en", "English", pdfEn]] as const).map(([loc, label, url]) => (
+                <div key={loc} className="flex items-center gap-3">
+                  <span className="w-16 shrink-0 text-xs text-text-secondary">{label}</span>
+                  {url ? (
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline truncate max-w-[16rem]">
+                      현재 파일 열기
+                    </a>
+                  ) : (
+                    <span className="text-xs text-text-tertiary">없음</span>
+                  )}
+                  <label className={btnSecondary + " cursor-pointer"}>
+                    {pdfBusy === loc ? "처리 중..." : url ? "교체" : "업로드"}
+                    <input type="file" accept="application/pdf" className="hidden" disabled={pdfBusy != null} onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (file) await handleUploadPdf(loc, file);
+                    }} />
+                  </label>
+                  {url && (
+                    <button onClick={() => handleDeletePdf(loc)} disabled={pdfBusy != null} className="text-xs text-red-500">삭제</button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
           <div><label className={labelClass}>자기소개 (마크다운)</label><textarea className={inputClass + " h-40"} value={about} onChange={(e) => setAbout(e.target.value)} /></div>

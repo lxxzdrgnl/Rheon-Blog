@@ -6,6 +6,68 @@ import { eq, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { translateTitle, translateToEnglish } from "@/lib/translate";
 import { requireAdmin } from "@/lib/admin-context";
+import { uploadResumePdf, deleteImage } from "@/lib/minio";
+import { getSettings, updateSettings } from "@/actions/settings";
+import { validateResumePdf, resumePdfSettingKey, type ResumeLocale } from "@/lib/resume-pdf";
+
+// ── Resume PDF ──
+
+/**
+ * 이력서 PDF를 저장하고 기존 파일을 교체한다.
+ * 업로드 성공 → settings 갱신 → 그 다음 기존 객체 삭제 순서.
+ * 업로드가 실패하면 기존 PDF와 settings는 그대로 남는다.
+ */
+export async function saveResumePdf(
+  locale: ResumeLocale,
+  buffer: Buffer,
+  filename: string,
+  contentType: string,
+): Promise<{ url: string }> {
+  await requireAdmin();
+
+  const check = validateResumePdf(buffer, contentType);
+  if (!check.ok) throw new Error(check.error);
+
+  const key = resumePdfSettingKey(locale);
+  const current = (await getSettings())[key] as string | undefined;
+
+  const url = await uploadResumePdf(buffer, filename);
+  await updateSettings({ [key]: url });
+
+  if (current && current !== url) {
+    // 고아 객체 하나가 남을 뿐이므로 사용자 작업은 성공 처리한다.
+    try {
+      await deleteImage(current);
+    } catch (e) {
+      console.error("이전 이력서 PDF 삭제 실패:", current, e);
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+  return { url };
+}
+
+export async function deleteResumePdf(locale: ResumeLocale): Promise<{ ok: true }> {
+  await requireAdmin();
+
+  const key = resumePdfSettingKey(locale);
+  const current = (await getSettings())[key] as string | undefined;
+
+  await updateSettings({ [key]: "" });
+
+  if (current) {
+    try {
+      await deleteImage(current);
+    } catch (e) {
+      console.error("이력서 PDF 삭제 실패:", current, e);
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/my/resume");
+  return { ok: true };
+}
 
 // ── AI Translation ──
 

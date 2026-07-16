@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
 import path from "path";
+import { resumeContentDisposition } from "@/lib/resume-pdf";
 
 function getS3Client() {
   return new S3Client({
@@ -34,13 +35,37 @@ export async function uploadImage(file: Buffer, originalName: string, contentTyp
     ContentType: contentType,
   }));
 
-  // MINIO_PUBLIC_URL takes precedence for generating public image URLs
+  return publicUrlFor(bucket, key);
+}
+
+/** MinIO 공개 URL 생성 — uploadImage와 동일 규칙. */
+function publicUrlFor(bucket: string, key: string): string {
   if (process.env.MINIO_PUBLIC_URL) {
     return `${process.env.MINIO_PUBLIC_URL}/${bucket}/${key}`;
   }
   const protocol = process.env.MINIO_USE_SSL === "true" ? "https" : "http";
   const publicEndpoint = process.env.MINIO_PUBLIC_ENDPOINT || process.env.MINIO_ENDPOINT;
   return `${protocol}://${publicEndpoint}:${process.env.MINIO_PORT}/${bucket}/${key}`;
+}
+
+/**
+ * 이력서 PDF를 업로드한다.
+ * ContentDisposition: attachment 를 걸어 브라우저에서 열리지 않고 곧바로 다운로드되게 한다.
+ */
+export async function uploadResumePdf(file: Buffer, originalName: string): Promise<string> {
+  const key = `resume/${randomUUID()}.pdf`;
+  const bucket = getBucket();
+
+  await getS3Client().send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: file,
+    ContentType: "application/pdf",
+    // RFC 5987: 한글 파일명은 filename*로 전달하고, filename에는 ASCII 폴백을 둔다.
+    ContentDisposition: resumeContentDisposition(originalName),
+  }));
+
+  return publicUrlFor(bucket, key);
 }
 
 export async function deleteImage(url: string): Promise<void> {
