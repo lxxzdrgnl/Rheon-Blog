@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
 import path from "path";
+import { resumeContentDisposition } from "@/lib/resume-pdf";
 
 function getS3Client() {
   return new S3Client({
@@ -54,8 +55,6 @@ function publicUrlFor(bucket: string, key: string): string {
 export async function uploadResumePdf(file: Buffer, originalName: string): Promise<string> {
   const key = `resume/${randomUUID()}.pdf`;
   const bucket = getBucket();
-  const base = path.basename(originalName || "resume.pdf");
-  const fallbackName = /^[\x20-\x7e]+$/.test(base) ? base.replace(/"/g, "") : "resume.pdf";
 
   await getS3Client().send(new PutObjectCommand({
     Bucket: bucket,
@@ -63,7 +62,7 @@ export async function uploadResumePdf(file: Buffer, originalName: string): Promi
     Body: file,
     ContentType: "application/pdf",
     // RFC 5987: 한글 파일명은 filename*로 전달하고, filename에는 ASCII 폴백을 둔다.
-    ContentDisposition: `attachment; filename="${fallbackName}"; filename*=UTF-8''${encodeURIComponent(base)}`,
+    ContentDisposition: resumeContentDisposition(originalName),
   }));
 
   return publicUrlFor(bucket, key);
