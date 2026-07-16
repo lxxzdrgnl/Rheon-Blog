@@ -10,6 +10,7 @@ import { getPortfolioById, createPortfolio, updatePortfolio, getPortfolioPosts }
 import { importFromGitHub } from "@/actions/github-import";
 import { uploadImage } from "@/lib/upload";
 import { streamTranslate } from "@/lib/translate-client";
+import { parseMembers, normalizeMembers, type ProjectMember } from "@/lib/members";
 
 const BADGE_OPTIONS = [
   { value: "github", label: "GitHub" },
@@ -57,6 +58,9 @@ function ProjectWritePageContent() {
   const [links, setLinks] = useState<ProjectLink[]>([]);
   const [icon, setIcon] = useState("");
   const [thumb, setThumb] = useState("");
+  const [inProgress, setInProgress] = useState(false);
+  const [isTeam, setIsTeam] = useState(false);
+  const [members, setMembers] = useState<ProjectMember[]>([]);
   const [selectedPostIds, setSelectedPostIds] = useState<number[]>([]);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [postSearch, setPostSearch] = useState("");
@@ -85,6 +89,9 @@ function ProjectWritePageContent() {
           setTech(JSON.parse(p.techStack || "[]").join(", "));
           setThumb(p.thumbnail || "");
           setIcon(p.icon || "");
+          setInProgress(p.inProgress);
+          setIsTeam(p.isTeam);
+          setMembers(p.isTeam ? normalizeMembers(parseMembers(p.members)) : []);
           originalRef.current = { title: p.title, desc: p.description, content: p.content || "" };
           try {
             const parsed = JSON.parse(p.link || "[]");
@@ -194,6 +201,12 @@ function ProjectWritePageContent() {
     fd.set("link", JSON.stringify(links.filter((l) => l.url.trim()).map((l) => ({ ...l, label: l.label || BADGE_OPTIONS.find((o) => o.value === l.badge)?.label || l.badge }))));
     fd.set("icon", icon);
     fd.set("thumbnail", thumb);
+    fd.set("inProgress", String(inProgress));
+    fd.set("isTeam", String(isTeam));
+    fd.set(
+      "members",
+      isTeam ? JSON.stringify(members.filter((m) => m.isMe || m.name.trim() || m.role.trim())) : "",
+    );
     fd.set("postIds", JSON.stringify(selectedPostIds));
     editId ? await updatePortfolio(fd) : await createPortfolio(fd);
     setSaving(false);
@@ -204,6 +217,18 @@ function ProjectWritePageContent() {
   const removeLink = (i: number) => setLinks((prev) => prev.filter((_, j) => j !== i));
   const updateLink = (i: number, field: "badge" | "label" | "url", value: string) => {
     setLinks((prev) => prev.map((l, j) => j === i ? { ...l, [field]: value } : l));
+  };
+  const toggleTeam = () => {
+    setIsTeam((prev) => {
+      const next = !prev;
+      setMembers(next ? normalizeMembers(members) : []);
+      return next;
+    });
+  };
+  const addMember = () => setMembers((prev) => [...prev, { name: "", role: "" }]);
+  const removeMember = (i: number) => setMembers((prev) => prev.filter((_, j) => j !== i));
+  const updateMember = (i: number, field: "name" | "nameEn" | "github" | "role" | "roleEn", value: string) => {
+    setMembers((prev) => prev.map((m, j) => (j === i ? { ...m, [field]: value } : m)));
   };
   const togglePost = (id: number) => {
     setSelectedPostIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -371,6 +396,101 @@ function ProjectWritePageContent() {
             </h3>
             <Input value={tech} onChange={(e) => setTech(e.target.value)} placeholder="React, TypeScript, Docker, ..." />
           </section>
+
+          {/* Status */}
+          <section className="space-y-3">
+            <h3 className="text-xs text-text-tertiary uppercase tracking-wider font-medium">
+              {lang === "en" ? "Status" : "상태"}
+            </h3>
+            <div className="flex flex-wrap gap-6">
+              <label className="inline-flex items-center gap-2.5 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={inProgress}
+                  onChange={(e) => setInProgress(e.target.checked)}
+                  className="rounded accent-accent w-4 h-4"
+                />
+                {lang === "en" ? "In progress" : "진행중"}
+              </label>
+              <label className="inline-flex items-center gap-2.5 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isTeam}
+                  onChange={toggleTeam}
+                  className="rounded accent-accent w-4 h-4"
+                />
+                {lang === "en" ? "Team project" : "팀 프로젝트"}
+              </label>
+            </div>
+          </section>
+
+          {/* Members */}
+          {isTeam && (
+            <section className="space-y-3">
+              <h3 className="text-xs text-text-tertiary uppercase tracking-wider font-medium">
+                {lang === "en" ? "Members" : "팀원"}
+              </h3>
+              {members.map((m, i) =>
+                m.isMe ? (
+                  <div key={i} className="flex flex-col md:flex-row gap-2 md:items-center">
+                    <span className="shrink-0 inline-flex items-center rounded-lg border border-accent/20 bg-accent-soft px-3 py-2.5 text-[13px] font-semibold text-accent">
+                      {lang === "en" ? "Me" : "본인"}
+                    </span>
+                    <Input
+                      value={lang === "en" ? "Auto-filled from your profile GitHub" : "프로필 GitHub에서 자동으로 채웁니다"}
+                      readOnly
+                      onChange={() => {}}
+                    />
+                    <Input
+                      placeholder={lang === "en" ? "Your role" : "역할"}
+                      value={(lang === "en" ? m.roleEn : m.role) || ""}
+                      onChange={(e) => updateMember(i, lang === "en" ? "roleEn" : "role", e.target.value)}
+                    />
+                    <span className="shrink-0 w-8 hidden md:block" />
+                  </div>
+                ) : (
+                  <div key={i} className="flex flex-col md:flex-row gap-2 md:items-center">
+                    <Input
+                      placeholder={lang === "en" ? "Name" : "이름"}
+                      value={(lang === "en" ? m.nameEn : m.name) || ""}
+                      onChange={(e) => updateMember(i, lang === "en" ? "nameEn" : "name", e.target.value)}
+                    />
+                    <Input
+                      placeholder="https://github.com/..."
+                      value={m.github || ""}
+                      onChange={(e) => updateMember(i, "github", e.target.value)}
+                    />
+                    <Input
+                      placeholder={lang === "en" ? "Role" : "역할"}
+                      value={(lang === "en" ? m.roleEn : m.role) || ""}
+                      onChange={(e) => updateMember(i, lang === "en" ? "roleEn" : "role", e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeMember(i)}
+                      className="shrink-0 p-2 text-text-tertiary hover:text-red-500 transition-colors rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 self-start md:self-auto"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                ),
+              )}
+              <button
+                type="button"
+                onClick={addMember}
+                className="px-3 py-1.5 text-xs border border-border rounded-md hover:bg-bg-elevated transition-colors text-text-secondary"
+              >
+                + {lang === "en" ? "Add member" : "팀원 추가"}
+              </button>
+              <p className="text-[13px] text-text-tertiary">
+                {lang === "en"
+                  ? "Your row can't be removed. Its GitHub comes from Settings → Social links."
+                  : "본인 행은 지울 수 없고, GitHub 주소는 설정 → 소셜 링크의 GitHub 값을 씁니다."}
+              </p>
+            </section>
+          )}
 
           {/* Links */}
           <section className="space-y-3">
