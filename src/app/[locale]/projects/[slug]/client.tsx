@@ -385,7 +385,10 @@ export function ProjectDetailClient({
 
         {/* ── 본문 다 읽고 나서 다시 짚어주는 관련 포스트 (위 그리드와 같은 글, 한 줄 목록) ── */}
         {relatedPosts.length > 0 && (
-          <div className="mt-10 animate-fade-in animate-delay-2">
+          <div className={`animate-fade-in animate-delay-2 ${content ? "" : "mt-10"}`}>
+            {/* 글 끝 — 구분선. 포스트 상세도 카드 위에 같은 선을 그린다(컴포넌트에 딸려오지 않음).
+                본문이 없으면 끝낼 글도 없으니 선 대신 여백만 준다. */}
+            {content && <div className="h-px bg-border my-8" />}
             <CategoryOtherPosts
               posts={relatedPosts}
               heading={en ? "Related Posts" : "관련 포스트"}
