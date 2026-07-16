@@ -3,6 +3,8 @@ import { getPortfolioBySlug, getPortfolioPosts } from "@/actions/portfolios";
 import { getCategories, getCategoryTree, getPublishedCategoryCounts } from "@/actions/categories";
 import { getAllPostTags, getRecentPostsWithComments } from "@/actions/posts";
 import { getSiteViewStats } from "@/actions/stats";
+import { getSocialLinks } from "@/actions/resume";
+import { getSettings } from "@/actions/settings";
 import { Metadata } from "next";
 import { pageMetadata, creativeWorkJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -37,7 +39,7 @@ export default async function ProjectDetailPage({ params }: Props) {
   const project = await getPortfolioBySlug(slug);
   if (!project) notFound();
 
-  const [relatedPosts, allCategories, postTagsMap, categoryTree, categoryCounts, recentPosts, viewStats] = await Promise.all([
+  const [relatedPosts, allCategories, postTagsMap, categoryTree, categoryCounts, recentPosts, viewStats, socialLinks, settings] = await Promise.all([
     getPortfolioPosts(project.id),
     getCategories(),
     getAllPostTags(),
@@ -45,6 +47,8 @@ export default async function ProjectDetailPage({ params }: Props) {
     getPublishedCategoryCounts(),
     getRecentPostsWithComments(-1, 5),
     getSiteViewStats(),
+    getSocialLinks(),
+    getSettings(),
   ]);
 
   const postsWithCategory = relatedPosts.map((post) => {
@@ -57,6 +61,11 @@ export default async function ProjectDetailPage({ params }: Props) {
       tags: postTagsMap[post.id] || [],
     };
   });
+
+  const githubSocial = socialLinks.find((l) => l.platform.toLowerCase() === "github");
+  const myName =
+    (isEn ? (settings.resume_name_en as string) : "") || (settings.resume_name as string) || "";
+  const me = { name: myName, github: githubSocial?.url ?? null };
 
   const loc = isEn ? "en" : "ko";
   const name = isEn && project.titleEn ? project.titleEn : project.title;
@@ -84,6 +93,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       <JsonLd data={jsonLd} />
       <ProjectDetailClient
         project={project}
+        me={me}
         relatedPosts={postsWithCategory}
         categoryTree={categoryTree}
         categoryCounts={categoryCounts}

@@ -6,6 +6,8 @@ import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
 import { PostGrid } from "@/components/blog/PostGrid";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { CategorySidebar } from "@/components/blog/CategorySidebar";
+import { InProgressBadge } from "@/components/blog/InProgressBadge";
+import { parseMembers, githubHandle, type ProjectMember } from "@/lib/members";
 
 interface CatNode { id: number; parentId: number | null; name: string; nameEn: string; slug: string; postCount?: number; children: CatNode[] }
 interface RecentPost { id: number; title: string; titleEn: string | null; slug: string; createdAt: string }
@@ -26,6 +28,9 @@ interface Project {
   thumbnail: string | null;
   techStack: string | null;
   link: string | null;
+  inProgress: boolean;
+  isTeam: boolean;
+  members: string | null;
 }
 
 interface PostWithCategory {
@@ -106,8 +111,131 @@ function classify(l: ProjectLink) {
   return "other";
 }
 
+function GithubMark() {
+  return (
+    <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+    </svg>
+  );
+}
+
+/** 팀원 한 명의 표시용 값 — isMe면 이름·GitHub를 프로필에서 채운다. */
+function resolveMember(m: ProjectMember, me: { name: string; github: string | null }, en: boolean) {
+  const name = m.isMe ? me.name : (en && m.nameEn ? m.nameEn : m.name);
+  const github = m.isMe ? me.github : m.github ?? null;
+  const role = en && m.roleEn ? m.roleEn : m.role;
+  return { name, github, role };
+}
+
+function TeamTable({
+  members,
+  me,
+  en,
+  labelCls,
+}: {
+  members: ProjectMember[];
+  me: { name: string; github: string | null };
+  en: boolean;
+  labelCls: string;
+}) {
+  return (
+    <div className="mt-8 animate-fade-in animate-delay-1">
+      <span className={`${labelCls} ml-0.5 mb-2 block`}>{en ? "Team" : "팀 구성"}</span>
+
+      {/* sm 이상: 표 */}
+      <div className="hidden sm:block overflow-x-auto rounded-xl border border-border/40 bg-bg-card">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border/40">
+              <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-text-tertiary">
+                {en ? "Name" : "이름"}
+              </th>
+              <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-text-tertiary">
+                GitHub
+              </th>
+              <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-text-tertiary">
+                {en ? "Role" : "역할"}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {members.map((m, i) => {
+              const { name, github, role } = resolveMember(m, me, en);
+              const handle = githubHandle(github);
+              return (
+                <tr key={i} className="border-b border-border/20 last:border-b-0 align-top">
+                  <td className={`px-4 py-3 whitespace-nowrap font-semibold ${m.isMe ? "text-accent" : "text-text-primary"}`}>
+                    {name}
+                    {m.isMe && (
+                      <span className="ml-1.5 rounded px-1.5 py-0.5 text-[11px] font-bold bg-accent-soft text-accent border border-accent/20">
+                        {en ? "Me" : "나"}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {handle && github ? (
+                      <a
+                        href={github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 font-mono text-[13px] text-text-secondary hover:text-accent transition-colors"
+                      >
+                        <GithubMark />
+                        {handle}
+                      </a>
+                    ) : (
+                      <span className="text-[13px] text-text-tertiary">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-text-secondary leading-relaxed">{role}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* sm 미만: 행별 카드 — 가로 스크롤 회피 */}
+      <div className="sm:hidden space-y-2">
+        {members.map((m, i) => {
+          const { name, github, role } = resolveMember(m, me, en);
+          const handle = githubHandle(github);
+          return (
+            <div
+              key={i}
+              className={`rounded-xl border bg-bg-card p-3.5 ${m.isMe ? "border-accent/40" : "border-border/40"}`}
+            >
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className={`font-semibold text-sm ${m.isMe ? "text-accent" : "text-text-primary"}`}>{name}</span>
+                {m.isMe && (
+                  <span className="rounded px-1.5 py-0.5 text-[11px] font-bold bg-accent-soft text-accent border border-accent/20">
+                    {en ? "Me" : "나"}
+                  </span>
+                )}
+                {handle && github && (
+                  <a
+                    href={github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-mono text-[13px] text-text-tertiary hover:text-accent transition-colors"
+                  >
+                    <GithubMark />
+                    {handle}
+                  </a>
+                )}
+              </div>
+              <p className="mt-1.5 text-[13px] text-text-secondary leading-relaxed">{role}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function ProjectDetailClient({
   project,
+  me,
   relatedPosts,
   categoryTree,
   categoryCounts,
@@ -115,6 +243,7 @@ export function ProjectDetailClient({
   viewStats,
 }: {
   project: Project;
+  me: { name: string; github: string | null };
   relatedPosts: PostWithCategory[];
   categoryTree: CatNode[];
   categoryCounts: Record<number, number>;
@@ -129,6 +258,7 @@ export function ProjectDetailClient({
   const content = localized(project.content, project.contentEn);
   const techs: string[] = JSON.parse(project.techStack || "[]");
   const links = parseLinks(project.link);
+  const members = project.isTeam ? parseMembers(project.members) : [];
 
   const en = locale === "en";
   const labelCls = `${EYEBROW} text-text-tertiary`;
@@ -159,9 +289,12 @@ export function ProjectDetailClient({
       <div className="max-w-prose mx-auto px-1 sm:px-0">
         {/* ── Header ── */}
         <header className="animate-fade-in">
-          <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
-            {title}
-          </h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
+              {title}
+            </h1>
+            {project.inProgress && <InProgressBadge locale={locale} />}
+          </div>
           <p className="mt-4 text-base text-text-secondary leading-relaxed">
             {description}
           </p>
@@ -220,6 +353,9 @@ export function ProjectDetailClient({
             </div>
           </div>
         )}
+
+        {/* ── Team ── */}
+        {members.length > 0 && <TeamTable members={members} me={me} en={en} labelCls={labelCls} />}
 
         {/* ── Related Posts ── */}
         {relatedPosts.length > 0 && (
