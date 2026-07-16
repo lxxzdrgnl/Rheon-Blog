@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { EYEBROW, EASE_OUT, DURATION_BASE, DURATION_SLOW } from "@/lib/styles";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
@@ -25,9 +25,21 @@ interface ExperienceLink { label: string; url: string }
 
 const ICONS = SOCIAL_ICONS;
 
+// 칩을 연타해도 진행 중인 이동을 현재 위치·속도에서 이어받게 스프링으로. 감쇠 1.0(오버슈트 없음).
+const LIST_SPRING = { type: "spring", bounce: 0, duration: DURATION_SLOW } as const;
+
 // ── Helpers ──
 
 interface PortfolioLink { badge?: string; label: string; url: string }
+
+function parseTechs(raw: string): string[] {
+  try {
+    const v = JSON.parse(raw || "[]");
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
 
 function parsePortfolioLinks(link: string | null): PortfolioLink[] {
   if (!link) return [];
@@ -42,15 +54,22 @@ function parsePortfolioLinks(link: string | null): PortfolioLink[] {
 
 // ── Sub-components ──
 
+// 기술 필터를 토글하면 행이 언마운트→재마운트된다. 캐시가 없으면 그때마다 파비콘을
+// 다시 받아 아이콘이 fallback 글자로 깜빡인다. 모듈 레벨에 담아 재마운트를 무료로 만든다.
+const faviconCache = new Map<string, string | null>();
+
 function ProjectIcon({ dbIcon, demoUrl, fallbackChar }: { dbIcon: string | null; demoUrl: string | null; fallbackChar: string }) {
-  const [icon, setIcon] = useState<string | null>(dbIcon || null);
+  const [icon, setIcon] = useState<string | null>(dbIcon || (demoUrl ? faviconCache.get(demoUrl) ?? null : null));
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (dbIcon || !demoUrl) return;
+    if (dbIcon || !demoUrl || faviconCache.has(demoUrl)) return;
     fetch(`/api/favicon?url=${encodeURIComponent(demoUrl)}`)
       .then((r) => r.json())
-      .then((d) => { if (d.icon) setIcon(d.icon); })
+      .then((d) => {
+        faviconCache.set(demoUrl, d.icon ?? null);
+        if (d.icon) setIcon(d.icon);
+      })
       .catch(() => {});
   }, [dbIcon, demoUrl]);
 
@@ -161,18 +180,20 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
       else next.add(name);
       return next;
     });
-  const parseTechs = (raw: string): string[] => {
-    try {
-      const v = JSON.parse(raw || "[]");
-      return Array.isArray(v) ? v : [];
-    } catch {
-      return [];
-    }
-  };
-  const filteredPortfolios =
-    selectedTechs.size === 0
-      ? portfolios
-      : portfolios.filter((p) => parseTechs(p.techStack).some((tch) => selectedTechs.has(tch)));
+  // techStack은 JSON 문자열이라 파싱이 싸지 않다. 칩을 누를 때마다 전부 다시 파싱하지 않도록 한 번만.
+  const techsById = useMemo(() => {
+    const m = new Map<number, string[]>();
+    for (const p of portfolios) m.set(p.id, parseTechs(p.techStack));
+    return m;
+  }, [portfolios]);
+
+  const filteredPortfolios = useMemo(
+    () =>
+      selectedTechs.size === 0
+        ? portfolios
+        : portfolios.filter((p) => (techsById.get(p.id) ?? []).some((tch) => selectedTechs.has(tch))),
+    [portfolios, techsById, selectedTechs],
+  );
 
   return (
     <div className="page-container pt-8 pb-6 md:pt-12">
@@ -293,24 +314,24 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
         {portfolios.length > 0 && (
           <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
             <SectionLabel>{t("resume.projects")}</SectionLabel>
-            <motion.div
-              layout={!reduceMotion}
-              transition={{ layout: { duration: DURATION_SLOW, ease: EASE_OUT } }}
-              className="space-y-1.5"
-            >
-              {filteredPortfolios.length === 0 && (
-                <motion.p
-                  layout
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ opacity: { duration: DURATION_SLOW, ease: EASE_OUT } }}
-                  className="text-sm text-text-tertiary py-2"
-                >
-                  {localized("선택한 기술의 프로젝트가 없어요.", "No projects match the selected tech.")}
-                </motion.p>
-              )}
-              {filteredPortfolios.map((item) => {
-                const techsRaw = parseTechs(item.techStack);
+            {/* 컨테이너에는 layout을 걸지 않는다 — 실제 높이는 어차피 즉시 바뀌어 아래 섹션이 따라 올라가고,
+                컨테이너 scale은 눈에 보이는 배경도 없이 자식마다 역-스케일 보정만 유발한다. */}
+            <div className="space-y-1.5">
+              <AnimatePresence initial={false} mode="popLayout">
+                {filteredPortfolios.length === 0 && (
+                  <motion.p
+                    key="empty"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: DURATION_BASE, ease: EASE_OUT }}
+                    className="text-sm text-text-tertiary py-2"
+                  >
+                    {localized("선택한 기술의 프로젝트가 없어요.", "No projects match the selected tech.")}
+                  </motion.p>
+                )}
+                {filteredPortfolios.map((item) => {
+                const techsRaw = techsById.get(item.id) ?? [];
                 const techs =
                   selectedTechs.size > 0
                     ? [...techsRaw].sort(
@@ -330,12 +351,15 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                 return (
                   <motion.div
                     key={item.id}
-                    layout
+                    // 행은 높이가 고정이라 위치만 FLIP하면 된다. 전체 layout은 크기까지 애니메이션해서
+                    // 자식 텍스트·칩에 스케일 왜곡을 만든다.
+                    layout={reduceMotion ? false : "position"}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{
-                      layout: { duration: DURATION_SLOW, ease: EASE_OUT },
-                      opacity: { duration: DURATION_BASE, ease: EASE_OUT, delay: 0.1 },
+                      layout: LIST_SPRING,
+                      opacity: { duration: DURATION_BASE, ease: EASE_OUT },
                     }}
                     className="group flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-bg-card/60 transition-colors"
                   >
@@ -386,7 +410,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                         {techs.slice(0, 3).map((tech) => (
                           <span
                             key={tech}
-                            className={`px-1.5 py-0.5 text-[11px] font-medium rounded ${
+                            className={`px-1.5 py-0.5 text-[11px] font-medium rounded transition-colors duration-150 ${
                               selectedTechs.has(tech)
                                 ? "bg-accent text-white"
                                 : "bg-accent/8 dark:bg-accent/15 text-accent"
@@ -400,8 +424,9 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                     </div>
                   </motion.div>
                 );
-              })}
-            </motion.div>
+                })}
+              </AnimatePresence>
+            </div>
           </section>
         )}
 
