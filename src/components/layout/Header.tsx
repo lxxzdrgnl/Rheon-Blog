@@ -2,6 +2,7 @@
 
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { useState, useEffect, useRef } from "react";
+import { useReducedMotion } from "motion/react";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
@@ -18,6 +19,7 @@ export function Header({ blogTitle }: HeaderProps) {
   const [hidden, setHidden] = useState(false);
   const lastYRef = useRef(0);
   const { t } = useI18n();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     lastYRef.current = window.scrollY;
@@ -34,8 +36,11 @@ export function Header({ blogTitle }: HeaderProps) {
 
   return (
     <header
-      className={`sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-xl transition-transform duration-300 relative ${
-        hidden && !mobileMenuOpen ? "-translate-y-full" : "translate-y-0"
+      // reduced-motion: 헤더를 숨기지 않고 항상 보이게 — 큰 요소의 반복 이동은 전정기관을 자극한다
+      className={`sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-xl relative ${
+        reduceMotion ? "" : "transition-transform duration-300"
+      } ${
+        hidden && !mobileMenuOpen && !reduceMotion ? "-translate-y-full" : "translate-y-0"
       }`}
     >
       <div className="page-container">

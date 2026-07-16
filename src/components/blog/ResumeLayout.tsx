@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useI18n, useLocalized } from "@/i18n/provider";
 import { EYEBROW } from "@/lib/styles";
 import { MarkdownRenderer } from "@/components/blog/MarkdownRenderer";
@@ -120,6 +120,7 @@ interface ResumeLayoutProps {
 export function ResumeLayout({ settings, socialLinks, experiences, activities, education, skills, portfolios, posts }: ResumeLayoutProps) {
   const { t, locale } = useI18n();
   const localized = useLocalized();
+  const reduceMotion = useReducedMotion();
 
   const s = (key: string) => (settings[key] as string) || "";
 
@@ -274,7 +275,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                     initial={{ height: 0 }}
                     animate={{ height: "auto" }}
                     exit={{ height: 0 }}
-                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                    transition={reduceMotion ? { duration: 0 } : { duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                     style={{ overflow: "hidden" }}
                     className="!mt-0"
                   >
@@ -297,7 +298,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
           <section className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3 md:gap-8 py-8">
             <SectionLabel>{t("resume.projects")}</SectionLabel>
             <motion.div
-              layout
+              layout={!reduceMotion}
               transition={{ layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }}
               className="space-y-1.5"
             >
