@@ -69,6 +69,7 @@ function ProjectWritePageContent() {
   const [thumb, setThumb] = useState("");
   const [inProgress, setInProgress] = useState(false);
   const [isTeam, setIsTeam] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [selectedPostIds, setSelectedPostIds] = useState<number[]>([]);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
@@ -100,6 +101,7 @@ function ProjectWritePageContent() {
           setIcon(p.icon || "");
           setInProgress(p.inProgress);
           setIsTeam(p.isTeam);
+          setIsPrivate(p.isPrivate);
           setMembers(p.isTeam ? normalizeMembers(parseMembers(p.members)) : []);
           originalRef.current = { title: p.title, desc: p.description, content: p.content || "" };
           try {
@@ -212,6 +214,7 @@ function ProjectWritePageContent() {
     fd.set("thumbnail", thumb);
     fd.set("inProgress", String(inProgress));
     fd.set("isTeam", String(isTeam));
+    fd.set("isPrivate", String(isPrivate));
     fd.set(
       "members",
       isTeam ? JSON.stringify(members.filter((m) => m.isMe || m.name.trim() || m.role.trim())) : "",
@@ -430,7 +433,23 @@ function ProjectWritePageContent() {
                 />
                 {lang === "en" ? "Team project" : "팀 프로젝트"}
               </label>
+              <label className="inline-flex items-center gap-2.5 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isPrivate}
+                  onChange={(e) => setIsPrivate(e.target.checked)}
+                  className="rounded accent-accent w-4 h-4"
+                />
+                {lang === "en" ? "Private" : "비공개"}
+              </label>
             </div>
+            {isPrivate && (
+              <p className="text-xs text-text-tertiary">
+                {lang === "en"
+                  ? "Hidden from the projects list, home, search and sitemap. The detail page returns 404."
+                  : "프로젝트 목록·홈·검색·사이트맵에서 빠지고, 상세 페이지도 열리지 않습니다."}
+              </p>
+            )}
           </section>
 
           {/* Members */}

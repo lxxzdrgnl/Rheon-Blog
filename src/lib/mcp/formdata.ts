@@ -31,6 +31,7 @@ export interface PortfolioInput {
   thumbnail?: string;
   inProgress?: boolean;
   isTeam?: boolean;
+  isPrivate?: boolean;
   /** ProjectMember[] JSON 문자열. isTeam이 false면 액션이 무시하고 null로 저장 */
   members?: string;
   postIds?: number[];
@@ -76,6 +77,9 @@ export function buildPortfolioFormData(input: PortfolioInput): FormData {
   setIf(fd, "thumbnail", input.thumbnail);
   fd.set("inProgress", input.inProgress ? "true" : "false");
   fd.set("isTeam", input.isTeam ? "true" : "false");
+  // update 경로는 호출 전에 현재값과 머지되므로(updatePortfolioFromInput) 항상 확정값이 들어온다.
+  // create 경로에서 미지정이면 false = 공개.
+  fd.set("isPrivate", input.isPrivate ? "true" : "false");
   setIf(fd, "members", input.members);
   fd.set("postIds", JSON.stringify(input.postIds ?? []));
   return fd;

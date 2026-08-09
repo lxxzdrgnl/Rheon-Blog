@@ -58,7 +58,7 @@ function WritePageContent() {
 
   useEffect(() => {
     getCategories().then(setCategories);
-    getPortfolios().then((p) => setAllProjects(p.map((x) => ({ id: x.id, title: x.title, slug: x.slug }))));
+    getPortfolios({ includePrivate: true }).then((p) => setAllProjects(p.map((x) => ({ id: x.id, title: x.title, slug: x.slug }))));
     getAllSeries().then((s) => setAllSeries(s.map((x) => ({ id: x.id, title: x.title }))));
   }, []);
 
@@ -82,7 +82,7 @@ function WritePageContent() {
         }
       });
       getPostTags(editId).then(setSelectedTags);
-      getProjectsForPost(editId).then((projects) => setSelectedProjectIds(projects.map((p) => p.id)));
+      getProjectsForPost(editId, { includePrivate: true }).then((projects) => setSelectedProjectIds(projects.map((p) => p.id)));
     }
   }, [editId]);
 

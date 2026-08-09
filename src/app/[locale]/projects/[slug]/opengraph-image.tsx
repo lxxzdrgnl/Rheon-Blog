@@ -6,7 +6,9 @@ export const contentType = "image/png";
 
 export default async function Image({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
-  const project = await getPortfolioBySlug(slug);
+  const found = await getPortfolioBySlug(slug);
+  // 비공개 프로젝트는 상세가 404이므로 OG 이미지로도 제목이 새어 나가면 안 된다.
+  const project = found && !found.isPrivate ? found : null;
   const title = project ? (locale === "en" && project.titleEn ? project.titleEn : project.title) : "Project";
 
   return new ImageResponse(

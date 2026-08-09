@@ -62,7 +62,14 @@ export async function searchPortfolios(query: string, locale: string = "ko") {
         sql`${portfolios.content} LIKE ${pat} ESCAPE '\\'`,
       );
 
-  return db.select().from(portfolios).where(cond).orderBy(asc(portfolios.sortOrder)).limit(20).all();
+  // 검색은 공개 화면 전용 — 비공개 프로젝트는 제외한다.
+  return db
+    .select()
+    .from(portfolios)
+    .where(and(eq(portfolios.isPrivate, false), cond))
+    .orderBy(asc(portfolios.sortOrder))
+    .limit(20)
+    .all();
 }
 
 export async function searchSeries(query: string, locale: string = "ko") {

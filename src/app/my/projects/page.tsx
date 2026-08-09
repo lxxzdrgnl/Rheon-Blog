@@ -15,12 +15,13 @@ interface Portfolio {
   link: string | null;
   thumbnail: string | null;
   sortOrder: number;
+  isPrivate: boolean;
 }
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Portfolio[]>([]);
 
-  const loadAll = () => getPortfolios().then(setProjects);
+  const loadAll = () => getPortfolios({ includePrivate: true }).then(setProjects);
   useEffect(() => { loadAll(); }, []);
 
   const handleMove = async (index: number, dir: "up" | "down") => {
@@ -73,7 +74,14 @@ export default function ProjectsPage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium truncate block">{p.title}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm font-medium truncate">{p.title}</span>
+                    {p.isPrivate && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        비공개
+                      </span>
+                    )}
+                  </div>
                   {techs.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {techs.map((t) => (
@@ -85,12 +93,15 @@ export default function ProjectsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0">
-                  <Link href={`/projects/${p.slug}`} className="p-1.5 text-text-tertiary hover:text-text-primary transition-colors" title="보기">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </Link>
+                  {/* 비공개는 공개 URL이 404라 보기 링크를 숨긴다(글 목록과 동일). */}
+                  {!p.isPrivate && (
+                    <Link href={`/projects/${p.slug}`} className="p-1.5 text-text-tertiary hover:text-text-primary transition-colors" title="보기">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </Link>
+                  )}
                   <Link href={`/my/projects/write?id=${p.id}`} className="p-1.5 text-text-tertiary hover:text-text-primary transition-colors" title="수정">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />

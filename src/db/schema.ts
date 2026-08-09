@@ -69,6 +69,8 @@ export const portfolios = sqliteTable("portfolios", {
   thumbnail: text("thumbnail"),
   inProgress: integer("in_progress", { mode: "boolean" }).notNull().default(false),
   isTeam: integer("is_team", { mode: "boolean" }).notNull().default(false),
+  // posts.isPrivate와 같은 의미 — 공개 목록/검색/사이트맵에서 빠지고 상세도 404가 된다(관리자 화면에만 보임).
+  isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
   members: text("members"), // JSON array of ProjectMember — isTeam false면 null
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),

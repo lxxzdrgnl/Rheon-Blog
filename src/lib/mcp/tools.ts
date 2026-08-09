@@ -56,6 +56,12 @@ const portfolioBody = {
   thumbnail: z.string().optional(),
   inProgress: z.boolean().optional().describe("아직 만들고 있는 프로젝트면 true — 목록·상세에 진행중 뱃지가 붙는다"),
   isTeam: z.boolean().optional().describe("팀 프로젝트면 true. false면 members는 무시되고 비워진다"),
+  isPrivate: z
+    .boolean()
+    .optional()
+    .describe(
+      "비공개 프로젝트면 true — 프로젝트 목록·홈·검색·사이트맵에서 빠지고 상세 페이지도 404가 된다(관리자 화면에는 계속 보임). 생성 시 기본값은 false(공개), 수정 시 생략하면 현재 설정이 유지된다",
+    ),
   members: z
     .string()
     .optional()
@@ -118,8 +124,11 @@ async function updatePostFromInput(input: PostUpdateInput) {
     seriesId = current.seriesId ?? undefined;
   }
 
+  // 보존용 조회 — 비공개 프로젝트까지 읽어야 글 수정 시 연결이 조용히 끊기지 않는다.
   const projectIds =
-    input.projectIds !== undefined ? input.projectIds : (await getProjectsForPost(input.id)).map((p) => p.id);
+    input.projectIds !== undefined
+      ? input.projectIds
+      : (await getProjectsForPost(input.id, { includePrivate: true })).map((p) => p.id);
 
   const fd = buildPostFormData({
     id: input.id,
@@ -171,6 +180,7 @@ async function updatePortfolioFromInput(input: PortfolioUpdateInput) {
     thumbnail: input.thumbnail ?? current.thumbnail ?? undefined,
     inProgress: input.inProgress ?? current.inProgress,
     isTeam: input.isTeam ?? current.isTeam,
+    isPrivate: input.isPrivate ?? current.isPrivate,
     members: input.members ?? current.members ?? undefined,
     postIds,
   });
@@ -183,7 +193,7 @@ async function enrichPost<T extends { id: number; seriesId: number | null } | nu
   if (!post) return post;
   const [postTagList, projects, allSeries] = await Promise.all([
     getPostTags(post.id),
-    getProjectsForPost(post.id),
+    getProjectsForPost(post.id, { includePrivate: true }),
     getAllSeries(),
   ]);
   const series = post.seriesId != null ? allSeries.find((s) => s.id === post.seriesId) : null;
@@ -226,8 +236,8 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({ id: z.number().int() }),
     handler: async (a) => { await deletePost((a as { id: number }).id); return { deleted: true }; } },
 
-  { name: "list_portfolios", description: "프로젝트(포트폴리오) 목록 조회.",
-    schema: z.object({}), handler: async () => getPortfolios() },
+  { name: "list_portfolios", description: "프로젝트(포트폴리오) 목록 조회. 비공개(isPrivate) 프로젝트도 포함해서 돌려준다.",
+    schema: z.object({}), handler: async () => getPortfolios({ includePrivate: true }) },
   { name: "get_portfolio", description: "slug 또는 id로 단일 프로젝트 조회. 응답에 연결된 postIds 포함.",
     schema: z.object({ slug: z.string().optional(), id: z.number().int().optional() }),
     handler: async (a) => { const { slug, id } = a as { slug?: string; id?: number }; if (slug) return enrichPortfolio(await getPortfolioBySlug(slug)); if (id != null) return enrichPortfolio(await getPortfolioById(id)); throw new Error("slug 또는 id가 필요합니다."); } },

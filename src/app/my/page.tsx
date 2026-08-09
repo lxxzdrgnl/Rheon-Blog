@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   const [recentPosts, stats, allProjects, recentComments] = await Promise.all([
     getPosts({ limit: 5 }),
     getPostStats(),
-    getPortfolios(),
+    getPortfolios({ includePrivate: true }),
     getRecentComments(8),
   ]);
 

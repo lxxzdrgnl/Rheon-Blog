@@ -63,11 +63,11 @@ export default function MyPostsPage() {
   const loadAll = () => {
     getPosts().then((p) => setAllPosts(p as Post[]));
     getCategories().then(setCategories);
-    getPortfolios().then((p) => setAllProjects(p as { id: number; title: string }[]));
+    getPortfolios({ includePrivate: true }).then((p) => setAllProjects(p as { id: number; title: string }[]));
   };
 
   const openPublish = async (post: Post) => {
-    const projs = await getProjectsForPost(post.id);
+    const projs = await getProjectsForPost(post.id, { includePrivate: true });
     setPublishProjectIds(projs.map((p) => p.id));
     setPublishPost(post);
   };

@@ -17,7 +17,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const project = await getPortfolioBySlug(slug);
-  if (!project) return {};
+  if (!project || project.isPrivate) return {};
   const loc = (locale === "en" ? "en" : "ko") as "en" | "ko";
   const isEn = loc === "en";
   const title = isEn && project.titleEn ? project.titleEn : project.title;
@@ -37,7 +37,8 @@ export default async function ProjectDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   const isEn = locale === "en";
   const project = await getPortfolioBySlug(slug);
-  if (!project) notFound();
+  // 비공개 프로젝트는 공개 URL로 열리지 않는다(포스트 상세와 동일).
+  if (!project || project.isPrivate) notFound();
 
   const [relatedPosts, allCategories, postTagsMap, categoryTree, categoryCounts, recentPosts, viewStats, socialLinks, settings] = await Promise.all([
     getPortfolioPosts(project.id),
