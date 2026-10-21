@@ -67,7 +67,20 @@ function parsePortfolioLinks(link: string | null): PortfolioLink[] {
 // 다시 받아 아이콘이 fallback 글자로 깜빡인다. 모듈 레벨에 담아 재마운트를 무료로 만든다.
 const faviconCache = new Map<string, string | null>();
 
+// icon 칸에는 URL 말고 이모지(🧭 등)도 들어온다. 이모지를 <img src>로 넣으면 상대경로 요청(404)이 나가고,
+// React가 이미지 preload용 Link 헤더에 비-Latin1 문자를 넣으려다 ByteString 오류가 난다.
+function isIconUrl(v: string) {
+  return /^(https?:|data:|\/)/.test(v);
+}
+
 function ProjectIcon({ dbIcon, demoUrl, fallbackChar }: { dbIcon: string | null; demoUrl: string | null; fallbackChar: string }) {
+  if (dbIcon && !isIconUrl(dbIcon)) {
+    return <span className="w-5 h-5 shrink-0 flex items-center justify-center text-base leading-none" aria-hidden>{dbIcon}</span>;
+  }
+  return <ProjectImageIcon dbIcon={dbIcon} demoUrl={demoUrl} fallbackChar={fallbackChar} />;
+}
+
+function ProjectImageIcon({ dbIcon, demoUrl, fallbackChar }: { dbIcon: string | null; demoUrl: string | null; fallbackChar: string }) {
   const [icon, setIcon] = useState<string | null>(dbIcon || (demoUrl ? faviconCache.get(demoUrl) ?? null : null));
   const [failed, setFailed] = useState(false);
 
