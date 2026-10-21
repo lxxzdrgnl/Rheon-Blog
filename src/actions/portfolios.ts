@@ -119,6 +119,7 @@ export async function createPortfolio(formData: FormData) {
   const thumbnail = (formData.get("thumbnail") as string) || null;
   const inProgress = formData.get("inProgress") === "true";
   const isTeam = formData.get("isTeam") === "true";
+  const isSmall = formData.get("isSmall") === "true";
   // 필드가 없으면 공개(false) — 기존 동작 유지
   const isPrivate = formData.get("isPrivate") === "true";
   const members = isTeam ? (formData.get("members") as string) || null : null;
@@ -134,7 +135,7 @@ export async function createPortfolio(formData: FormData) {
       content, contentEn,
       techStack: JSON.stringify(techStack.split(",").map((s) => s.trim()).filter(Boolean)),
       link, icon, thumbnail,
-      inProgress, isTeam, isPrivate, members,
+      inProgress, isTeam, isSmall, isPrivate, members,
       sortOrder: all.length,
     })
     .returning()
@@ -169,6 +170,9 @@ export async function updatePortfolio(formData: FormData) {
   // ("false"로 읽어 버리면 isPrivate를 안 보내는 옛 폼·스크립트가 비공개 프로젝트를 공개로 되돌린다.)
   const rawIsPrivate = formData.get("isPrivate");
   const isPrivate = rawIsPrivate === null ? undefined : rawIsPrivate === "true";
+  // isPrivate와 같은 3상태 — 옛 폼·스크립트가 소규모 설정을 지우지 않게.
+  const rawIsSmall = formData.get("isSmall");
+  const isSmall = rawIsSmall === null ? undefined : rawIsSmall === "true";
 
   db.update(portfolios)
     .set({
@@ -176,7 +180,7 @@ export async function updatePortfolio(formData: FormData) {
       content, contentEn,
       techStack: JSON.stringify(techStack.split(",").map((s) => s.trim()).filter(Boolean)),
       link, icon, thumbnail,
-      inProgress, isTeam, isPrivate, members,
+      inProgress, isTeam, isSmall, isPrivate, members,
     })
     .where(eq(portfolios.id, id))
     .run();

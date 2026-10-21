@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseMembers, githubHandle, normalizeMembers } from "@/lib/members";
+import { parseMembers, githubHandle, normalizeMembers, projectScale } from "@/lib/members";
 
 describe("parseMembers", () => {
   it("정상 JSON 배열을 그대로 돌려준다", () => {
@@ -68,5 +68,19 @@ describe("normalizeMembers", () => {
   });
   it("빈 배열이면 본인 행 하나", () => {
     expect(normalizeMembers([])).toEqual([{ name: "", role: "", isMe: true }]);
+  });
+});
+
+describe("projectScale", () => {
+  it("아무것도 체크 안 했으면 solo", () => {
+    expect(projectScale({ isTeam: false, isSmall: false })).toBe("solo");
+    expect(projectScale({})).toBe("solo");
+  });
+  it("isSmall이면 small", () => {
+    expect(projectScale({ isTeam: false, isSmall: true })).toBe("small");
+  });
+  it("isTeam이면 isSmall과 상관없이 team", () => {
+    expect(projectScale({ isTeam: true, isSmall: false })).toBe("team");
+    expect(projectScale({ isTeam: true, isSmall: true })).toBe("team");
   });
 });

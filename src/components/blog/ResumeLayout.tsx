@@ -9,6 +9,7 @@ import { PostCard } from "./PostCard";
 import { LocaleLink as Link } from "@/components/ui/LocaleLink";
 import { SOCIAL_ICONS } from "@/lib/socialIcons";
 import { InProgressBadge } from "@/components/blog/InProgressBadge";
+import { projectScale, type ProjectScale } from "@/lib/members";
 
 // ── Types ──
 
@@ -17,7 +18,7 @@ interface Experience { id: number; company: string; companyEn: string | null; ro
 interface Activity { id: number; title: string; titleEn: string | null; organization: string; organizationEn: string | null; date: string; description: string | null; descriptionEn: string | null; link: string | null }
 interface Education { id: number; school: string; schoolEn: string | null; degree: string | null; degreeEn: string | null; field: string | null; fieldEn: string | null; description: string | null; descriptionEn: string | null; startDate: string; endDate: string | null }
 interface Skill { id: number; name: string; category: string; categoryEn: string | null }
-interface Portfolio { id: number; title: string; titleEn: string | null; slug: string; description: string; descriptionEn: string | null; techStack: string; link: string | null; icon: string | null; thumbnail: string | null; inProgress?: boolean }
+interface Portfolio { id: number; title: string; titleEn: string | null; slug: string; description: string; descriptionEn: string | null; techStack: string; link: string | null; icon: string | null; thumbnail: string | null; inProgress?: boolean; isTeam?: boolean; isSmall?: boolean }
 interface Post { id: number; title: string; titleEn: string | null; slug: string; thumbnail: string | null; createdAt: string; categoryName: string; categoryNameEn: string; tags?: { name: string; nameEn: string }[] }
 interface ExperienceLink { label: string; url: string }
 
@@ -27,6 +28,14 @@ const ICONS = SOCIAL_ICONS;
 
 // 칩을 연타해도 진행 중인 이동을 현재 위치·속도에서 이어받게 스프링으로. 감쇠 1.0(오버슈트 없음).
 const LIST_SPRING = { type: "spring", bounce: 0, duration: DURATION_SLOW } as const;
+
+// 프로젝트 탭 순서 — 기본은 전체("all").
+const SCALE_TABS: { key: ProjectScale | "all"; ko: string; en: string }[] = [
+  { key: "all", ko: "전체", en: "All" },
+  { key: "solo", ko: "개인", en: "Solo" },
+  { key: "small", ko: "소규모", en: "Small team" },
+  { key: "team", ko: "팀", en: "Team" },
+];
 
 // ── Helpers ──
 
@@ -192,12 +201,29 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
     return m;
   }, [portfolios]);
 
-  const filteredPortfolios = useMemo(
+  const techFiltered = useMemo(
     () =>
       selectedTechs.size === 0
         ? portfolios
         : portfolios.filter((p) => (techsById.get(p.id) ?? []).some((tch) => selectedTechs.has(tch))),
     [portfolios, techsById, selectedTechs],
+  );
+
+  // ── Scale tabs (전체 / 개인 / 소규모 / 팀) ── 프로젝트가 하나도 없는 분류 탭은 숨긴다.
+  const scaleById = useMemo(() => {
+    const m = new Map<number, ProjectScale>();
+    for (const p of portfolios) m.set(p.id, projectScale(p));
+    return m;
+  }, [portfolios]);
+  const scaleTabs = useMemo(
+    () => SCALE_TABS.filter((tab) => tab.key === "all" || portfolios.some((p) => scaleById.get(p.id) === tab.key)),
+    [portfolios, scaleById],
+  );
+  const [activeScale, setActiveScale] = useState<ProjectScale | "all">("all");
+
+  const filteredPortfolios = useMemo(
+    () => (activeScale === "all" ? techFiltered : techFiltered.filter((p) => scaleById.get(p.id) === activeScale)),
+    [techFiltered, scaleById, activeScale],
   );
 
   return (
@@ -332,6 +358,35 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
             <SectionLabel>{t("resume.projects")}</SectionLabel>
             {/* 컨테이너에는 layout을 걸지 않는다 — 실제 높이는 어차피 즉시 바뀌어 아래 섹션이 따라 올라가고,
                 컨테이너 scale은 눈에 보이는 배경도 없이 자식마다 역-스케일 보정만 유발한다. */}
+            <div>
+              {scaleTabs.length > 2 && (
+                <div role="tablist" className="flex gap-4 mb-3 border-b border-border">
+                  {scaleTabs.map((tab) => {
+                    const active = activeScale === tab.key;
+                    const count =
+                      tab.key === "all"
+                        ? techFiltered.length
+                        : techFiltered.filter((p) => scaleById.get(p.id) === tab.key).length;
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => setActiveScale(tab.key)}
+                        className={`-mb-px pb-2 text-sm border-b-2 transition-colors duration-150 ${
+                          active
+                            ? "border-accent text-text-primary font-medium"
+                            : "border-transparent text-text-tertiary hover:text-text-secondary"
+                        }`}
+                      >
+                        {localized(tab.ko, tab.en)}
+                        <span className="ml-1 text-[11px] text-text-tertiary tabular-nums">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             <div className="space-y-1.5">
               <AnimatePresence initial={false} mode="popLayout">
                 {filteredPortfolios.length === 0 && (
@@ -442,6 +497,7 @@ export function ResumeLayout({ settings, socialLinks, experiences, activities, e
                 );
                 })}
               </AnimatePresence>
+            </div>
             </div>
           </section>
         )}

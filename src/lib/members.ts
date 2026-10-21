@@ -45,3 +45,11 @@ export function normalizeMembers(members: ProjectMember[]): ProjectMember[] {
   const others = members.filter((m) => !m.isMe);
   return [{ ...me, isMe: true }, ...others];
 }
+
+export type ProjectScale = "solo" | "small" | "team";
+
+/** 이력서 프로젝트 탭 분류 — 팀(isTeam) > 소규모(isSmall) > 개인. 둘 다 체크돼 있으면 팀이 우선. */
+export function projectScale(p: { isTeam?: boolean | null; isSmall?: boolean | null }): ProjectScale {
+  if (p.isTeam) return "team";
+  return p.isSmall ? "small" : "solo";
+}

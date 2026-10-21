@@ -56,6 +56,10 @@ const portfolioBody = {
   thumbnail: z.string().optional(),
   inProgress: z.boolean().optional().describe("아직 만들고 있는 프로젝트면 true — 목록·상세에 진행중 뱃지가 붙는다"),
   isTeam: z.boolean().optional().describe("팀 프로젝트면 true. false면 members는 무시되고 비워진다"),
+  isSmall: z
+    .boolean()
+    .optional()
+    .describe("소규모 프로젝트면 true — 이력서 프로젝트 탭에서 '소규모'로 분류된다(isTeam이 true면 팀이 우선). 수정 시 생략하면 현재 설정 유지"),
   isPrivate: z
     .boolean()
     .optional()
@@ -180,6 +184,7 @@ async function updatePortfolioFromInput(input: PortfolioUpdateInput) {
     thumbnail: input.thumbnail ?? current.thumbnail ?? undefined,
     inProgress: input.inProgress ?? current.inProgress,
     isTeam: input.isTeam ?? current.isTeam,
+    isSmall: input.isSmall ?? current.isSmall,
     isPrivate: input.isPrivate ?? current.isPrivate,
     members: input.members ?? current.members ?? undefined,
     postIds,

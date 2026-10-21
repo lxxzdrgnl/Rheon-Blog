@@ -69,6 +69,7 @@ function ProjectWritePageContent() {
   const [thumb, setThumb] = useState("");
   const [inProgress, setInProgress] = useState(false);
   const [isTeam, setIsTeam] = useState(false);
+  const [isSmall, setIsSmall] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [selectedPostIds, setSelectedPostIds] = useState<number[]>([]);
@@ -101,6 +102,7 @@ function ProjectWritePageContent() {
           setIcon(p.icon || "");
           setInProgress(p.inProgress);
           setIsTeam(p.isTeam);
+          setIsSmall(p.isSmall);
           setIsPrivate(p.isPrivate);
           setMembers(p.isTeam ? normalizeMembers(parseMembers(p.members)) : []);
           originalRef.current = { title: p.title, desc: p.description, content: p.content || "" };
@@ -214,6 +216,7 @@ function ProjectWritePageContent() {
     fd.set("thumbnail", thumb);
     fd.set("inProgress", String(inProgress));
     fd.set("isTeam", String(isTeam));
+    fd.set("isSmall", String(isSmall));
     fd.set("isPrivate", String(isPrivate));
     fd.set(
       "members",
@@ -432,6 +435,15 @@ function ProjectWritePageContent() {
                   className="rounded accent-accent w-4 h-4"
                 />
                 {lang === "en" ? "Team project" : "팀 프로젝트"}
+              </label>
+              <label className="inline-flex items-center gap-2.5 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isSmall}
+                  onChange={(e) => setIsSmall(e.target.checked)}
+                  className="rounded accent-accent w-4 h-4"
+                />
+                {lang === "en" ? "Small project" : "소규모"}
               </label>
               <label className="inline-flex items-center gap-2.5 text-sm cursor-pointer select-none">
                 <input
