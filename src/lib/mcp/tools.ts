@@ -19,6 +19,7 @@ import { getCategoriesWithCount, createCategory } from "@/actions/categories";
 import { resolveTags, resolveSeries } from "@/lib/mcp/taxonomy";
 import { buildPostFormData, buildPortfolioFormData } from "@/lib/mcp/formdata";
 import { uploadImage } from "@/lib/minio";
+import { getSettings, updateSettings } from "@/actions/settings";
 
 export interface ToolDef {
   name: string;
@@ -224,6 +225,19 @@ const RESUME_OPS = {
   social: { list: getSocialLinks, create: createSocialLink, update: updateSocialLink, del: deleteSocialLink },
 } as const;
 
+// 프로필 소개(이름·직함·한 줄 소개·소개문) ↔ settings 테이블의 resume_* 키.
+// 그 밖의 설정(og_image 등)은 MCP로 건드리지 않도록 화이트리스트로 묶는다.
+const PROFILE_KEYS = {
+  name: "resume_name", nameEn: "resume_name_en",
+  title: "resume_title", titleEn: "resume_title_en",
+  tagline: "resume_tagline", taglineEn: "resume_tagline_en",
+  about: "resume_about", aboutEn: "resume_about_en",
+} as const;
+type ProfileField = keyof typeof PROFILE_KEYS;
+const profileSchema = z.object(
+  Object.fromEntries(Object.keys(PROFILE_KEYS).map((k) => [k, z.string().optional()])) as Record<ProfileField, z.ZodOptional<z.ZodString>>
+).strict();
+
 export const TOOLS: ToolDef[] = [
   { name: "list_posts", description: "블로그 글 목록 조회. published/categoryId/limit/offset로 필터.",
     schema: z.object({ published: z.boolean().optional(), categoryId: z.number().int().optional(), limit: z.number().int().optional(), offset: z.number().int().optional() }),
@@ -313,6 +327,22 @@ export const TOOLS: ToolDef[] = [
     handler: async (a) => {
       const { locale } = a as { locale: "ko" | "en" };
       return deleteResumePdf(locale);
+    } },
+  { name: "profile_get", description: "프로필 소개(이름·직함·한 줄 소개·소개문, 각 KO/EN)를 조회한다. 소개문(about)은 홈 메타 description으로도 쓰인다.",
+    schema: z.object({}),
+    handler: async () => {
+      const s = await getSettings();
+      return Object.fromEntries((Object.entries(PROFILE_KEYS) as [ProfileField, string][]).map(([f, k]) => [f, (s[k] as string | undefined) ?? ""]));
+    } },
+
+  { name: "profile_update", description: "프로필 소개 부분수정(PATCH). 보낸 필드만 바뀐다. 필드: name/nameEn(이름), title/titleEn(직함), tagline/taglineEn(한 줄 소개), about/aboutEn(소개문 — 홈 메타 description으로도 쓰임).",
+    schema: profileSchema,
+    handler: async (a) => {
+      const parsed = profileSchema.parse(a);
+      const entries = Object.entries(parsed).filter(([, v]) => v !== undefined) as [ProfileField, string][];
+      if (entries.length === 0) throw new Error("수정할 필드를 하나 이상 보내세요.");
+      await updateSettings(Object.fromEntries(entries.map(([f, v]) => [PROFILE_KEYS[f], v])));
+      return { updated: entries.map(([f]) => f) };
     } },
 ];
 

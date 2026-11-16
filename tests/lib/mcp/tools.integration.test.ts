@@ -143,3 +143,26 @@ describe("portfolio isPrivate (integration)", () => {
     expect(await getProjectsForPost(post.id, { includePrivate: true })).toHaveLength(2);
   });
 });
+
+describe("profile_get / profile_update (integration)", () => {
+  const { settings } = schema;
+  beforeEach(() => { db.delete(settings).run(); });
+
+  it("profile_update는 보낸 필드만 resume_* 설정에 저장하고 나머지는 유지한다", async () => {
+    db.insert(settings).values({ key: "resume_tagline", value: JSON.stringify("기존 한 줄") }).run();
+    await runAsAdmin(() => TOOL_MAP.get("profile_update")!.handler({ title: "ML 엔지니어", titleEn: "ML Engineer" }));
+    const res = (await TOOL_MAP.get("profile_get")!.handler({})) as Record<string, unknown>;
+    expect(res.title).toBe("ML 엔지니어");
+    expect(res.titleEn).toBe("ML Engineer");
+    expect(res.tagline).toBe("기존 한 줄");
+  });
+
+  it("빈 수정 요청과 화이트리스트 밖 필드는 거부한다", async () => {
+    await expect(runAsAdmin(() => TOOL_MAP.get("profile_update")!.handler({}))).rejects.toThrow();
+    expect(() => TOOL_MAP.get("profile_update")!.schema.parse({ og_image: "x" })).toThrow();
+  });
+
+  it("관리자 컨텍스트 밖에서는 수정할 수 없다", async () => {
+    await expect(TOOL_MAP.get("profile_update")!.handler({ title: "x" })).rejects.toThrow();
+  });
+});
