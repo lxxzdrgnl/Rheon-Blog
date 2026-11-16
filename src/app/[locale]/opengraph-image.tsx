@@ -9,7 +9,7 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
   const { locale } = await params;
   const isEn = locale === "en";
   const name = ((await getSetting(isEn ? "resume_name_en" : "resume_name")) as string) || "Rheon Lee";
-  const role = ((await getSetting(isEn ? "resume_title_en" : "resume_title")) as string) || "Back-End / MLOps Developer";
+  const role = ((await getSetting(isEn ? "resume_title_en" : "resume_title")) as string) || "";
   const tagline = ((await getSetting(isEn ? "resume_tagline_en" : "resume_tagline")) as string) || "";
 
   return new ImageResponse(
